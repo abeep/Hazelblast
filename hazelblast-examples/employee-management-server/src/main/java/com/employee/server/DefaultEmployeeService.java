@@ -43,4 +43,12 @@ public class DefaultEmployeeService implements EmployeeService, SpringPartitionL
         partitions.remove(partitionId);
         logger.info("Partition removed: "+partitionId+", new size is "+partitions.size());
     }
+
+    public void init() {
+        logger.info("Initializing");
+    }
+
+    public void destroy() {
+        logger.info("Destroying");
+    }
 }
