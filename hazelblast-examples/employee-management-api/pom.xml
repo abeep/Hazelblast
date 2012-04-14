@@ -4,7 +4,7 @@
     <packaging>jar</packaging>
 
     <artifactId>employee-management-api</artifactId>
-    <name>Hazelcast Employee Example - Api package</name>
+    <name>Hazelblast Employee Example - Api package</name>
 
     <description>
         Spring integration for the Hazelcast Services

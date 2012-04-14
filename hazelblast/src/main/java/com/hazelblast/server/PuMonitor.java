@@ -47,7 +47,7 @@ public class PuMonitor {
         for (Partition p : partitions) {
             int partitionId = p.getPartitionId();
             if (p.getOwner().equals(self)) {
-                boolean addPu = !puContainer.containsKey(partitionId);
+                boolean addPu = !puContainer.containsPartition(partitionId);
                 if (addPu) {
                     Lock lock = Hazelcast.getLock("PartitionLock-" + partitionId);
                     if (!lock.tryLock()) {
@@ -55,12 +55,12 @@ public class PuMonitor {
                     }
 
                     change = true;
-                    puContainer.startPu(partitionId);
+                    puContainer.onPartitionAdded(partitionId);
                 }
             } else {
-                boolean removePu = puContainer.containsKey(partitionId);
+                boolean removePu = puContainer.containsPartition(partitionId);
                 if (removePu) {
-                    puContainer.terminatePu(partitionId);
+                    puContainer.pnPartitionRemoved(partitionId);
 
                     Lock lock = Hazelcast.getLock("PartitionLock-" + partitionId);
                     lock.unlock();
@@ -71,7 +71,7 @@ public class PuMonitor {
         }
 
         if (change) {
-            logger.log(Level.INFO, "managed pu's: " + puContainer.size());
+            logger.log(Level.INFO, "managed partitions: " + puContainer.getPartitionCount());
         }
     }
 }

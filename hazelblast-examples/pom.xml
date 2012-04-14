@@ -4,11 +4,11 @@
     <packaging>pom</packaging>
 
     <artifactId>hazelblast-examples</artifactId>
-    <name>Hazelcast Examples</name>
+    <name>Hazelblast Examples</name>
 
     <description>
-        Hazelcast Example module that contains various examples showing the usage of the
-        Hazelcast Services package.
+        Hazelblast Example module that contains various examples showing the usage of the
+        Hazelblast.
     </description>
 
      <parent>

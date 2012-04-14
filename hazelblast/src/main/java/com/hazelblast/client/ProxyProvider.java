@@ -2,13 +2,10 @@ package com.hazelblast.client;
 
 import com.hazelblast.api.*;
 import com.hazelblast.server.PuContainer;
-import com.hazelblast.server.PuHolder;
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.Member;
 import com.hazelcast.core.MultiTask;
 import com.hazelcast.core.PartitionAware;
-import com.hazelcast.partition.Partition;
-import com.hazelcast.partition.PartitionService;
 
 import java.io.Serializable;
 import java.lang.annotation.Annotation;
@@ -159,15 +156,8 @@ public class ProxyProvider {
 
         public Object call() throws Exception {
             PuContainer container = PuContainer.INSTANCE;
-            PartitionService partitionService = Hazelcast.getPartitionService();
-            //kinda nasty since always the first partition will be selected.. not very load balanced...
-            Partition partition = partitionService.getPartitions().iterator().next();
-            PuHolder holder = container.getHolder(partition.getPartitionId());
-            if (holder == null) {
-                throw new IllegalAccessException("Holder with id" + partition.getPartitionId() + " is not found");
-            }
 
-            ProcessingUnit pu = holder.getPu();
+            ProcessingUnit pu = container.getPu();
             Object service = pu.getService(serviceName);
             if (service == null) {
                 throw new NullPointerException(format("Can't find service [%s]", serviceName));
@@ -198,14 +188,8 @@ public class ProxyProvider {
 
         public Object call() throws Exception {
             PuContainer container = PuContainer.INSTANCE;
-            PartitionService partitionService = Hazelcast.getPartitionService();
-            Partition partition = partitionService.getPartition(getPartitionKey());
-            PuHolder holder = container.getHolder(partition.getPartitionId());
-            if (holder == null) {
-                throw new IllegalAccessException("Holder with id" + partition.getPartitionId() + " is not found");
-            }
 
-            ProcessingUnit pu = holder.getPu();
+            ProcessingUnit pu = container.getPu();
             Object service = pu.getService(serviceName);
             if (service == null) {
                 throw new NullPointerException(format("Can't find service [%s]", serviceName));

@@ -2,8 +2,6 @@ package com.hazelblast.server.pojo;
 
 import com.hazelblast.api.ProcessingUnit;
 import com.hazelblast.api.PuFactory;
-import com.hazelblast.api.ProcessingUnit;
-import com.hazelblast.api.PuFactory;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
@@ -14,23 +12,20 @@ import static java.lang.String.format;
 
 public class PojoPuFactory implements PuFactory {
 
-    public ProcessingUnit create(int partition) {
-        return new PojoPu(partition);
+    public ProcessingUnit create() {
+        return new PojoPu();
     }
 
     static class PojoPu implements ProcessingUnit {
 
-        private final int partition;
         private final Object target;
 
-        public PojoPu(int partition) {
-            this.partition = partition;
-
+        public PojoPu() {
             String pojoClassName = System.getProperty("pojoPu");
             try {
                 Class clazz = PojoPuFactory.class.getClassLoader().loadClass(pojoClassName);
-                Constructor c = clazz.getConstructor(Integer.TYPE);
-                target = c.newInstance(partition);
+                Constructor c = clazz.getConstructor();
+                target = c.newInstance();
             } catch (ClassNotFoundException e) {
                 throw new RuntimeException(e);
             } catch (InstantiationException e) {
@@ -65,9 +60,33 @@ public class PojoPuFactory implements PuFactory {
             }
         }
 
-        public void start() {
+        public void onPartitionAdded(int partitionId) {
             try {
-                Method method = target.getClass().getMethod("start");
+                Method method = target.getClass().getMethod("onPartitionAdded", Integer.TYPE);
+                method.invoke(target, partitionId);
+            } catch (NoSuchMethodException e) {
+            } catch (InvocationTargetException e) {
+                throw new RuntimeException(e);
+            } catch (IllegalAccessException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        public void onPartitionRemoved(int partitionId) {
+            try {
+                Method method = target.getClass().getMethod("onPartitionRemoved", Integer.TYPE);
+                method.invoke(target, partitionId);
+            } catch (NoSuchMethodException e) {
+            } catch (InvocationTargetException e) {
+                throw new RuntimeException(e);
+            } catch (IllegalAccessException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        public void onStart() {
+            try {
+                Method method = target.getClass().getMethod("onStart");
                 method.invoke(target);
             } catch (NoSuchMethodException e) {
             } catch (InvocationTargetException e) {
@@ -77,9 +96,9 @@ public class PojoPuFactory implements PuFactory {
             }
         }
 
-        public void stop() {
+        public void onStop() {
             try {
-                Method method = target.getClass().getMethod("stop");
+                Method method = target.getClass().getMethod("onStop");
                 method.invoke(target);
             } catch (NoSuchMethodException e) {
             } catch (InvocationTargetException e) {

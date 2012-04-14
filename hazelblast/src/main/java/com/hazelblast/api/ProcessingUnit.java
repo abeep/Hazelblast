@@ -18,12 +18,16 @@ public interface ProcessingUnit {
      * <p/>
      * This method will be called only once on an instance.
      */
-    void start();
+    void onStart();
 
     /**
      * Stops this processing unit.
      * <p/>
      * This method will be called only once on an instance.
      */
-    void stop();
+    void onStop();
+
+    void onPartitionAdded(int partitionId);
+
+    void onPartitionRemoved(int partitionId);
 }

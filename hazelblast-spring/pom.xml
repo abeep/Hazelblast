@@ -4,15 +4,15 @@
     <packaging>jar</packaging>
 
     <artifactId>hazelblast-spring</artifactId>
-    <name>Hazelcast Services Spring integration</name>
+    <name>Hazelblast Services Spring integration</name>
 
     <description>
-        Spring integration for the Hazelcast Services
+        Spring integration for the Hazelblast
     </description>
 
     <dependencies>
         <dependency>
-            <groupId>com.hazelcast</groupId>
+            <groupId>com.hazelblast</groupId>
             <artifactId>hazelblast</artifactId>
             <version>${project.version}</version>
         </dependency>

@@ -4,7 +4,7 @@
     <packaging>jar</packaging>
 
     <artifactId>employee-management-server</artifactId>
-    <name>Hazelcast Employee Example - Server package</name>
+    <name>Hazelblast Employee Example - Server package</name>
 
     <description>
         The Server package of the Employee Example project.
@@ -25,7 +25,7 @@
         </dependency>
 
         <dependency>
-            <groupId>com.hazelcast</groupId>
+            <groupId>com.hazelblast</groupId>
             <artifactId>hazelblast-spring</artifactId>
             <version>${project.version}</version>
         </dependency>

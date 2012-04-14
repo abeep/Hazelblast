@@ -1,37 +1,35 @@
 package com.hazelblast.server.spring;
 
-import com.hazelcast.hazelblast.api.PuFactory;
-import com.hazelcast.hazelblast.api.ProcessingUnit;
+import com.hazelblast.api.ProcessingUnit;
+import com.hazelblast.api.PuFactory;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
 /**
  * A Spring based {@link PuFactory}.
- *
+ * <p/>
  * It expects a pu.xml to be available in the root of the jar
  * TODO:
  * (which jar.....).
  */
 public class SpringPuFactory implements PuFactory {
 
-    public ProcessingUnit create(int partitionId) {
-        return new SpringPu(partitionId);
+    public ProcessingUnit create() {
+        return new SpringPu();
     }
 
     private static class SpringPu implements ProcessingUnit {
         private final ClassPathXmlApplicationContext appContext;
-        private final int partitionId;
 
-        private SpringPu(int partitionId) {
+        private SpringPu() {
             this.appContext = new ClassPathXmlApplicationContext("pu.xml");
-            this.partitionId = partitionId;
         }
 
         public Object getService(String name) {
-            if(name == null){
+            if (name == null) {
                 throw new NullPointerException("name can't be null");
             }
 
-            if(name.isEmpty()){
+            if (name.isEmpty()) {
                 throw new IllegalArgumentException("name can't be empty");
             }
 
@@ -39,12 +37,28 @@ public class SpringPuFactory implements PuFactory {
             return appContext.getBean(name);
         }
 
-        public void start() {
+        public void onStart() {
             appContext.start();
         }
 
-        public void stop() {
+        public void onStop() {
             appContext.stop();
+        }
+
+        public void onPartitionAdded(int partitionId) {
+            String[] names = appContext.getBeanNamesForType(SpringPartitionListener.class, false, true);
+            for (String id : names) {
+                SpringPartitionListener l = (SpringPartitionListener) appContext.getBean(id);
+                l.onPartitionAdded(partitionId);
+            }
+        }
+
+        public void onPartitionRemoved(int partitionId) {
+            String[] names = appContext.getBeanNamesForType(SpringPartitionListener.class, false, true);
+            for (String id : names) {
+                SpringPartitionListener l = (SpringPartitionListener) appContext.getBean(id);
+                l.onPartitionRemoved(partitionId);
+            }
         }
     }
 }

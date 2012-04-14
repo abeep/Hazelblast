@@ -4,8 +4,6 @@ import com.hazelblast.api.ProcessingUnit;
 import com.hazelblast.api.PuFactory;
 import com.hazelcast.logging.ILogger;
 import com.hazelcast.logging.Logger;
-import com.hazelblast.api.ProcessingUnit;
-import com.hazelblast.api.PuFactory;
 
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -17,8 +15,8 @@ public class PuContainer {
 
     public final static PuContainer INSTANCE = new PuContainer();
 
-    private final ConcurrentMap<Integer, PuHolder> puHolders = new ConcurrentHashMap<Integer, PuHolder>();
-    private final PuFactory puFactory;
+    private final ProcessingUnit pu;
+    private final ConcurrentMap<Integer, Object> partitionMap = new ConcurrentHashMap<Integer, Object>();
 
     private PuContainer() {
         String factoryName = System.getProperty("puFactory");
@@ -34,7 +32,9 @@ public class PuContainer {
         ClassLoader classLoader = PuContainer.class.getClassLoader();
         try {
             Class<PuFactory> factoryClazz = (Class<PuFactory>) classLoader.loadClass(factoryName);
-            puFactory = factoryClazz.newInstance();
+            PuFactory puFactory = factoryClazz.newInstance();
+            pu = puFactory.create();
+            pu.onStart();
         } catch (ClassNotFoundException e) {
             throw new RuntimeException(e);
         } catch (InstantiationException e) {
@@ -44,34 +44,35 @@ public class PuContainer {
         }
     }
 
-    public PuHolder getHolder(int partitionId) {
-        return puHolders.get(partitionId);
+    public ProcessingUnit getPu() {
+        return pu;
     }
 
-    public void startPu(int partitionId) {
-        if (puHolders.containsKey(partitionId)) {
-            throw new IllegalStateException("There already is an existing pu with partition-id " + partitionId);
+    public void onPartitionAdded(int partitionId) {
+        partitionMap.put(partitionId, partitionId);
+
+        try {
+            pu.onPartitionAdded(partitionId);
+        } catch (RuntimeException e) {
+            logger.log(Level.SEVERE, "failed to execute pu.OnPartitionAdded", e);
         }
-
-        ProcessingUnit pu = puFactory.create(partitionId);
-        PuHolder puHolder = new PuHolder(partitionId, pu);
-        puHolders.put(partitionId, puHolder);
-        puHolder.start();
     }
 
-    public void terminatePu(int partitionId) {
-        PuHolder puHolder = puHolders.remove(partitionId);
-        if (puHolder == null) {
-            throw new IllegalStateException("No pu found with partition-id " + partitionId);
+    public void pnPartitionRemoved(int partitionId) {
+        partitionMap.remove(partitionId, partitionId);
+
+        try {
+            pu.onPartitionRemoved(partitionId);
+        } catch (RuntimeException e) {
+            logger.log(Level.SEVERE, "failed to execute pu.OnPartitionAdded", e);
         }
-        puHolder.stop();
     }
 
-    public boolean containsKey(int partitionId) {
-        return puHolders.containsKey(partitionId);
+    public boolean containsPartition(int partitionId) {
+        return partitionMap.containsKey(partitionId);
     }
 
-    public int size() {
-        return puHolders.size();
+    public int getPartitionCount() {
+        return partitionMap.size();
     }
 }
