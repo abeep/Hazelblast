@@ -1,12 +1,24 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
 <beans xmlns="http://www.springframework.org/schema/beans"
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:hz="http://www.hazelcast.com/schema/spring"
        xsi:schemaLocation="http://www.springframework.org/schema/beans
-	   					   http://www.springframework.org/schema/beans/spring-beans.xsd">
+		http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+		http://www.hazelcast.com/schema/spring
+		http://www.hazelcast.com/schema/spring/hazelcast-spring-2.1.xsd">
+
+    <bean id="instance"
+          class="com.hazelcast.core.Hazelcast"
+          factory-method="getDefaultInstance"/>
+
+    <hz:multiMap id="idsPerPartitionMap"
+                 instance-ref="instance"
+                 name="idsPerPartitionMap"/>
 
     <bean id="employeeService"
           class="com.employee.server.DefaultEmployeeService"
           init-method="init"
-          destroy-method="destroy"/>
+          destroy-method="destroy">
+        <constructor-arg index="0" ref="idsPerPartitionMap"/>
+    </bean>
 </beans>

@@ -2,9 +2,13 @@ package com.employee.server;
 
 import com.employee.api.EmployeeService;
 import com.hazelblast.server.spring.SpringPartitionListener;
+import com.hazelcast.core.Hazelcast;
+import com.hazelcast.core.MultiMap;
+import com.hazelcast.partition.Partition;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import java.util.Collection;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -12,17 +16,32 @@ public class DefaultEmployeeService implements EmployeeService, SpringPartitionL
 
     private final static Log logger = LogFactory.getFactory().getInstance(DefaultEmployeeService.class);
 
-    public final ConcurrentMap<Integer, Object> partitions = new ConcurrentHashMap<Integer, Object>();
+    private final ConcurrentMap<Integer, Object> partitions = new ConcurrentHashMap<Integer, Object>();
 
-    public DefaultEmployeeService() {
+    private final MultiMap<Integer, String> idsPerPartitionMap;
+
+    private final ConcurrentMap<String, Object> localEmployees = new ConcurrentHashMap<String, Object>();
+
+    public DefaultEmployeeService(MultiMap<Integer,String> idsPerPartitionMap) {
+
         logger.info("Created");
+
+        this.idsPerPartitionMap = idsPerPartitionMap;
     }
 
     public void fire(String id) {
+        Partition partition = Hazelcast.getPartitionService().getPartition(id);
+        idsPerPartitionMap.put(partition.getPartitionId(), id);
+        localEmployees.put(id,this);
+
         logger.info("Fire called with id " + id);
     }
 
     public void hire(String id) {
+        Partition partition = Hazelcast.getPartitionService().getPartition(id);
+        idsPerPartitionMap.put(partition.getPartitionId(), id);
+        localEmployees.put(id,this);
+
         logger.info("Hire called with id " + id);
     }
 
@@ -35,13 +54,27 @@ public class DefaultEmployeeService implements EmployeeService, SpringPartitionL
     }
 
     public void onPartitionAdded(int partitionId) {
+        Collection<String> ids = idsPerPartitionMap.get(partitionId);
+        if (ids != null) {
+            for (String id : ids) {
+                localEmployees.put(id, this);
+            }
+        }
+
         partitions.put(partitionId, this);
-        logger.info("Partition added: "+partitionId+", new size is "+partitions.size());
+        logger.info("Partition added: " + partitionId + ", partitioncount:" + partitions.size()+" localemployees: "+localEmployees.size());
     }
 
     public void onPartitionRemoved(int partitionId) {
+        Collection<String> ids = idsPerPartitionMap.get(partitionId);
+        if (ids != null) {
+            for (String id : ids) {
+                localEmployees.remove(id);
+            }
+        }
+
         partitions.remove(partitionId);
-        logger.info("Partition removed: "+partitionId+", new size is "+partitions.size());
+        logger.info("Partition removed: " + partitionId + ", partitioncount: " + partitions.size()+" localemployees: "+localEmployees.size());
     }
 
     public void init() {

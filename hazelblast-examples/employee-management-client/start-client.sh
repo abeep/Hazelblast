@@ -13,6 +13,8 @@ if [ -z "$CP" ]; then
 	exit 1
 fi
 
+export CP=$CP:target/dependency/*
+
 echo running demo for $CLASS from $CP at $@
 
 pwd

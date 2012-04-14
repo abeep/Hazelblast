@@ -94,7 +94,6 @@ public class ProxyProvider {
         private Object invokeForkJoin(Method method, Object[] args) throws ExecutionException, InterruptedException {
             LoadBalancedMethodInvocation callable = new LoadBalancedMethodInvocation(clazz.getSimpleName(), method.getName(), args);
             MultiTask task = new MultiTask(callable, getPuMembers());
-            ExecutorService executorService = Hazelcast.getExecutorService();
             executorService.execute(task);
             task.get();
             return null;
@@ -129,12 +128,12 @@ public class ProxyProvider {
         private int getPartitionKey(Method method) {
             Annotation[][] annotations = method.getParameterAnnotations();
 
-            for (int k = 0; k < annotations.length; k++) {
-                Annotation[] argumentAnnotations = annotations[k];
-                for (int l = 0; l < argumentAnnotations.length; l++) {
-                    Annotation annotation = argumentAnnotations[l];
+            for (int argIndex = 0; argIndex < annotations.length; argIndex++) {
+                Annotation[] argumentAnnotations = annotations[argIndex];
+                for (int annotationIndex = 0; annotationIndex < argumentAnnotations.length; annotationIndex++) {
+                    Annotation annotation = argumentAnnotations[annotationIndex];
                     if (annotation instanceof RoutingId) {
-                        return k;
+                        return argIndex;
                     }
                 }
             }

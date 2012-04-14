@@ -10,12 +10,11 @@ public class ClientMain {
         EmployeeService service = proxyProvider.getProxy(EmployeeService.class);
 
         System.out.println("Partitioned call");
-        service.fire("1");
-        System.out.println("Finished");
+        for (int k = 0; k < 100; k++) {
+            service.fire(""+k);
+            System.out.println("Finished");
+        }
 
-        System.out.println("Partitioned call");
-        service.hire("2");
-        System.out.println("Finished");
 
         System.out.println("ForkJoin call");
         service.printStatisticsOnAllNodes();
