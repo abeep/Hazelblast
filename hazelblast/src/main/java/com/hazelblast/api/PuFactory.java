@@ -1,4 +1,4 @@
-package com.hazelcast.hazelblast.api;
+package com.hazelblast.api;
 
 /**
  * A Factory responsible for creating {@link ProcessingUnit} instances.

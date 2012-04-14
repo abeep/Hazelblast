@@ -1,14 +1,14 @@
-package com.hazelcast.hazelblast.client;
+package com.hazelblast.client;
 
+import com.hazelblast.api.*;
+import com.hazelblast.server.PuContainer;
+import com.hazelblast.server.PuHolder;
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.Member;
 import com.hazelcast.core.MultiTask;
 import com.hazelcast.core.PartitionAware;
 import com.hazelcast.partition.Partition;
 import com.hazelcast.partition.PartitionService;
-import com.hazelcast.hazelblast.api.*;
-import com.hazelcast.hazelblast.server.PuHolder;
-import com.hazelcast.hazelblast.server.PuContainer;
 
 import java.io.Serializable;
 import java.lang.annotation.Annotation;

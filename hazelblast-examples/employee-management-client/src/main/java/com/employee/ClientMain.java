@@ -1,7 +1,7 @@
 package com.employee;
 
 import com.employee.api.EmployeeService;
-import com.hazelcast.hazelblast.client.ProxyProvider;
+import com.hazelblast.client.ProxyProvider;
 
 public class ClientMain {
 

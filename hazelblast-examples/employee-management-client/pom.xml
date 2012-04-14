@@ -11,21 +11,21 @@
     </description>
 
     <parent>
-        <groupId>com.hazelcast</groupId>
-        <artifactId>hazelcast-services-examples</artifactId>
+        <groupId>com.hazelblast</groupId>
+        <artifactId>hazelblast-examples</artifactId>
         <version>0.1-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
     <dependencies>
         <dependency>
-            <groupId>com.hazelcast</groupId>
+            <groupId>com.hazelblast</groupId>
             <artifactId>hazelblast</artifactId>
             <version>${project.version}</version>
         </dependency>
 
         <dependency>
-            <groupId>com.hazelcast</groupId>
+            <groupId>com.hazelblast</groupId>
             <artifactId>employee-management-api</artifactId>
             <version>${project.version}</version>
         </dependency>

@@ -1,4 +1,4 @@
-package com.hazelcast.hazelblast.server;
+package com.hazelblast.server;
 
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.Member;

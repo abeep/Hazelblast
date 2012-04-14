@@ -12,7 +12,7 @@
     </description>
 
     <parent>
-        <groupId>com.hazelcast</groupId>
+        <groupId>com.hazelblast</groupId>
         <artifactId>hazelblast-parent</artifactId>
         <version>0.1-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>

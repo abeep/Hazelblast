@@ -1,4 +1,5 @@
-package com.hazelcast.hazelblast.api;
+package com.hazelblast.api;
+
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -6,6 +7,6 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 @Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.PARAMETER)
-public @interface RoutingId {
+@Target(ElementType.METHOD)
+public @interface ForkJoin {
 }

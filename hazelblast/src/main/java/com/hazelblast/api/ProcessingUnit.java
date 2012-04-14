@@ -1,4 +1,4 @@
-package com.hazelcast.hazelblast.api;
+package com.hazelblast.api;
 
 /**
  * The ProcessingUnit is an place where all kinds of Services can be exposed to the outside world.

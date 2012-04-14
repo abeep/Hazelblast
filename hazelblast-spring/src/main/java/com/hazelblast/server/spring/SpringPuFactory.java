@@ -1,4 +1,4 @@
-package com.hazelcast.hazelblast.server.spring;
+package com.hazelblast.server.spring;
 
 import com.hazelcast.hazelblast.api.PuFactory;
 import com.hazelcast.hazelblast.api.ProcessingUnit;

@@ -1,9 +1,11 @@
-package com.hazelcast.hazelblast.server;
+package com.hazelblast.server;
 
+import com.hazelblast.api.ProcessingUnit;
+import com.hazelblast.api.PuFactory;
 import com.hazelcast.logging.ILogger;
 import com.hazelcast.logging.Logger;
-import com.hazelcast.hazelblast.api.ProcessingUnit;
-import com.hazelcast.hazelblast.api.PuFactory;
+import com.hazelblast.api.ProcessingUnit;
+import com.hazelblast.api.PuFactory;
 
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;

@@ -12,14 +12,14 @@
 
     <dependencies>
         <dependency>
-            <groupId>com.hazelcast</groupId>
+            <groupId>com.hazelblast</groupId>
             <artifactId>hazelblast</artifactId>
             <version>${project.version}</version>
         </dependency>
    </dependencies>
 
     <parent>
-        <groupId>com.hazelcast</groupId>
+        <groupId>com.hazelblast</groupId>
         <artifactId>hazelblast-examples</artifactId>
         <version>0.1-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>

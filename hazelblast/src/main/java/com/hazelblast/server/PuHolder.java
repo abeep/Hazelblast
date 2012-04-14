@@ -1,8 +1,8 @@
-package com.hazelcast.hazelblast.server;
+package com.hazelblast.server;
 
 import com.hazelcast.logging.ILogger;
 import com.hazelcast.logging.Logger;
-import com.hazelcast.hazelblast.api.ProcessingUnit;
+import com.hazelblast.api.ProcessingUnit;
 
 import java.util.logging.Level;
 

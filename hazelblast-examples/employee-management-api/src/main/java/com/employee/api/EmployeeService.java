@@ -1,9 +1,9 @@
 package com.employee.api;
 
-import com.hazelcast.hazelblast.api.ForkJoin;
-import com.hazelcast.hazelblast.api.LoadBalanced;
-import com.hazelcast.hazelblast.api.Partitioned;
-import com.hazelcast.hazelblast.api.RoutingId;
+import com.hazelblast.api.ForkJoin;
+import com.hazelblast.api.LoadBalanced;
+import com.hazelblast.api.Partitioned;
+import com.hazelblast.api.RoutingId;
 
 public interface EmployeeService {
 

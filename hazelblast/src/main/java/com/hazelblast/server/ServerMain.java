@@ -1,4 +1,4 @@
-package com.hazelcast.hazelblast.server;
+package com.hazelblast.server;
 
 import com.hazelcast.logging.ILogger;
 import com.hazelcast.logging.Logger;
