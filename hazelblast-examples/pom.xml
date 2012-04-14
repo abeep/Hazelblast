@@ -1,0 +1,26 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <packaging>pom</packaging>
+
+    <artifactId>hazelblast-examples</artifactId>
+    <name>Hazelcast Examples</name>
+
+    <description>
+        Hazelcast Example module that contains various examples showing the usage of the
+        Hazelcast Services package.
+    </description>
+
+     <parent>
+        <groupId>com.hazelcast</groupId>
+        <artifactId>hazelblast-parent</artifactId>
+        <version>0.1-SNAPSHOT</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
+
+    <modules>
+        <module>employee-management-api</module>
+        <module>employee-management-client</module>
+        <module>employee-management-server</module>
+    </modules>
+</project>

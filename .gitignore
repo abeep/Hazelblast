@@ -1,0 +1,7 @@
+*.class
+.DS_Store*
+out/
+*.iml
+.idea/
+release.properties
+target/
