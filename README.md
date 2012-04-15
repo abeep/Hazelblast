@@ -1,5 +1,4 @@
 Hazelblast
-
 -------------------------
 
 An layer on top of Hazelcast to provide transparent remote interfaces.
