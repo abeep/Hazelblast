@@ -5,7 +5,7 @@ CLASS=com.hazelblast.server.ServerMain
 ROOT=$(cd $(dirname $0) && pwd)
 cd $ROOT
 
-JAVA_OPTS="-Dhazelcast.lite.member=false -DpuFactory=com.hazelblast.server.spring.SpringPuFactory"
+JAVA_OPTS="-Dhazelcast.lite.member=false -DpuFactory.class=com.hazelblast.server.spring.SpringPuFactory"
 export CP=`ls target/employee-management-server-*.jar | awk '{print $1}'`
 
 if [ -z "$CP" ]; then

@@ -1,18 +1,18 @@
 Hazelblast
 -------------------------
 
-An layer on top of Hazelcast to provide transparent remote interfaces.
+A layer on top of Hazelcast to provide transparent remote interfaces.
 
 Example
 -------------------------
 
-This interface can be shared between the client (that calls this service) and the server (that implements this service).
+This interface can be shared between the client (that calls this service) and the server (that implements
+this service). The fire method is routed on the employeeId.
 
     class FireService{
         @Partitioned
         void fire(@RoutingId String employeeId);
     }
-
 
 And it can be called like this:
 

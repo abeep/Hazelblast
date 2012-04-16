@@ -4,6 +4,8 @@ import com.hazelblast.api.ProcessingUnit;
 import com.hazelblast.api.PuFactory;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
+import static java.lang.String.format;
+
 /**
  * A Spring based {@link PuFactory}.
  * <p/>
@@ -19,9 +21,12 @@ public class SpringPuFactory implements PuFactory {
 
     private static class SpringPu implements ProcessingUnit {
         private final ClassPathXmlApplicationContext appContext;
+        private final ExposedServices exposedServices;
 
         private SpringPu() {
-            this.appContext = new ClassPathXmlApplicationContext("pu.xml");
+            appContext = new ClassPathXmlApplicationContext("pu.xml");
+
+            exposedServices = appContext.getBean("exposedServices",ExposedServices.class);
         }
 
         public Object getService(String name) {
@@ -34,6 +39,9 @@ public class SpringPuFactory implements PuFactory {
             }
 
             name = name.substring(0, 1).toLowerCase() + name.substring(1);
+            if(!exposedServices.isExposed(name)){
+                throw new IllegalArgumentException(format("service with name '%s' is not exposed",name));
+            }
             return appContext.getBean(name);
         }
 

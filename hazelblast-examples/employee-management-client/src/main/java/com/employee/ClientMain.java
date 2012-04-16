@@ -15,7 +15,6 @@ public class ClientMain {
             System.out.println("Finished");
         }
 
-
         System.out.println("ForkJoin call");
         service.printStatisticsOnAllNodes();
         System.out.println("Finished");

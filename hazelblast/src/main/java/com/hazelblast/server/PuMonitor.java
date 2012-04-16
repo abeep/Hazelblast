@@ -8,38 +8,38 @@ import com.hazelcast.partition.Partition;
 import com.hazelcast.partition.PartitionService;
 
 import java.util.Set;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.logging.Level;
 
+/**
+ * The PuMonitor is responsible for seeing changes in the Hazelcast partitions, and to notify these changes
+ * back to the PuContainer.
+ *
+ * @author Peter Veentjer.
+ */
 public class PuMonitor {
 
     private final static ILogger logger = Logger.getLogger(PuMonitor.class.getName());
 
     private final PuContainer puContainer;
     private final Member self = Hazelcast.getCluster().getLocalMember();
-    private final ScheduledExecutorService scheduler = new ScheduledThreadPoolExecutor(1);
     private final PartitionService partitionService = Hazelcast.getPartitionService();
 
     public PuMonitor(PuContainer puContainer) {
+        if(puContainer == null){
+            throw new NullPointerException("puContainer can't be null");
+        }
         this.puContainer = puContainer;
     }
 
-    public void start() {
-        scheduler.scheduleAtFixedRate(new Runnable() {
-            public void run() {
-                try {
-                    scan();
-                } catch (RuntimeException e) {
-                    logger.log(Level.SEVERE, "Failed to run PuMontitor.scan", e);
-                }
-            }
-        }, 0, 5, TimeUnit.SECONDS);
-    }
+    /**
+     * Executes a scan. This method should be called by some kind of Scheduler.
+     */
+    public void scan() {
+        if (logger.isLoggable(Level.FINE)) {
+            logger.log(Level.FINE, "scan");
+        }
 
-    private void scan() {
         Set<Partition> partitions = partitionService.getPartitions();
 
         boolean change = false;
@@ -51,6 +51,10 @@ public class PuMonitor {
                 if (addPu) {
                     Lock lock = Hazelcast.getLock("PartitionLock-" + partitionId);
                     if (!lock.tryLock()) {
+                        if (logger.isLoggable(Level.FINE)) {
+                            logger.log(Level.FINE, "Could not obtain lock on partition "+partitionId+", maybe more luck next time.");
+                        }
+
                         break;
                     }
 
@@ -60,7 +64,7 @@ public class PuMonitor {
             } else {
                 boolean removePu = puContainer.containsPartition(partitionId);
                 if (removePu) {
-                    puContainer.pnPartitionRemoved(partitionId);
+                    puContainer.onPartitionRemoved(partitionId);
 
                     Lock lock = Hazelcast.getLock("PartitionLock-" + partitionId);
                     lock.unlock();
@@ -71,7 +75,7 @@ public class PuMonitor {
         }
 
         if (change) {
-            logger.log(Level.INFO, "managed partitions: " + puContainer.getPartitionCount());
+            logger.log(Level.INFO, "Managed partitions: " + puContainer.getPartitionCount());
         }
     }
 }

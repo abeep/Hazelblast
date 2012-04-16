@@ -4,6 +4,7 @@ import com.hazelblast.api.ForkJoin;
 import com.hazelblast.api.LoadBalanced;
 import com.hazelblast.api.Partitioned;
 import com.hazelblast.api.RoutingId;
+import com.hazelblast.api.reducers.VoidReducer;
 
 public interface EmployeeService {
 
@@ -13,7 +14,7 @@ public interface EmployeeService {
     @Partitioned
     void hire(@RoutingId String id);
 
-    @ForkJoin
+    @ForkJoin (reducer = VoidReducer.class)
     void printStatisticsOnAllNodes();
 
     @LoadBalanced

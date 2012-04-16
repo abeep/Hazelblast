@@ -7,6 +7,8 @@ import java.lang.annotation.Target;
 
 /**
  * Annotation that can be placed on a method to indicate that the call should be send to a specific partition.
+ *
+ * @author Peter Veentjer.
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)

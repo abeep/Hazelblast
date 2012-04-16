@@ -106,7 +106,6 @@ public class ProxyProvider {
                 if (!member.isLiteMember()) {
                     result.add(member);
                 }
-
             }
 
             return result;
