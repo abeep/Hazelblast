@@ -26,6 +26,12 @@ public final class PuServer {
     public static final String PU_FACTORY_CLASS = "puFactory.class";
 
     private final static ILogger logger = Logger.getLogger(PuServer.class.getName());
+    //todo: this instance sucks.
+    public static volatile PuContainer globalContainerInstance;
+
+    public static ProcessingUnit getGlobalProcessingUnit(){
+        return globalContainerInstance.getPu();
+    }
 
     public static void main(String[] args) {
         PuServer main = new PuServer(buildPu(), DEFAULT_SCAN_DELAY_MS);
@@ -90,7 +96,7 @@ public final class PuServer {
         scheduler.setContinueExistingPeriodicTasksAfterShutdownPolicy(true);
         puContainer = new PuContainer(pu);
         //todo: nasty hack, will be removed in the future.
-        PuContainer.instance = puContainer;
+        globalContainerInstance = puContainer;
         puMonitor = new PuMonitor(puContainer);
     }
 

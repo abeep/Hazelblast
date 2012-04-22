@@ -11,7 +11,9 @@ public interface ProcessingUnit {
      * Gets the Service with the given serviceName.
      *
      * @param serviceName the serviceName of the service to look for.
-     * @return the found service, or null if the Service doesn't exist.
+     * @return the found service.
+     * @throws RuntimeException when service doesn't exist or failed to be constructed. Type of RuntimeException
+     *                          depends on framework being used.
      */
     Object getService(String serviceName);
 

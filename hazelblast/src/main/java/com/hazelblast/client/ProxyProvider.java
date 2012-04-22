@@ -1,7 +1,7 @@
 package com.hazelblast.client;
 
 import com.hazelblast.api.*;
-import com.hazelblast.server.PuContainer;
+import com.hazelblast.server.PuServer;
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.Member;
 import com.hazelcast.core.MultiTask;
@@ -152,13 +152,9 @@ public final class ProxyProvider {
         }
 
         public Object call() throws Exception {
-            PuContainer container = PuContainer.instance;
+            ProcessingUnit pu = PuServer.getGlobalProcessingUnit();
 
-            ProcessingUnit pu = container.getPu();
             Object service = pu.getService(serviceName);
-            if (service == null) {
-                throw new NullPointerException(format("Can't find service [%s]", serviceName));
-            }
 
             Class[] argTypes = new Class[args.length];
             for (int k = 0; k < argTypes.length; k++) {
@@ -184,13 +180,9 @@ public final class ProxyProvider {
         }
 
         public Object call() throws Exception {
-            PuContainer container = PuContainer.instance;
+            ProcessingUnit pu = PuServer.getGlobalProcessingUnit();
 
-            ProcessingUnit pu = container.getPu();
             Object service = pu.getService(serviceName);
-            if (service == null) {
-                throw new NullPointerException(format("Can't find service [%s]", serviceName));
-            }
 
             Class[] argTypes = new Class[args.length];
             for (int k = 0; k < argTypes.length; k++) {

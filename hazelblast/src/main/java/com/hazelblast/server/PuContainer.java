@@ -23,10 +23,7 @@ import static java.lang.String.format;
  *
  * @author Peter Veentjer.
  */
-public final class PuContainer {
-
-    //todo: this instance sucks.
-    public static volatile PuContainer instance;
+final class PuContainer {
 
     private final static ILogger logger = Logger.getLogger(PuContainer.class.getName());
 
