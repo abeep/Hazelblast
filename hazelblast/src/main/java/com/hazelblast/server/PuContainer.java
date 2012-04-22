@@ -25,8 +25,6 @@ import static java.lang.String.format;
  */
 public final class PuContainer {
 
-    public static final String PU_FACTORY_CLASS = "puFactory.class";
-
     //todo: this instance sucks.
     public static volatile PuContainer instance;
 
@@ -47,38 +45,8 @@ public final class PuContainer {
         }
         this.pu = pu;
 
-        if(logger.isLoggable(Level.INFO)){
-            logger.log(Level.INFO,format("Created PuContainer using ProcessingUnit [%s]",pu));
-        }
-    }
-
-    public PuContainer() {
-        String factoryName = System.getProperty(PU_FACTORY_CLASS);
-
-        if (logger.isLoggable(Level.FINE)) {
-            logger.log(Level.FINE, format("Creating PuContainer using System property %s and value %s", PU_FACTORY_CLASS, factoryName));
-        }
-
-        if (factoryName == null) {
-            throw new IllegalStateException(format("Property [%s] is not found in the System properties",PU_FACTORY_CLASS));
-        }
-
-        ClassLoader classLoader = PuContainer.class.getClassLoader();
-        try {
-            Class<PuFactory> factoryClazz = (Class<PuFactory>) classLoader.loadClass(factoryName);
-            PuFactory puFactory = factoryClazz.newInstance();
-            pu = puFactory.create();
-            pu.onStart();
-        } catch (ClassNotFoundException e) {
-            throw new RuntimeException(format("Failed to create processing unit using System property %s " + factoryName,PU_FACTORY_CLASS), e);
-        } catch (InstantiationException e) {
-            throw new RuntimeException("Failed to create processing unit using puFactor.class " + factoryName, e);
-        } catch (IllegalAccessException e) {
-            throw new RuntimeException("Failed to create processing unit using puFactor.class " + factoryName, e);
-        }
-
         if (logger.isLoggable(Level.INFO)) {
-            logger.log(Level.INFO, "Creating PuContainer successfully");
+            logger.log(Level.INFO, format("Created PuContainer using ProcessingUnit [%s]", pu));
         }
     }
 
@@ -113,6 +81,30 @@ public final class PuContainer {
             pu.onPartitionAdded(partitionId);
         } catch (RuntimeException e) {
             logger.log(Level.SEVERE, "failed to execute pu.OnPartitionAdded", e);
+        }
+    }
+
+    public void onStart() {
+        if (logger.isLoggable(Level.INFO)) {
+            logger.log(Level.INFO, "onStop called");
+        }
+
+        try {
+            pu.onStop();
+        } catch (Exception e) {
+            logger.log(Level.SEVERE, "failed to execute pu.onStart", e);
+        }
+    }
+
+    public void onStop() {
+        if (logger.isLoggable(Level.INFO)) {
+            logger.log(Level.INFO, "onStop called");
+        }
+
+        try {
+            pu.onStop();
+        } catch (Exception e) {
+            logger.log(Level.SEVERE, "failed to execute pu.onStop", e);
         }
     }
 
