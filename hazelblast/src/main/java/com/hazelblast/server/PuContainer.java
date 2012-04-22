@@ -84,30 +84,6 @@ public final class PuContainer {
         }
     }
 
-    public void onStart() {
-        if (logger.isLoggable(Level.INFO)) {
-            logger.log(Level.INFO, "onStart called");
-        }
-
-        try {
-            pu.onStart();
-        } catch (Exception e) {
-            logger.log(Level.SEVERE, "failed to execute pu.onStart", e);
-        }
-    }
-
-    public void onStop() {
-        if (logger.isLoggable(Level.INFO)) {
-            logger.log(Level.INFO, "onStop called");
-        }
-
-        try {
-            pu.onStop();
-        } catch (Exception e) {
-            logger.log(Level.SEVERE, "failed to execute pu.onStop", e);
-        }
-    }
-
     /**
      * Called when a partition has been removed.
      * <p/>
@@ -130,6 +106,43 @@ public final class PuContainer {
             pu.onPartitionRemoved(partitionId);
         } catch (RuntimeException e) {
             logger.log(Level.SEVERE, "failed to execute pu.OnPartitionAdded", e);
+        }
+    }
+
+
+    /**
+     * Called when the PuContainer needs to start up.
+     *
+     * If the {@link com.hazelblast.api.ProcessingUnit#onStart()} throws an Exception, it will be logged but not
+     * propagated.
+     */
+    public void onStart() {
+        if (logger.isLoggable(Level.INFO)) {
+            logger.log(Level.INFO, "onStart called");
+        }
+
+        try {
+            pu.onStart();
+        } catch (Exception e) {
+            logger.log(Level.SEVERE, "failed to execute pu.onStart", e);
+        }
+    }
+
+    /**
+     * Called when the PuContainer needs to shut down.
+     *
+     * If the {@link com.hazelblast.api.ProcessingUnit#onStop()} throws an Exception, it will be logged but not
+     * propagated.
+     */
+    public void onStop() {
+        if (logger.isLoggable(Level.INFO)) {
+            logger.log(Level.INFO, "onStop called");
+        }
+
+        try {
+            pu.onStop();
+        } catch (Exception e) {
+            logger.log(Level.SEVERE, "failed to execute pu.onStop", e);
         }
     }
 

@@ -20,7 +20,7 @@ import java.util.logging.Level;
  *
  * @author Peter Veentjer.
  */
-public final class PuMonitor {
+final class PuMonitor {
 
     private final static ILogger logger = Logger.getLogger(PuMonitor.class.getName());
 
