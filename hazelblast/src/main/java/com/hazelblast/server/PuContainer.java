@@ -86,7 +86,7 @@ public final class PuContainer {
 
     public void onStart() {
         if (logger.isLoggable(Level.INFO)) {
-            logger.log(Level.INFO, "onStop called");
+            logger.log(Level.INFO, "onStart called");
         }
 
         try {
