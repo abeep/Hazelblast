@@ -20,7 +20,7 @@ import static java.lang.String.format;
  *
  * @author Peter Veentjer.
  */
-public class PojoPuFactory implements PuFactory {
+public final class PojoPuFactory implements PuFactory {
 
     public static final String POJO_PU_CLASS = "pojoPu.class";
 

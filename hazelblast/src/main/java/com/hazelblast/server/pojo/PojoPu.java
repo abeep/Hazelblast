@@ -31,7 +31,7 @@ import static java.lang.String.format;
  *
  * @author Peter Veentjer.
  */
-public class PojoPu implements ProcessingUnit {
+public final class PojoPu implements ProcessingUnit {
 
     private final Object target;
     private final Method onPartitionAddedMethod;

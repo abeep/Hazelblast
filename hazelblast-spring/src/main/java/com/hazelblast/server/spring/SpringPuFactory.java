@@ -11,23 +11,23 @@ import static java.lang.String.format;
  * <p/>
  * It expects a pu.xml to be available in the root of the jar.
  *
- * <h2>exposedServices bean</h2>
- * The pu.xml should contain a bean called 'exposedServices' where all the services that
+ * <h2>exposedBeans bean</h2>
+ * The pu.xml should contain a bean called 'exposedBeans' where all the beans that
  * should be exposed remotely, should be registered.
  * <pre>
  * {@code
- *  <bean id="exposedServices" class="com.hazelblast.server.spring.ExposedServices">
- *      <property name="exposedServices">
+ *  <bean id="exposedBeans" class="com.hazelblast.server.spring.ExposedBeans">
+ *      <property name="exposedBeans">
  *          <map>
  *              <entry key="employeeService" value-ref="employeeService"/>
  *          </map>
  *      </property>
  *  </bean>
  * </pre>
- * The reason why this is service is there, is even though it will be easier to expose every bean in the
- * application context, for safety purposes we don't want to do that.
+ * The reason for this functionality is safety. We don't want to expose all beans in the application
+ * context, but only explicit beans.
  * <br/>
- * If the 'exposedServices' bean isn't available, a {@link org.springframework.beans.factory.NoSuchBeanDefinitionException}
+ * If the 'exposedBeans' bean isn't available, a {@link org.springframework.beans.factory.NoSuchBeanDefinitionException}
  * will be thrown when the application context is created.
  *
  * @author Peter Veentjer.
@@ -40,11 +40,11 @@ public class SpringPuFactory implements PuFactory {
 
     private static class SpringPu implements ProcessingUnit {
         private final ClassPathXmlApplicationContext appContext;
-        private final ExposedServices exposedServices;
+        private final ExposedBeans exposedBeans;
 
         private SpringPu() {
             appContext = new ClassPathXmlApplicationContext("pu.xml");
-            exposedServices = appContext.getBean("exposedServices",ExposedServices.class);
+            exposedBeans = appContext.getBean("exposedServices",ExposedBeans.class);
         }
 
         public Object getService(String name) {
@@ -57,7 +57,7 @@ public class SpringPuFactory implements PuFactory {
             }
 
             name = name.substring(0, 1).toLowerCase() + name.substring(1);
-            Object service = exposedServices.getService(name);
+            Object service = exposedBeans.getBean(name);
             if(service ==null){
                 throw new IllegalArgumentException(format("service with name '%s' is not exposed",name));
             }

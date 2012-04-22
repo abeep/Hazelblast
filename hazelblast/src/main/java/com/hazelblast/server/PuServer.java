@@ -17,7 +17,7 @@ import java.util.logging.Level;
  *
  * @author Peter Veentjer.
  */
-public class PuServer {
+public final class PuServer {
     public final static int DEFAULT_SCAN_DELAY_MS = 5000;
 
     private final static ILogger logger = Logger.getLogger(PuServer.class.getName());
@@ -150,7 +150,7 @@ public class PuServer {
     /**
      * Checks if this PuServer is terminating, but not yet terminated.
      *
-     * @return true if terminating, false otherwise.
+     * @return <tt>true</tt> if terminating, <tt>false</tt> otherwise.
      */
     //done
     public boolean isTerminating() {
@@ -160,13 +160,16 @@ public class PuServer {
     /**
      * Checks if this PuServer is terminated (so fully shutdown).
      *
-     * @return true if terminated, false otherwise.
+     * @return <tt>true</tt> if terminated, <tt>false</tt> otherwise.
      */
     public boolean isTerminated() {
         return status == Status.Terminated;
     }
 
-
+    /**
+     * Returns the Status of this PuServer. This method is only here for testing purposes.
+     * @return
+     */
     protected Status getStatus() {
         return status;
     }

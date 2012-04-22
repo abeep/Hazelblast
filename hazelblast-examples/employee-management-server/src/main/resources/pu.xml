@@ -26,13 +26,13 @@
     <!-- we need to explicitly tell which services are callable from the outside because we don't want
          all services to be called explicitly.
 
-         The SpringPuFactory expects a bean called 'exposedServices' of the type 'ExposedServices'. If
+         The SpringPuFactory expects a bean called 'beans' of the type 'ExposedBeans'. If
          it is missing, an Exception will be thrown.
          -->
     <bean id="exposedServices"
-          class="com.hazelblast.server.spring.ExposedServices">
+          class="com.hazelblast.server.spring.ExposedBeans">
 
-        <property name="exposedServices">
+        <property name="beans">
             <map>
                 <entry key="employeeService" value-ref="employeeService"/>
             </map>

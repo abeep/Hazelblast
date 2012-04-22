@@ -18,15 +18,14 @@ import java.util.concurrent.*;
 
 import static java.lang.String.format;
 
-public class ProxyProvider {
+public final class ProxyProvider {
 
     private final ExecutorService executorService = Hazelcast.getExecutorService("calls");
     private final ConcurrentMap<Class, Object> proxies = new ConcurrentHashMap<Class, Object>();
 
-
     public <T> T getProxy(Class<T> clazz) {
         if (clazz == null) {
-            throw new NullPointerException();
+            throw new NullPointerException("clazz can't be null");
         }
 
         Object proxy = proxies.get(clazz);

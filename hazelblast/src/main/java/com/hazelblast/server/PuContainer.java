@@ -23,7 +23,7 @@ import static java.lang.String.format;
  *
  * @author Peter Veentjer.
  */
-public class PuContainer {
+public final class PuContainer {
 
     public static final String PU_FACTORY_CLASS = "puFactory.class";
 

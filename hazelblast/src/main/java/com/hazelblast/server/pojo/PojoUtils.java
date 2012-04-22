@@ -11,7 +11,7 @@ import java.util.Map;
  *
  * @author Peter Veentjer
  */
-public class PojoUtils {
+public final class PojoUtils {
 
     public static Map<String, Field> getPublicFields(Class targetClazz) {
         Map<String, Field> fields = new HashMap<String, Field>();
