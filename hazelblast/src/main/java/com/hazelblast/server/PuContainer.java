@@ -90,7 +90,7 @@ public final class PuContainer {
         }
 
         try {
-            pu.onStop();
+            pu.onStart();
         } catch (Exception e) {
             logger.log(Level.SEVERE, "failed to execute pu.onStart", e);
         }
