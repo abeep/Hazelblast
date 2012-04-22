@@ -24,7 +24,6 @@ public class PuServerTest {
     // =========================== start =================================
 
 
-
     @Test
     public void unstartedServer() {
         PuServer server = new PuServer(createMock(ProcessingUnit.class));
