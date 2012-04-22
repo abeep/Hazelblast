@@ -33,9 +33,9 @@
           class="com.hazelblast.server.spring.ExposedServices">
 
         <property name="exposedServices">
-            <list>
-                <value>employeeService</value>
-            </list>
+            <map>
+                <entry key="employeeService" value-ref="employeeService"/>
+            </map>
         </property>
      </bean>
 </beans>

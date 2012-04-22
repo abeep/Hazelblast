@@ -1,28 +1,32 @@
 package com.hazelblast.server.spring;
 
-import java.util.LinkedList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
-//todo: the list is ugly.
+/**
+ * The ExposedServices is a registration point for all spring beans that should be made available
+ * to be called from the outside world.
+ *
+ * @author Peter Veentjer.
+ */
 public class ExposedServices {
 
-    private List<String> exposedServices = new LinkedList<String>();
+    private Map<String, Object> exposedServices = new HashMap<String, Object>();
 
-    public List getExposedServices() {
-        return exposedServices;
-    }
-
-    public boolean isExposed(String serviceName){
-        for(String s: exposedServices){
-            if(s.equals(serviceName)){
-                return true;
-            }
+    public Object getService(String serviceName) {
+        if (serviceName == null) {
+            throw new NullPointerException("serviceName can't be null");
         }
 
-        return false;
+        return exposedServices.get(serviceName);
     }
 
-    public void setExposedServices(List<String> exposedServices) {
+    public void setExposedServices(Map<String,Object> exposedServices) {
+        if(exposedServices == null){
+            throw new NullPointerException("exposedServices can't be null");
+        }
+
         this.exposedServices = exposedServices;
     }
 }
