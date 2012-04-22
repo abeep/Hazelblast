@@ -14,6 +14,9 @@ import java.util.logging.Level;
 /**
  * The PuMonitor is responsible for seeing changes in the Hazelcast partitions, and to notify these changes
  * back to the PuContainer.
+ * <p/>
+ * There is a  {@link #scan()} method that is called externally by some scheduler, so no threading inside this
+ * structure.
  *
  * @author Peter Veentjer.
  */
@@ -25,8 +28,14 @@ public class PuMonitor {
     private final Member self = Hazelcast.getCluster().getLocalMember();
     private final PartitionService partitionService = Hazelcast.getPartitionService();
 
+    /**
+     * Creates a new PuMonitor.
+     *
+     * @param puContainer the puContainer that is signalled by this PuMonitor.
+     * @throws NullPointerException if puContainer is null.
+     */
     public PuMonitor(PuContainer puContainer) {
-        if(puContainer == null){
+        if (puContainer == null) {
             throw new NullPointerException("puContainer can't be null");
         }
         this.puContainer = puContainer;
@@ -52,7 +61,7 @@ public class PuMonitor {
                     Lock lock = Hazelcast.getLock("PartitionLock-" + partitionId);
                     if (!lock.tryLock()) {
                         if (logger.isLoggable(Level.FINE)) {
-                            logger.log(Level.FINE, "Could not obtain lock on partition "+partitionId+", maybe more luck next time.");
+                            logger.log(Level.FINE, "Could not obtain lock on partition " + partitionId + ", maybe more luck next time.");
                         }
 
                         break;
@@ -75,7 +84,7 @@ public class PuMonitor {
         }
 
         if (change) {
-            logger.log(Level.INFO, "Managed partitions: " + puContainer.getPartitionCount());
+            logger.log(Level.INFO, "Scan complete, managed partitions: " + puContainer.getPartitionCount());
         }
     }
 }

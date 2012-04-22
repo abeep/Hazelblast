@@ -3,6 +3,7 @@ package com.hazelblast.server;
 import com.hazelblast.server.pojo.PojoPuFactory;
 import junit.framework.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import static junit.framework.Assert.assertTrue;
@@ -97,6 +98,8 @@ public class PuServerTest {
         assertTrue(server.isTerminated());
     }
 
+    @Test
+    @Ignore
     public void shutdown_whenTerminating() {
 
     }

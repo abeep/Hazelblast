@@ -25,12 +25,12 @@ import static java.lang.String.format;
  */
 public class PuContainer {
 
+    public static final String PU_FACTORY_CLASS = "puFactory.class";
+
     //todo: this instance sucks.
-    public final static PuContainer INSTANCE = new PuContainer();
+    public static volatile PuContainer instance;
 
     private final static ILogger logger = Logger.getLogger(PuContainer.class.getName());
-
-    public static final String PU_FACTORY_CLASS = "puFactory.class";
 
     private final ProcessingUnit pu;
     private final ConcurrentMap<Integer, Object> partitionMap = new ConcurrentHashMap<Integer, Object>();

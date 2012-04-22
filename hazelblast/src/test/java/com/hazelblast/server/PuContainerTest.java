@@ -37,7 +37,24 @@ public class PuContainerTest {
     }
 
     @Test
-    public void whenExistingPartitionAdded() {
+    public void whenExistingPartitionAddedAgain() {
+        PuContainer container = new PuContainer(new PojoPu(new TestPojo()));
+
+        container.onPartitionAdded(1);
+        try {
+            container.onPartitionAdded(1);
+            fail();
+        } catch (IllegalArgumentException e) {
+
+        }
+
+        boolean result = container.containsPartition(1);
+        assertTrue(result);
+        assertEquals(1, container.getPartitionCount());
+    }
+
+    @Test
+    public void whenExistingPartitionRemoved() {
         PuContainer container = new PuContainer(new PojoPu(new TestPojo()));
 
         container.onPartitionAdded(1);

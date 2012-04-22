@@ -33,6 +33,7 @@ public class PuServer {
     private final PuContainer puContainer;
     private final ScheduledThreadPoolExecutor scheduler;
     private final Lock stateLock = new ReentrantLock();
+    private final long scanDelayMs;
     private volatile Status status = Status.Unstarted;
 
     /**
@@ -52,9 +53,12 @@ public class PuServer {
         if (scanDelayMs < 0) {
             throw new IllegalArgumentException("scanDelayMs can't be smaller or equal than zero, scanDelayMs was " + scanDelayMs);
         }
+        this.scanDelayMs = scanDelayMs;
         scheduler = new ScheduledThreadPoolExecutor(1);
         scheduler.setContinueExistingPeriodicTasksAfterShutdownPolicy(true);
-        puContainer = PuContainer.INSTANCE;
+        puContainer = new PuContainer();
+        //todo: nasty hack, will be removed in the future.
+        PuContainer.instance = puContainer;
         puMonitor = new PuMonitor(puContainer);
     }
 
@@ -74,8 +78,7 @@ public class PuServer {
         try {
             switch (status) {
                 case Unstarted:
-                    scheduler.scheduleAtFixedRate(new ScanTask(), 0, 5, TimeUnit.SECONDS);
-
+                    scheduler.scheduleAtFixedRate(new ScanTask(), 0, scanDelayMs, TimeUnit.MILLISECONDS);
                     logger.log(Level.FINE, "Started");
                     status = Status.Running;
                     break;
@@ -115,7 +118,7 @@ public class PuServer {
                     status = Status.Terminated;
                     break;
                 case Running:
-                    //TODO: LOGGING
+                    logger.log(Level.FINE,"PuServer is running, and will now be terminating");
                     status = Status.Terminating;
                     scheduler.shutdown();
                     break;
@@ -188,6 +191,7 @@ public class PuServer {
      * @return <tt>true</tt> if this executor terminated and
      *         <tt>false</tt> if the timeout elapsed before termination
      * @throws InterruptedException if interrupted while waiting
+     * @throws NullPointerException if unit is null
      */
     public boolean awaitTermination(long timeout, TimeUnit unit) throws InterruptedException {
         return scheduler.awaitTermination(timeout, unit);

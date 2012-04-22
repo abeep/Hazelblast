@@ -153,7 +153,7 @@ public class ProxyProvider {
         }
 
         public Object call() throws Exception {
-            PuContainer container = PuContainer.INSTANCE;
+            PuContainer container = PuContainer.instance;
 
             ProcessingUnit pu = container.getPu();
             Object service = pu.getService(serviceName);
@@ -185,7 +185,7 @@ public class ProxyProvider {
         }
 
         public Object call() throws Exception {
-            PuContainer container = PuContainer.INSTANCE;
+            PuContainer container = PuContainer.instance;
 
             ProcessingUnit pu = container.getPu();
             Object service = pu.getService(serviceName);
