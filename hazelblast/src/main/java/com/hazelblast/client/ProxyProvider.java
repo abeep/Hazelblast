@@ -18,39 +18,75 @@ import java.util.concurrent.*;
 
 import static java.lang.String.format;
 
+/**
+ * Provides a 'client' side proxy to 'server' side implementations.
+ * <p/>
+ * A pu is registered in the PuServer with a given name (defaults to 'default'). So on a single JVM multiple processing
+ * units can run in parallel. By providing a puName in this ProxyProvider, you can control which pu on the serverside
+ * is going to be called.
+ *
+ * @author Peter Veentjer.
+ */
 public final class ProxyProvider {
 
     private final ExecutorService executorService = Hazelcast.getExecutorService("calls");
     private final ConcurrentMap<Class, Object> proxies = new ConcurrentHashMap<Class, Object>();
-    private String puName;
+    private final String puName;
 
-    public ProxyProvider(){
+    /**
+     * Creates a new ProxyProvider that connects to the 'default' pu.
+     */
+    public ProxyProvider() {
         this("default");
     }
 
-    public ProxyProvider(String puName){
-        if(puName == null){
+    /**
+     * Creates a new ProxyProvider that connects to the given pu.
+     *
+     * @param puName the name of the pu to connect to.
+     * @throws NullPointerException if puName is null.
+     */
+    public ProxyProvider(String puName) {
+        if (puName == null) {
             throw new NullPointerException("puName can't be null");
         }
         this.puName = puName;
     }
 
-    public <T> T getProxy(Class<T> clazz) {
-        if (clazz == null) {
-            throw new NullPointerException("clazz can't be null");
+    /**
+     * Returns the name of the pu this ProxyProvider is going to call.
+     *
+     * @return the name of the pu.
+     */
+    public String getPuName() {
+        return puName;
+    }
+
+    /**
+     * Gets a proxy to to given interface.
+     *
+     * @param interfaze  the interface to connect to.
+     * @param <T>
+     * @return the created proxy.
+     * @throws NullPointerException if interfaze is null.
+     * @throws IllegalArgumentException if interfaze is not an 'interface'.
+     */
+    public <T> T getProxy(Class<T> interfaze) {
+        if (interfaze == null) {
+            throw new NullPointerException("interfaze can't be null");
         }
 
-        Object proxy = proxies.get(clazz);
+        Object proxy = proxies.get(interfaze);
         if (proxy == null) {
-            if (!clazz.isInterface()) {
-                throw new IllegalAccessError(format("clazz [%s] is not an interface", clazz));
+            if (!interfaze.isInterface()) {
+                throw new IllegalArgumentException(format("interfaze [%s] is not an interface", interfaze));
             }
 
             proxy = Proxy.newProxyInstance(
-                    clazz.getClassLoader(),
-                    new Class[]{clazz},
-                    new InvocationHandlerImpl(clazz));
-            Object oldProxy = proxies.putIfAbsent(clazz, proxy);
+                    interfaze.getClassLoader(),
+                    new Class[]{interfaze},
+                    new InvocationHandlerImpl(interfaze));
+            Object oldProxy = proxies.putIfAbsent(interfaze, proxy);
             proxy = oldProxy == null ? proxy : oldProxy;
         }
 
@@ -84,26 +120,26 @@ public final class ProxyProvider {
         }
 
         private Object invokeLoadBalancer(Method method, Object[] args) throws ExecutionException, InterruptedException {
-            LoadBalancedMethodInvocation task = new LoadBalancedMethodInvocation(puName,clazz.getSimpleName(), method.getName(), args);
+            LoadBalancedMethodInvocation task = new LoadBalancedMethodInvocation(puName, clazz.getSimpleName(), method.getName(), args);
 
             Future future = executorService.submit(task);
             return future.get();
         }
 
         private Object invokePartitioned(Method method, Object[] args) throws ExecutionException, InterruptedException {
-            int routingIDIndex = getPartitionKey(method);
+            int routingIDIndex = getRoutedArg(method);
             if (routingIDIndex == -1) {
                 throw new IllegalArgumentException("No routingId is found arguments of on method: " + method);
             }
 
-            PartitionedMethodInvocation task = new PartitionedMethodInvocation(puName,clazz.getSimpleName(), method.getName(), args, routingIDIndex);
+            PartitionedMethodInvocation task = new PartitionedMethodInvocation(puName, clazz.getSimpleName(), method.getName(), args, routingIDIndex);
 
             Future future = executorService.submit(task);
             return future.get();
         }
 
         private Object invokeForkJoin(Method method, Object[] args) throws ExecutionException, InterruptedException {
-            LoadBalancedMethodInvocation callable = new LoadBalancedMethodInvocation(puName,clazz.getSimpleName(), method.getName(), args);
+            LoadBalancedMethodInvocation callable = new LoadBalancedMethodInvocation(puName, clazz.getSimpleName(), method.getName(), args);
             MultiTask task = new MultiTask(callable, getPuMembers());
             executorService.execute(task);
             task.get();
@@ -134,8 +170,8 @@ public final class ProxyProvider {
             }
         }
 
-        //all this looking up could be done up front.
-        private int getPartitionKey(Method method) {
+        //TODO: all this looking up could be done up front.
+        private int getRoutedArg(Method method) {
             Annotation[][] annotations = method.getParameterAnnotations();
 
             for (int argIndex = 0; argIndex < annotations.length; argIndex++) {
