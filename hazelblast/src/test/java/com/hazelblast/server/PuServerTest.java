@@ -3,6 +3,7 @@ package com.hazelblast.server;
 import com.hazelblast.api.ProcessingUnit;
 import com.hazelblast.server.pojo.PojoPuFactory;
 import junit.framework.Assert;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -15,10 +16,22 @@ import static org.junit.Assert.assertFalse;
 
 public class PuServerTest {
 
+    private PuServer server;
+    private ProcessingUnit puMock;
+
     @Before
     public void setUp() {
         System.setProperty("puFactory.class", PojoPuFactory.class.getName());
         System.setProperty("pojoPu.class", TestPojo.class.getName());
+        puMock = createMock(ProcessingUnit.class);
+        server = new PuServer(puMock,"default");
+    }
+
+    @After
+    public void tearDown() {
+        if (server != null) {
+            server.shutdown();
+        }
     }
 
     // =========================== start =================================
@@ -26,8 +39,6 @@ public class PuServerTest {
 
     @Test
     public void unstartedServer() {
-        PuServer server = new PuServer(createMock(ProcessingUnit.class));
-
         assertEquals(server.getStatus(), PuServer.Status.Unstarted);
         assertFalse(server.isShutdown());
         assertFalse(server.isTerminated());
@@ -36,8 +47,6 @@ public class PuServerTest {
 
     @Test
     public void start_whenUnstarted_thenStarted() {
-        PuServer server = new PuServer(createMock(ProcessingUnit.class));
-
         server.start();
 
         assertEquals(server.getStatus(), PuServer.Status.Running);
@@ -48,7 +57,6 @@ public class PuServerTest {
 
     @Test
     public void start_whenStarted_thenIgnored() {
-        PuServer server = new PuServer(createMock(ProcessingUnit.class));
         server.start();
 
         server.start();
@@ -60,7 +68,6 @@ public class PuServerTest {
 
     @Test
     public void start_whenTerminated_thenIllegalStateException() {
-        PuServer server = new PuServer(createMock(ProcessingUnit.class));
         server.shutdown();
 
         try {
@@ -80,7 +87,6 @@ public class PuServerTest {
 
     @Test
     public void shutdown_whenUnstarted() {
-        PuServer server = new PuServer(createMock(ProcessingUnit.class));
         server.shutdown();
 
         Assert.assertEquals(PuServer.Status.Terminated, server.getStatus());
@@ -90,7 +96,6 @@ public class PuServerTest {
 
     @Test
     public void shutdown_whenRunning() throws InterruptedException {
-        PuServer server = new PuServer(createMock(ProcessingUnit.class),100);
         server.start();
 
         server.shutdown();
@@ -109,7 +114,6 @@ public class PuServerTest {
 
     @Test
     public void shutdown_whenTerminated() {
-        PuServer server = new PuServer(createMock(ProcessingUnit.class));
         server.shutdown();
 
         server.shutdown();

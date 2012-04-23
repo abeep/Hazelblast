@@ -2,9 +2,12 @@ package com.hazelblast.server;
 
 import com.hazelblast.api.ProcessingUnit;
 import com.hazelblast.api.PuFactory;
+import com.hazelcast.core.Hazelcast;
 import com.hazelcast.logging.ILogger;
 import com.hazelcast.logging.Logger;
 
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
@@ -24,17 +27,28 @@ import static java.lang.String.format;
 public final class PuServer {
     public final static int DEFAULT_SCAN_DELAY_MS = 5000;
     public static final String PU_FACTORY_CLASS = "puFactory.class";
+    public static final String PU_NAME="pu.name";
 
     private final static ILogger logger = Logger.getLogger(PuServer.class.getName());
-    //todo: this instance sucks.
-    public static volatile PuContainer globalContainerInstance;
 
-    public static ProcessingUnit getGlobalProcessingUnit(){
-        return globalContainerInstance.getPu();
+    private final static ConcurrentMap<String, PuServer> puMap = new ConcurrentHashMap<String, PuServer>();
+    private String puName;
+
+    public static ProcessingUnit getProcessingUnit(String name) {
+        if (name == null) {
+            throw new NullPointerException("name can't be null");
+        }
+
+        ProcessingUnit pu = puMap.get(name).puContainer.getPu();
+        if (pu == null) {
+            throw new IllegalStateException(format("No pu found with name [%s] on member [%s]", name, Hazelcast.getCluster().getLocalMember()));
+        }
+        return pu;
     }
 
     public static void main(String[] args) {
-        PuServer main = new PuServer(buildPu(), DEFAULT_SCAN_DELAY_MS);
+        String puName = System.getProperty(PU_NAME,"default");
+        PuServer main = new PuServer(buildPu(), DEFAULT_SCAN_DELAY_MS,puName);
         main.start();
     }
 
@@ -68,48 +82,53 @@ public final class PuServer {
     private final PuMonitor puMonitor;
     private final PuContainer puContainer;
     private final ScheduledThreadPoolExecutor scheduler = new ScheduledThreadPoolExecutor(1);
-
     private final Lock stateLock = new ReentrantLock();
     private final long scanDelayMs;
     private volatile Status status = Status.Unstarted;
 
-    public PuServer(ProcessingUnit pu){
-        this(pu, DEFAULT_SCAN_DELAY_MS);
+    public PuServer(ProcessingUnit pu, String puName) {
+        this(pu, DEFAULT_SCAN_DELAY_MS, puName);
+    }
+
+    public PuServer(ProcessingUnit pu, long scanDelayMs) {
+      this(pu,scanDelayMs,"default");
     }
 
     /**
      * Creates a PuServer.
      *
-     * @param pu the ProcessingUnit that is hosted by this PuServer.
+     * @param pu          the ProcessingUnit that is hosted by this PuServer.
      * @param scanDelayMs the delay between partition change checks.
      */
-    public PuServer(ProcessingUnit pu, long scanDelayMs) {
+    public PuServer(ProcessingUnit pu, long scanDelayMs, String puName) {
         if (pu == null) {
             throw new NullPointerException("pu can't be null");
         }
 
         if (scanDelayMs < 0) {
-            throw new IllegalArgumentException("scanDelayMs can't be smaller or equal than zero, scanDelayMs was " + scanDelayMs);
+            throw new IllegalArgumentException(format("scanDelayMs can't be smaller or equal than zero, scanDelayMs was [%s]",scanDelayMs));
         }
 
+        if(puName == null){
+            throw new NullPointerException("puName can't be null");
+        }
+
+        this.puName = puName;
         this.scanDelayMs = scanDelayMs;
-        scheduler.setContinueExistingPeriodicTasksAfterShutdownPolicy(true);
-        puContainer = new PuContainer(pu);
-        //todo: nasty hack, will be removed in the future.
-        globalContainerInstance = puContainer;
-        puMonitor = new PuMonitor(puContainer);
+        this.scheduler.setContinueExistingPeriodicTasksAfterShutdownPolicy(true);
+        this.puContainer = new PuContainer(pu);
+        this.puMonitor = new PuMonitor(puContainer);
     }
-
-
 
     /**
      * Starts the PuServer.
      * <p/>
      * This call safely can be made if the PuServer already has been started.
      * <p/>
-     * This method is threadsafe.
+     * This method is thread safe.
      *
-     * @throws IllegalStateException if the PuServer already is shutdown or terminated.
+     * @throws IllegalStateException if the PuServer already is shutdown or terminated or if another processing unit with the same name
+     *                               has been started.
      */
     public void start() {
         logger.log(Level.INFO, "Start");
@@ -118,10 +137,18 @@ public final class PuServer {
         try {
             switch (status) {
                 case Unstarted:
+                    status = Status.Running;
                     puContainer.onStart();
+
+                    if (puMap.putIfAbsent(puName, this) != null) {
+                        shutdown();
+                        throw new IllegalStateException(
+                                format("PuServer with name [%s] can't be started, there is another PuServer registered under the same name", puName));
+                    }
+
                     scheduler.scheduleAtFixedRate(new ScanTask(), 0, scanDelayMs, TimeUnit.MILLISECONDS);
                     logger.log(Level.FINE, "Started");
-                    status = Status.Running;
+
                     break;
                 case Running:
                     logger.log(Level.FINE, "Start call is ignored, PuServer is already running");
@@ -141,7 +168,7 @@ public final class PuServer {
     /**
      * Shuts down this PuServer.
      * <p/>
-     * This call is threadsafe.
+     * This call is thread safe.
      * <p/>
      * This call can safely be made if this PuServer already is shutdown or terminated.
      * <p/>
@@ -155,11 +182,13 @@ public final class PuServer {
         try {
             switch (status) {
                 case Unstarted:
+                    puMap.remove(puName,this);
                     puContainer.onStop();
                     logger.log(Level.FINE, "PuServer not started yet, so will be immediately terminated");
                     status = Status.Terminated;
                     break;
                 case Running:
+                    puMap.remove(puName,this);
                     logger.log(Level.FINE, "PuServer is running, and will now be terminating");
                     status = Status.Terminating;
                     scheduler.shutdown();
