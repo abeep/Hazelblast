@@ -22,6 +22,18 @@ public final class ProxyProvider {
 
     private final ExecutorService executorService = Hazelcast.getExecutorService("calls");
     private final ConcurrentMap<Class, Object> proxies = new ConcurrentHashMap<Class, Object>();
+    private String puName;
+
+    public ProxyProvider(){
+        this("default");
+    }
+
+    public ProxyProvider(String puName){
+        if(puName == null){
+            throw new NullPointerException("puName can't be null");
+        }
+        this.puName = puName;
+    }
 
     public <T> T getProxy(Class<T> clazz) {
         if (clazz == null) {
@@ -72,7 +84,7 @@ public final class ProxyProvider {
         }
 
         private Object invokeLoadBalancer(Method method, Object[] args) throws ExecutionException, InterruptedException {
-            LoadBalancedMethodInvocation task = new LoadBalancedMethodInvocation(clazz.getSimpleName(), method.getName(), args);
+            LoadBalancedMethodInvocation task = new LoadBalancedMethodInvocation(puName,clazz.getSimpleName(), method.getName(), args);
 
             Future future = executorService.submit(task);
             return future.get();
@@ -84,14 +96,14 @@ public final class ProxyProvider {
                 throw new IllegalArgumentException("No routingId is found arguments of on method: " + method);
             }
 
-            PartitionedMethodInvocation task = new PartitionedMethodInvocation(clazz.getSimpleName(), method.getName(), args, routingIDIndex);
+            PartitionedMethodInvocation task = new PartitionedMethodInvocation(puName,clazz.getSimpleName(), method.getName(), args, routingIDIndex);
 
             Future future = executorService.submit(task);
             return future.get();
         }
 
         private Object invokeForkJoin(Method method, Object[] args) throws ExecutionException, InterruptedException {
-            LoadBalancedMethodInvocation callable = new LoadBalancedMethodInvocation(clazz.getSimpleName(), method.getName(), args);
+            LoadBalancedMethodInvocation callable = new LoadBalancedMethodInvocation(puName,clazz.getSimpleName(), method.getName(), args);
             MultiTask task = new MultiTask(callable, getPuMembers());
             executorService.execute(task);
             task.get();
@@ -144,15 +156,17 @@ public final class ProxyProvider {
         private final String serviceName;
         private final String methodName;
         private final Object[] args;
+        private final String puName;
 
-        LoadBalancedMethodInvocation(String serviceName, String methodName, Object[] args) {
+        LoadBalancedMethodInvocation(String puName, String serviceName, String methodName, Object[] args) {
+            this.puName = puName;
             this.serviceName = serviceName;
             this.methodName = methodName;
             this.args = args == null ? new Object[]{} : args;
         }
 
         public Object call() throws Exception {
-            ProcessingUnit pu = PuServer.getGlobalProcessingUnit();
+            ProcessingUnit pu = PuServer.getProcessingUnit(puName);
 
             Object service = pu.getService(serviceName);
 
@@ -167,12 +181,14 @@ public final class ProxyProvider {
     }
 
     static class PartitionedMethodInvocation implements Callable, PartitionAware, Serializable {
+        private final String puName;
         private final String serviceName;
         private final String methodName;
         private final Object[] args;
         private final int routingIdIndex;
 
-        PartitionedMethodInvocation(String serviceName, String methodName, Object[] args, int routingIDIndex) {
+        PartitionedMethodInvocation(String puName, String serviceName, String methodName, Object[] args, int routingIDIndex) {
+            this.puName = puName;
             this.serviceName = serviceName;
             this.methodName = methodName;
             this.args = args;
@@ -180,7 +196,7 @@ public final class ProxyProvider {
         }
 
         public Object call() throws Exception {
-            ProcessingUnit pu = PuServer.getGlobalProcessingUnit();
+            ProcessingUnit pu = PuServer.getProcessingUnit(puName);
 
             Object service = pu.getService(serviceName);
 
