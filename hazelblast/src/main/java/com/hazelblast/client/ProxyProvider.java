@@ -44,7 +44,7 @@ public final class ProxyProvider {
      * Creates a ProxyProvider that connects to a ProcessingUnit with the given name
      *
      * @param puName          the ProcessingUnit to connect to.
-     * @param executorService the ExecutorService used to execute the remote calls on.
+     * @param executorService the (Hazelcast) ExecutorService used to execute the remote calls on.
      * @throws NullPointerException if puName or executorService is null.
      */
     public ProxyProvider(String puName, ExecutorService executorService) {
