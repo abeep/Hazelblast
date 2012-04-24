@@ -29,7 +29,7 @@ import static java.lang.String.format;
  */
 public final class ProxyProvider {
 
-    private final ExecutorService executorService = Hazelcast.getExecutorService("calls");
+    private final ExecutorService executorService;
     private final ConcurrentMap<Class, Object> proxies = new ConcurrentHashMap<Class, Object>();
     private final String puName;
 
@@ -37,20 +37,27 @@ public final class ProxyProvider {
      * Creates a new ProxyProvider that connects to the 'default' pu.
      */
     public ProxyProvider() {
-        this("default");
+        this("default", Hazelcast.getExecutorService());
     }
 
     /**
-     * Creates a new ProxyProvider that connects to the given pu.
+     * Creates a ProxyProvider that connects to a ProcessingUnit with the given name
      *
-     * @param puName the name of the pu to connect to.
-     * @throws NullPointerException if puName is null.
+     * @param puName          the ProcessingUnit to connect to.
+     * @param executorService the ExecutorService used to execute the remote calls on.
+     * @throws NullPointerException if puName or executorService is null.
      */
-    public ProxyProvider(String puName) {
+    public ProxyProvider(String puName, ExecutorService executorService) {
         if (puName == null) {
             throw new NullPointerException("puName can't be null");
         }
+
+        if (executorService == null) {
+            throw new NullPointerException("executorService can't be null");
+        }
+
         this.puName = puName;
+        this.executorService = executorService;
     }
 
     /**
@@ -65,10 +72,10 @@ public final class ProxyProvider {
     /**
      * Gets a proxy to to given interface.
      *
-     * @param interfaze  the interface to connect to.
+     * @param interfaze the interface to connect to.
      * @param <T>
      * @return the created proxy.
-     * @throws NullPointerException if interfaze is null.
+     * @throws NullPointerException     if interfaze is null.
      * @throws IllegalArgumentException if interfaze is not an 'interface'.
      */
     public <T> T getProxy(Class<T> interfaze) {
