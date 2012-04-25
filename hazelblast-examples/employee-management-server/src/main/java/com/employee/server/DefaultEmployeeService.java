@@ -62,7 +62,7 @@ public class DefaultEmployeeService implements EmployeeService, SpringPartitionL
         }
 
         partitions.put(partitionId, this);
-        logger.info("Partition added: " + partitionId + ", partitioncount:" + partitions.size()+" localemployees: "+localEmployees.size());
+        logger.debug("Partition added: " + partitionId + ", partitioncount:" + partitions.size()+" localemployees: "+localEmployees.size());
     }
 
     public void onPartitionRemoved(int partitionId) {
@@ -74,7 +74,7 @@ public class DefaultEmployeeService implements EmployeeService, SpringPartitionL
         }
 
         partitions.remove(partitionId);
-        logger.info("Partition removed: " + partitionId + ", partitioncount: " + partitions.size()+" localemployees: "+localEmployees.size());
+        logger.debug("Partition removed: " + partitionId + ", partitioncount: " + partitions.size()+" localemployees: "+localEmployees.size());
     }
 
     public void init() {
