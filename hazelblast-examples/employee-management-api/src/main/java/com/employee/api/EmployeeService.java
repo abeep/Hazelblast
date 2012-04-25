@@ -1,11 +1,9 @@
 package com.employee.api;
 
-import com.hazelblast.api.ForkJoin;
-import com.hazelblast.api.LoadBalanced;
-import com.hazelblast.api.Partitioned;
-import com.hazelblast.api.RoutingId;
+import com.hazelblast.api.*;
 import com.hazelblast.api.reducers.VoidReducer;
 
+@RemoteInterface
 public interface EmployeeService {
 
     @Partitioned
