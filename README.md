@@ -9,7 +9,9 @@ Example
 This interface can be shared between the client (that calls this service) and the server (that implements
 this service). The fire method is routed on the employeeId.
 
+    @RemoteInterface
     class FireService{
+
         @Partitioned
         void fire(@RoutingId String employeeId);
     }

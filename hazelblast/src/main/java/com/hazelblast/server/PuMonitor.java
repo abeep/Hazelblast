@@ -11,6 +11,8 @@ import java.util.Set;
 import java.util.concurrent.locks.Lock;
 import java.util.logging.Level;
 
+import static java.lang.String.format;
+
 /**
  * The PuMonitor is responsible for seeing changes in the Hazelcast partitions, and to notify these changes
  * back to the PuContainer.
@@ -46,7 +48,7 @@ final class PuMonitor {
      */
     public void scan() {
         if (logger.isLoggable(Level.FINE)) {
-            logger.log(Level.FINE, "scan");
+            logger.log(Level.FINE, format("[%s] Scan",puContainer.getPuName()));
         }
 
         Set<Partition> partitions = partitionService.getPartitions();
@@ -61,7 +63,7 @@ final class PuMonitor {
                     Lock lock = Hazelcast.getLock("PartitionLock-" + partitionId);
                     if (!lock.tryLock()) {
                         if (logger.isLoggable(Level.FINE)) {
-                            logger.log(Level.FINE, "Could not obtain lock on partition " + partitionId + ", maybe more luck next time.");
+                            logger.log(Level.FINE, format("[%s] Could not obtain lock on partition [%s], maybe more luck next time.",puContainer.getPuName(),partitionId));
                         }
 
                         break;
@@ -84,7 +86,7 @@ final class PuMonitor {
         }
 
         if (change) {
-            logger.log(Level.INFO, "Scan complete, managed partitions: " + puContainer.getPartitionCount());
+            logger.log(Level.INFO, format("[%s] Scan complete, managed partitions [%s] ",puContainer.getPuName(),puContainer.getPartitionCount()));
         }
     }
 }

@@ -29,22 +29,37 @@ final class PuContainer {
 
     private final ProcessingUnit pu;
     private final ConcurrentMap<Integer, Object> partitionMap = new ConcurrentHashMap<Integer, Object>();
+    private final String puName;
 
     /**
      * Creates a new PuContainer with the given ProcessingUnit.
      *
-     * @param pu the ProcessingUnit contained in this PuContainer.
-     * @throws NullPointerException if pu is null.
+     * @param pu     the ProcessingUnit contained in this PuContainer.
+     * @param puName the name of the processing unit.
+     * @throws NullPointerException if pu or puName is null.
      */
-    public PuContainer(ProcessingUnit pu) {
+    public PuContainer(ProcessingUnit pu, String puName) {
         if (pu == null) {
-            throw new NullPointerException();
+            throw new NullPointerException("pu can't be null");
         }
-        this.pu = pu;
+        if (puName == null) {
+            throw new NullPointerException("puName can't be null");
+        }
 
+        this.pu = pu;
+        this.puName = puName;
         if (logger.isLoggable(Level.INFO)) {
             logger.log(Level.INFO, format("Created PuContainer using ProcessingUnit [%s]", pu));
         }
+    }
+
+    /**
+     * Returns the name of the pu.
+     *
+     * @return the name of the pu.
+     */
+    public String getPuName() {
+        return puName;
     }
 
     /**
@@ -65,11 +80,11 @@ final class PuContainer {
      */
     public void onPartitionAdded(int partitionId) {
         if (logger.isLoggable(Level.INFO)) {
-            logger.log(Level.INFO, "onPartitionAdded" + partitionId);
+            logger.log(Level.INFO, format("[%s] onPartitionAdded [%s]", puName, partitionId));
         }
 
         if (partitionMap.containsKey(partitionId)) {
-            throw new IllegalArgumentException("Partition " + partitionId + " already exists");
+            throw new IllegalArgumentException("Partition " + partitionId + " already exists in pu " + puName);
         }
 
         partitionMap.put(partitionId, partitionId);
@@ -77,7 +92,7 @@ final class PuContainer {
         try {
             pu.onPartitionAdded(partitionId);
         } catch (RuntimeException e) {
-            logger.log(Level.SEVERE, "failed to execute pu.OnPartitionAdded", e);
+            logger.log(Level.SEVERE, format("[%s] Failed to execute pu.OnPartitionAdded", puName), e);
         }
     }
 
@@ -90,56 +105,56 @@ final class PuContainer {
      */
     public void onPartitionRemoved(int partitionId) {
         if (logger.isLoggable(Level.INFO)) {
-            logger.log(Level.INFO, "onPartitionRemoved" + partitionId);
+            logger.log(Level.INFO, format("[%s] onPartitionRemoved [%s]", puName, partitionId));
         }
 
         boolean changed = partitionMap.remove(partitionId, partitionId);
 
         if (!changed) {
-            throw new IllegalArgumentException("Partition " + partitionId + " doesn't exist");
+            throw new IllegalArgumentException("Partition " + partitionId + " doesn't exist in pu " + puName);
         }
 
         try {
             pu.onPartitionRemoved(partitionId);
         } catch (RuntimeException e) {
-            logger.log(Level.SEVERE, "failed to execute pu.OnPartitionAdded", e);
+            logger.log(Level.SEVERE, format("[%s] Failed to execute pu.OnPartitionAdded", puName), e);
         }
     }
 
 
     /**
      * Called when the PuContainer needs to start up.
-     *
+     * <p/>
      * If the {@link com.hazelblast.api.ProcessingUnit#onStart()} throws an Exception, it will be logged but not
      * propagated.
      */
     public void onStart() {
         if (logger.isLoggable(Level.INFO)) {
-            logger.log(Level.INFO, "onStart called");
+            logger.log(Level.INFO, format("[%s] onStart called", puName));
         }
 
         try {
             pu.onStart();
         } catch (Exception e) {
-            logger.log(Level.SEVERE, "failed to execute pu.onStart", e);
+            logger.log(Level.SEVERE, format("[%s] Failed to execute pu.onStart", puName), e);
         }
     }
 
     /**
      * Called when the PuContainer needs to shut down.
-     *
+     * <p/>
      * If the {@link com.hazelblast.api.ProcessingUnit#onStop()} throws an Exception, it will be logged but not
      * propagated.
      */
     public void onStop() {
         if (logger.isLoggable(Level.INFO)) {
-            logger.log(Level.INFO, "onStop called");
+            logger.log(Level.INFO, format("[%s] onStop called", puName));
         }
 
         try {
             pu.onStop();
         } catch (Exception e) {
-            logger.log(Level.SEVERE, "failed to execute pu.onStop", e);
+            logger.log(Level.SEVERE, format("[%s] Failed to execute pu.onStop", puName), e);
         }
     }
 

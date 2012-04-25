@@ -5,6 +5,7 @@ import com.hazelblast.api.PuFactory;
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.logging.ILogger;
 import com.hazelcast.logging.Logger;
+import org.apache.commons.cli.*;
 
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -21,7 +22,7 @@ import static java.lang.String.format;
  * standalone, or can be embedded in an existing java application.
  * <p/>
  * If the PuServer is embedded, Multiple PuServers can be run in parallel.
- *
+ * <p/>
  * As soon as a PuServer is started, it automatically registers itself in a global registry (contained in this PuServer)
  * so that a client can look up the PuServer when a remote call is executed. When the PuServer stops, the PuServer will
  * automatically be unregistered.
@@ -29,12 +30,77 @@ import static java.lang.String.format;
  * @author Peter Veentjer.
  */
 public final class PuServer {
-    public static final  int DEFAULT_SCAN_DELAY_MS = 5000;
-    public static final String PU_FACTORY_CLASS = "puFactory.class";
-    public static final String PU_NAME = "pu.name";
+    public static final int DEFAULT_SCAN_DELAY_MS = 5000;
 
-    private  static final ILogger logger = Logger.getLogger(PuServer.class.getName());
-    private  static final ConcurrentMap<String, PuServer> puMap = new ConcurrentHashMap<String, PuServer>();
+    private static final ILogger logger = Logger.getLogger(PuServer.class.getName());
+    private static final ConcurrentMap<String, PuServer> puMap = new ConcurrentHashMap<String, PuServer>();
+
+    public static void main(String[] args) {
+        Options options = buildOptions();
+        CommandLineParser parser = new BasicParser();
+        CommandLine commandLine = buildCommandLine(args, options, parser);
+
+        if (commandLine.hasOption("version")) {
+            logger.log(Level.INFO, "PuServer version is 0.1-SNAPSHOT");
+            System.exit(0);
+        }
+
+        if (commandLine.hasOption("help")) {
+            HelpFormatter formatter = new HelpFormatter();
+            formatter.printHelp("ant", options);
+            System.exit(0);
+        }
+
+        String puName = commandLine.getOptionValue("puName", "default");
+        String puFactory = commandLine.getOptionValue("puFactory");
+        long scanDelayMs = Long.parseLong(commandLine.getOptionValue("scanDelay", "" + DEFAULT_SCAN_DELAY_MS));
+
+        PuServer main = new PuServer(buildPu(puFactory), puName, scanDelayMs);
+        main.start();
+    }
+
+    private static CommandLine buildCommandLine(String[] args, Options options, CommandLineParser parser) {
+        try {
+            return parser.parse(options, args);
+        } catch (ParseException e) {
+            logger.log(Level.SEVERE, "Parsing failed.  Reason: " + e.getMessage());
+            System.exit(1);
+            //will never be called.
+            return null;
+        }
+    }
+
+    private static Options buildOptions() {
+        Option puFile = OptionBuilder.withArgName("puName")
+                .hasArg()
+                .withDescription("The name of the processing unit")
+                .withType(String.class)
+                .create("puName");
+
+        Option puFactory = OptionBuilder.withArgName("puFactory")
+                .hasArg()
+                .isRequired(true)
+                .withType(String.class)
+                .withDescription("The class of the com.hazelblast.api.PuFactory instance that creates the processing unit")
+                .create("puFactory");
+
+        Option scanDelay = OptionBuilder.withArgName("scanDelay")
+                .hasArg()
+                .withDescription("The delay in milliseconds between checking if the partitions have moved")
+                .withType(Long.class)
+                .create("scanDelay");
+
+        Option help = new Option("help", "Print this message");
+        Option version = new Option("version", "Print the version information and exit");
+
+        Options options = new Options();
+        options.addOption(puFile);
+        options.addOption(puFactory);
+        options.addOption(scanDelay);
+        options.addOption(help);
+        options.addOption(version);
+        return options;
+    }
 
     public static ProcessingUnit getProcessingUnit(String name) {
         if (name == null) {
@@ -48,21 +114,9 @@ public final class PuServer {
         return pu;
     }
 
-    public static void main(String[] args) {
-        String puName = System.getProperty(PU_NAME, "default");
-        PuServer main = new PuServer(buildPu(), puName, DEFAULT_SCAN_DELAY_MS);
-        main.start();
-    }
-
-    private static ProcessingUnit buildPu() {
-        String factoryName = System.getProperty(PU_FACTORY_CLASS);
-
+    private static ProcessingUnit buildPu(String factoryName) {
         if (logger.isLoggable(Level.FINE)) {
-            logger.log(Level.FINE, format("Creating ProcessingUnit using System property %s and value %s", PU_FACTORY_CLASS, factoryName));
-        }
-
-        if (factoryName == null) {
-            throw new IllegalStateException(format("Property [%s] is not found in the System properties", PU_FACTORY_CLASS));
+            logger.log(Level.FINE, format("Creating ProcessingUnit using puFactory [%s]", factoryName));
         }
 
         ClassLoader classLoader = PuServer.class.getClassLoader();
@@ -71,11 +125,11 @@ public final class PuServer {
             PuFactory puFactory = factoryClazz.newInstance();
             return puFactory.create();
         } catch (ClassNotFoundException e) {
-            throw new RuntimeException(format("Failed to create ProcessingUnit using System property %s " + factoryName, PU_FACTORY_CLASS), e);
+            throw new RuntimeException(format("Failed to create ProcessingUnit using puFactory.class [%s] ", factoryName), e);
         } catch (InstantiationException e) {
-            throw new RuntimeException("Failed to create ProcessingUnit using puFactor.class " + factoryName, e);
+            throw new RuntimeException(format("Failed to create ProcessingUnit using puFactor.class [%s]", factoryName), e);
         } catch (IllegalAccessException e) {
-            throw new RuntimeException("Failed to create ProcessingUnit using puFactor.class " + factoryName, e);
+            throw new RuntimeException(format("Failed to create ProcessingUnit using puFactor.class [%s]", factoryName), e);
         }
     }
 
@@ -125,7 +179,7 @@ public final class PuServer {
         this.puName = puName;
         this.scanDelayMs = scanDelayMs;
         this.scheduler.setContinueExistingPeriodicTasksAfterShutdownPolicy(true);
-        this.puContainer = new PuContainer(pu);
+        this.puContainer = new PuContainer(pu,puName);
         this.puMonitor = new PuMonitor(puContainer);
     }
 
@@ -140,8 +194,8 @@ public final class PuServer {
      *                               has been started.
      */
     public void start() {
-        if(logger.isLoggable(Level.INFO)){
-            logger.log(Level.INFO, format("[%s] Start",puName));
+        if (logger.isLoggable(Level.INFO)) {
+            logger.log(Level.INFO, format("[%s] Start", puName));
         }
 
         stateLock.lock();
@@ -158,14 +212,14 @@ public final class PuServer {
                     }
 
                     scheduler.scheduleAtFixedRate(new ScanTask(), 0, scanDelayMs, TimeUnit.MILLISECONDS);
-                    if(logger.isLoggable(Level.FINE)){
+                    if (logger.isLoggable(Level.FINE)) {
                         logger.log(Level.FINE, format("[%s] Started", puName));
                     }
 
                     break;
                 case Running:
-                    if(logger.isLoggable(Level.FINE)){
-                        logger.log(Level.FINE, format("[%s] Start call is ignored, PuServer is already running",puName));
+                    if (logger.isLoggable(Level.FINE)) {
+                        logger.log(Level.FINE, format("[%s] Start call is ignored, PuServer is already running", puName));
                     }
                     break;
                 case Terminating:
