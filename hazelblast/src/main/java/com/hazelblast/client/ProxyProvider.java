@@ -24,9 +24,9 @@ import static java.lang.String.format;
  * A pu is registered in the PuServer with a given name (defaults to 'default'). So on a single JVM multiple processing
  * units can run in parallel. By providing a puName in this ProxyProvider, you can control which pu on the serverside
  * is going to be called.
- *
+ * <p/>
  * It is best to create a single instance of the ProxyProvider and to reuse it. The ProxyProvider is threadsafe.
- *
+ * <p/>
  * Because the proxy is cached, the guarantee is given that always the same instance for a given interface is returned.
  *
  * @author Peter Veentjer.
@@ -93,6 +93,10 @@ public final class ProxyProvider {
                 throw new IllegalArgumentException(format("interfaze [%s] is not an interface", interfaze));
             }
 
+            if (!interfaze.isAnnotationPresent(RemoteInterface.class)) {
+                throw new IllegalArgumentException(format("interfaze [%s] is missing the [%s] annotation", interfaze, RemoteInterface.class.getName()));
+            }
+
             proxy = Proxy.newProxyInstance(
                     interfaze.getClassLoader(),
                     new Class[]{interfaze},
@@ -114,6 +118,8 @@ public final class ProxyProvider {
         private final Class clazz;
 
         private InvocationHandlerImpl(Class clazz) {
+
+
             this.clazz = clazz;
         }
 
