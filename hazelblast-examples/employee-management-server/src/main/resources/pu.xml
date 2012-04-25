@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
+
 <beans xmlns="http://www.springframework.org/schema/beans"
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xmlns:hz="http://www.hazelcast.com/schema/spring"
@@ -26,7 +27,7 @@
     <!-- we need to explicitly tell which services are callable from the outside because we don't want
          all services to be called explicitly.
 
-         The SpringPuFactory expects a bean called 'beans' of the type 'ExposedBeans'. If
+         The SpringPuFactory expects a bean called 'exposedServices' of the type 'ExposedBeans'. If
          it is missing, an Exception will be thrown.
          -->
     <bean id="exposedServices"
