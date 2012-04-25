@@ -20,19 +20,21 @@ import static java.lang.String.format;
  * The PuServer is responsible for hosting the {@link PuContainer} and can either run
  * standalone, or can be embedded in an existing java application.
  * <p/>
- * TODO: There is a bug in getting to the terminated state when this PuServer is running.
+ * If the PuServer is embedded, Multiple PuServers can be run in parallel.
+ *
+ * As soon as a PuServer is started, it automatically registers itself in a global registry (contained in this PuServer)
+ * so that a client can look up the PuServer when a remote call is executed. When the PuServer stops, the PuServer will
+ * automatically be unregistered.
  *
  * @author Peter Veentjer.
  */
 public final class PuServer {
-    public final static int DEFAULT_SCAN_DELAY_MS = 5000;
+    public static final  int DEFAULT_SCAN_DELAY_MS = 5000;
     public static final String PU_FACTORY_CLASS = "puFactory.class";
-    public static final String PU_NAME="pu.name";
+    public static final String PU_NAME = "pu.name";
 
-    private final static ILogger logger = Logger.getLogger(PuServer.class.getName());
-
-    private final static ConcurrentMap<String, PuServer> puMap = new ConcurrentHashMap<String, PuServer>();
-    private String puName;
+    private  static final ILogger logger = Logger.getLogger(PuServer.class.getName());
+    private  static final ConcurrentMap<String, PuServer> puMap = new ConcurrentHashMap<String, PuServer>();
 
     public static ProcessingUnit getProcessingUnit(String name) {
         if (name == null) {
@@ -47,8 +49,8 @@ public final class PuServer {
     }
 
     public static void main(String[] args) {
-        String puName = System.getProperty(PU_NAME,"default");
-        PuServer main = new PuServer(buildPu(), DEFAULT_SCAN_DELAY_MS,puName);
+        String puName = System.getProperty(PU_NAME, "default");
+        PuServer main = new PuServer(buildPu(), puName, DEFAULT_SCAN_DELAY_MS);
         main.start();
     }
 
@@ -79,6 +81,7 @@ public final class PuServer {
 
     protected enum Status {Unstarted, Running, Terminating, Terminated}
 
+    private final String puName;
     private final PuMonitor puMonitor;
     private final PuContainer puContainer;
     private final ScheduledThreadPoolExecutor scheduler = new ScheduledThreadPoolExecutor(1);
@@ -86,30 +89,36 @@ public final class PuServer {
     private final long scanDelayMs;
     private volatile Status status = Status.Unstarted;
 
+    /**
+     * Creates a new PuServer.
+     *
+     * @param pu     the pu this PuServer 'contains'.
+     * @param puName the name of the pu.
+     * @throws NullPointerException if pu or puName is null.
+     */
     public PuServer(ProcessingUnit pu, String puName) {
-        this(pu, DEFAULT_SCAN_DELAY_MS, puName);
-    }
-
-    public PuServer(ProcessingUnit pu, long scanDelayMs) {
-      this(pu,scanDelayMs,"default");
+        this(pu, puName, DEFAULT_SCAN_DELAY_MS);
     }
 
     /**
      * Creates a PuServer.
      *
      * @param pu          the ProcessingUnit that is hosted by this PuServer.
+     * @param puName      the name of the pu.
      * @param scanDelayMs the delay between partition change checks.
+     * @throws NullPointerException     if pu or puName is null.
+     * @throws IllegalArgumentException if scanDelayMs smaller than zero.
      */
-    public PuServer(ProcessingUnit pu, long scanDelayMs, String puName) {
+    public PuServer(ProcessingUnit pu, String puName, long scanDelayMs) {
         if (pu == null) {
             throw new NullPointerException("pu can't be null");
         }
 
         if (scanDelayMs < 0) {
-            throw new IllegalArgumentException(format("scanDelayMs can't be smaller or equal than zero, scanDelayMs was [%s]",scanDelayMs));
+            throw new IllegalArgumentException(format("scanDelayMs can't be smaller or equal than zero, scanDelayMs was [%s]", scanDelayMs));
         }
 
-        if(puName == null){
+        if (puName == null) {
             throw new NullPointerException("puName can't be null");
         }
 
@@ -131,7 +140,9 @@ public final class PuServer {
      *                               has been started.
      */
     public void start() {
-        logger.log(Level.INFO, "Start");
+        if(logger.isLoggable(Level.INFO)){
+            logger.log(Level.INFO, format("[%s] Start",puName));
+        }
 
         stateLock.lock();
         try {
@@ -147,11 +158,15 @@ public final class PuServer {
                     }
 
                     scheduler.scheduleAtFixedRate(new ScanTask(), 0, scanDelayMs, TimeUnit.MILLISECONDS);
-                    logger.log(Level.FINE, "Started");
+                    if(logger.isLoggable(Level.FINE)){
+                        logger.log(Level.FINE, format("[%s] Started", puName));
+                    }
 
                     break;
                 case Running:
-                    logger.log(Level.FINE, "Start call is ignored, PuServer is already running");
+                    if(logger.isLoggable(Level.FINE)){
+                        logger.log(Level.FINE, format("[%s] Start call is ignored, PuServer is already running",puName));
+                    }
                     break;
                 case Terminating:
                     throw new IllegalStateException("Can't start an already shutdown PuServer");
@@ -176,28 +191,38 @@ public final class PuServer {
      * call the {@link #awaitTermination()} or {@link #awaitTermination(long, java.util.concurrent.TimeUnit)}.
      */
     public void shutdown() {
-        logger.log(Level.INFO, "Shutdown");
+        if (logger.isLoggable(Level.INFO)) {
+            logger.log(Level.INFO, format("[%s] Shutdown", puName));
+        }
 
         stateLock.lock();
         try {
             switch (status) {
                 case Unstarted:
-                    puMap.remove(puName,this);
+                    puMap.remove(puName, this);
                     puContainer.onStop();
-                    logger.log(Level.FINE, "PuServer not started yet, so will be immediately terminated");
+                    if (logger.isLoggable(Level.FINE)) {
+                        logger.log(Level.FINE, format("[%s] PuServer not started yet, so will be immediately terminated", puName));
+                    }
                     status = Status.Terminated;
                     break;
                 case Running:
-                    puMap.remove(puName,this);
-                    logger.log(Level.FINE, "PuServer is running, and will now be terminating");
+                    puMap.remove(puName, this);
+                    if (logger.isLoggable(Level.FINE)) {
+                        logger.log(Level.FINE, format("[%s] PuServer is running, and will now be terminating", puName));
+                    }
                     status = Status.Terminating;
                     scheduler.shutdown();
                     break;
                 case Terminating:
-                    logger.log(Level.FINE, "Shutdown call ignored, PuServer already terminating");
+                    if (logger.isLoggable(Level.FINE)) {
+                        logger.log(Level.FINE, format("[%s] Shutdown call ignored, PuServer already terminating", puName));
+                    }
                     break;
                 case Terminated:
-                    logger.log(Level.FINE, "Shutdown call ignored, PuServer already terminated");
+                    if (logger.isLoggable(Level.FINE)) {
+                        logger.log(Level.FINE, format("[%s] Shutdown call ignored, PuServer already terminated", puName));
+                    }
                     break;
                 default:
                     throw new IllegalStateException("Unrecognized states: " + status);

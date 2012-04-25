@@ -25,6 +25,10 @@ import static java.lang.String.format;
  * units can run in parallel. By providing a puName in this ProxyProvider, you can control which pu on the serverside
  * is going to be called.
  *
+ * It is best to create a single instance of the ProxyProvider and to reuse it. The ProxyProvider is threadsafe.
+ *
+ * Because the proxy is cached, the guarantee is given that always the same instance for a given interface is returned.
+ *
  * @author Peter Veentjer.
  */
 public final class ProxyProvider {
