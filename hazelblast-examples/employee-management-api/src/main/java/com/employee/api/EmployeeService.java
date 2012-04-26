@@ -7,10 +7,10 @@ import com.hazelblast.api.reducers.VoidReducer;
 public interface EmployeeService {
 
     @Partitioned
-    void fire(@RoutingId String id);
+    void fire(@PartitionKey String id);
 
     @Partitioned
-    void hire(@RoutingId String id);
+    void hire(@PartitionKey String id);
 
     @ForkJoin (reducer = VoidReducer.class)
     void printStatisticsOnAllNodes();

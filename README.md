@@ -13,7 +13,7 @@ this service). The fire method is routed on the employeeId.
     class FireService{
 
         @Partitioned
-        void fire(@RoutingId String employeeId);
+        void fire(@PartitionKey String employeeId);
     }
 
 And it can be called like this:

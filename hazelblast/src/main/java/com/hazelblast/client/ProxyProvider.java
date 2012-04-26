@@ -195,7 +195,7 @@ public final class ProxyProvider {
                 Annotation[] argumentAnnotations = annotations[argIndex];
                 for (int annotationIndex = 0; annotationIndex < argumentAnnotations.length; annotationIndex++) {
                     Annotation annotation = argumentAnnotations[annotationIndex];
-                    if (annotation instanceof RoutingId) {
+                    if (annotation instanceof PartitionKey) {
                         return argIndex;
                     }
                 }
