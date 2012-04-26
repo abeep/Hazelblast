@@ -118,8 +118,6 @@ public final class ProxyProvider {
         private final Class clazz;
 
         private InvocationHandlerImpl(Class clazz) {
-
-
             this.clazz = clazz;
         }
 
@@ -144,9 +142,13 @@ public final class ProxyProvider {
         }
 
         private Object invokePartitioned(Method method, Object[] args) throws ExecutionException, InterruptedException {
-            int routingIDIndex = getRoutedArg(method);
+            if (args.length == 0) {
+                throw new IllegalArgumentException("Partitioned method " + method + ", should have a least 1 argument to use as partition key.");
+            }
+
+            int routingIDIndex = getPartitionKeyIndex(method);
             if (routingIDIndex == -1) {
-                throw new IllegalArgumentException("No routingId is found arguments of on method: " + method);
+                throw new IllegalArgumentException("No @PartitionKey is found on the arguments of on method: " + method);
             }
 
             PartitionedMethodInvocation task = new PartitionedMethodInvocation(puName, clazz.getSimpleName(), method.getName(), args, routingIDIndex);
@@ -188,7 +190,7 @@ public final class ProxyProvider {
         }
 
         //TODO: all this looking up could be done up front.
-        private int getRoutedArg(Method method) {
+        private int getPartitionKeyIndex(Method method) {
             Annotation[][] annotations = method.getParameterAnnotations();
 
             for (int argIndex = 0; argIndex < annotations.length; argIndex++) {
@@ -238,14 +240,14 @@ public final class ProxyProvider {
         private final String serviceName;
         private final String methodName;
         private final Object[] args;
-        private final int routingIdIndex;
+        private final int partitionKeyIndex;
 
-        PartitionedMethodInvocation(String puName, String serviceName, String methodName, Object[] args, int routingIDIndex) {
+        PartitionedMethodInvocation(String puName, String serviceName, String methodName, Object[] args, int partitionKeyIndex) {
             this.puName = puName;
             this.serviceName = serviceName;
             this.methodName = methodName;
             this.args = args;
-            this.routingIdIndex = routingIDIndex;
+            this.partitionKeyIndex = partitionKeyIndex;
         }
 
         public Object call() throws Exception {
@@ -263,7 +265,12 @@ public final class ProxyProvider {
         }
 
         public Object getPartitionKey() {
-            return args[routingIdIndex];
+            Object arg = args[partitionKeyIndex];
+            if (arg instanceof PartitionAware) {
+                return ((PartitionAware) arg).getPartitionKey();
+            } else {
+                return arg;
+            }
         }
     }
 }
