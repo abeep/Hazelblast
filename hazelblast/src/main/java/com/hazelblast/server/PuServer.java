@@ -107,11 +107,13 @@ public final class PuServer {
             throw new NullPointerException("name can't be null");
         }
 
-        ProcessingUnit pu = puMap.get(name).puContainer.getPu();
-        if (pu == null) {
-            throw new IllegalStateException(format("No pu found with name [%s] on member [%s]", name, Hazelcast.getCluster().getLocalMember()));
+        PuServer server = puMap.get(name);
+        if (server == null) {
+            throw new IllegalStateException(format("No pu found with name [%s] on member [%s], available pu's %s",
+                    name, Hazelcast.getCluster().getLocalMember(),puMap.keySet()));
         }
-        return pu;
+
+        return server.puContainer.getPu();
     }
 
     private static ProcessingUnit buildPu(String factoryName) {

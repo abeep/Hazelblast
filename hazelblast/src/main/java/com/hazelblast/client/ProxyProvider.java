@@ -10,6 +10,7 @@ import com.hazelcast.core.PartitionAware;
 import java.io.Serializable;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.HashSet;
@@ -90,11 +91,14 @@ public final class ProxyProvider {
         Object proxy = proxies.get(interfaze);
         if (proxy == null) {
             if (!interfaze.isInterface()) {
-                throw new IllegalArgumentException(format("interfaze [%s] is not an interface", interfaze));
+                throw new IllegalArgumentException(format("interfaze [%s] is not an interface so is not allowed to be proxied",
+                        interfaze));
             }
 
             if (!interfaze.isAnnotationPresent(RemoteInterface.class)) {
-                throw new IllegalArgumentException(format("interfaze [%s] is missing the [%s] annotation", interfaze, RemoteInterface.class.getName()));
+                throw new IllegalArgumentException(
+                        format("interfaze [%s] is not implementing the [%s] annotation so is not allowed to be proxied",
+                                interfaze, RemoteInterface.class.getName()));
             }
 
             proxy = Proxy.newProxyInstance(
@@ -142,20 +146,55 @@ public final class ProxyProvider {
         }
 
         private Object invokePartitioned(Method method, Object[] args) throws ExecutionException, InterruptedException {
-            if (args.length == 0) {
-                throw new IllegalArgumentException("Partitioned method " + method + ", should have a least 1 argument to use as partition key.");
+            if (args == null || args.length == 0) {
+                throw new IllegalArgumentException("@Partitioned method " + method + ", should have a least 1 argument to use as @PartitionKey.");
             }
 
-            int routingIDIndex = getPartitionKeyIndex(method);
-            if (routingIDIndex == -1) {
-                throw new IllegalArgumentException("No @PartitionKey is found on the arguments of on method: " + method);
+            PartitionKeyInfo partitionKeyInfo = getPartitionKeyIndex(method);
+            if (partitionKeyInfo == null) {
+                throw new IllegalArgumentException("Failed to find @PartitionKey on arguments of @Partitioned method: " + method);
             }
 
-            PartitionedMethodInvocation task = new PartitionedMethodInvocation(puName, clazz.getSimpleName(), method.getName(), args, routingIDIndex);
+            Object arg = args[partitionKeyInfo.index];
+            if (arg == null) {
+                throw new NullPointerException("The @PartitionKey argument of @Partitioned method " + method + " can't be null");
+            }
+
+            Object partitionKey;
+            if (partitionKeyInfo.property == null) {
+                if (arg instanceof PartitionAware) {
+                    partitionKey = ((PartitionAware) arg).getPartitionKey();
+                } else {
+                    partitionKey = arg;
+                }
+            } else {
+                try {
+                    Method propertyMethod = arg.getClass().getMethod(partitionKeyInfo.property);
+                    if (propertyMethod.getReturnType().equals(Void.class)) {
+                        //todo: improved exception
+                        throw new IllegalArgumentException("no returning void");
+                    }
+
+                    partitionKey = propertyMethod.invoke(arg);
+                } catch (NoSuchMethodException e) {
+                    //todo: improved exception
+                    throw new IllegalArgumentException(e);
+                } catch (InvocationTargetException e) {
+                    //todo: improved exception
+                    throw new IllegalArgumentException(e);
+                } catch (IllegalAccessException e) {
+                    //todo: iproved exception
+                    throw new IllegalArgumentException(e);
+                }
+            }
+
+            PartitionedMethodInvocation task = new PartitionedMethodInvocation(
+                    puName, clazz.getSimpleName(), method.getName(), args, partitionKey);
 
             Future future = executorService.submit(task);
             return future.get();
         }
+
 
         private Object invokeForkJoin(Method method, Object[] args) throws ExecutionException, InterruptedException {
             LoadBalancedMethodInvocation callable = new LoadBalancedMethodInvocation(puName, clazz.getSimpleName(), method.getName(), args);
@@ -190,7 +229,7 @@ public final class ProxyProvider {
         }
 
         //TODO: all this looking up could be done up front.
-        private int getPartitionKeyIndex(Method method) {
+        private PartitionKeyInfo getPartitionKeyIndex(Method method) {
             Annotation[][] annotations = method.getParameterAnnotations();
 
             for (int argIndex = 0; argIndex < annotations.length; argIndex++) {
@@ -198,16 +237,28 @@ public final class ProxyProvider {
                 for (int annotationIndex = 0; annotationIndex < argumentAnnotations.length; annotationIndex++) {
                     Annotation annotation = argumentAnnotations[annotationIndex];
                     if (annotation instanceof PartitionKey) {
-                        return argIndex;
+                        PartitionKey partitionKey = (PartitionKey) annotation;
+                        String property = partitionKey.property();
+                        return new PartitionKeyInfo(argIndex, property.isEmpty() ? null : property);
                     }
                 }
             }
 
-            return -1;
+            return null;
         }
     }
 
-    static class LoadBalancedMethodInvocation implements Callable, Serializable {
+    static class PartitionKeyInfo {
+        final int index;
+        final String property;
+
+        PartitionKeyInfo(int index, String property) {
+            this.index = index;
+            this.property = property;
+        }
+    }
+
+    protected static class LoadBalancedMethodInvocation implements Callable, Serializable {
         private final String serviceName;
         private final String methodName;
         private final Object[] args;
@@ -235,19 +286,19 @@ public final class ProxyProvider {
         }
     }
 
-    static class PartitionedMethodInvocation implements Callable, PartitionAware, Serializable {
+    protected static class PartitionedMethodInvocation implements Callable, PartitionAware, Serializable {
         private final String puName;
         private final String serviceName;
         private final String methodName;
         private final Object[] args;
-        private final int partitionKeyIndex;
+        private final Object partitionKey;
 
-        PartitionedMethodInvocation(String puName, String serviceName, String methodName, Object[] args, int partitionKeyIndex) {
+        PartitionedMethodInvocation(String puName, String serviceName, String methodName, Object[] args, Object partitionKey) {
             this.puName = puName;
             this.serviceName = serviceName;
             this.methodName = methodName;
             this.args = args;
-            this.partitionKeyIndex = partitionKeyIndex;
+            this.partitionKey = partitionKey;
         }
 
         public Object call() throws Exception {
@@ -265,12 +316,7 @@ public final class ProxyProvider {
         }
 
         public Object getPartitionKey() {
-            Object arg = args[partitionKeyIndex];
-            if (arg instanceof PartitionAware) {
-                return ((PartitionAware) arg).getPartitionKey();
-            } else {
-                return arg;
-            }
+            return partitionKey;
         }
     }
 }

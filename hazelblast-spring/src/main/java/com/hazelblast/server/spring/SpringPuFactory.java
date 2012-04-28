@@ -44,7 +44,7 @@ public class SpringPuFactory implements PuFactory {
 
         private SpringPu() {
             appContext = new ClassPathXmlApplicationContext("pu.xml");
-            exposedBeans = appContext.getBean("exposedServices",ExposedBeans.class);
+            exposedBeans = appContext.getBean("exposedBeans",ExposedBeans.class);
         }
 
         public Object getService(String name) {

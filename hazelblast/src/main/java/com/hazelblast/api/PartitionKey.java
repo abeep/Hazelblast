@@ -1,5 +1,7 @@
 package com.hazelblast.api;
 
+import com.hazelblast.api.reducers.Reducer;
+
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -16,4 +18,6 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.PARAMETER)
 public @interface PartitionKey {
+
+    String property() default "";
 }

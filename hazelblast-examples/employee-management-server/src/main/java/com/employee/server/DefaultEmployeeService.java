@@ -18,18 +18,11 @@ public class DefaultEmployeeService implements EmployeeService, SpringPartitionL
 
     private final ConcurrentMap<Integer, Object> partitions = new ConcurrentHashMap<Integer, Object>();
 
-    private final MultiMap<Integer, String> idsPerPartitionMap;
+    private final MultiMap<Integer, String> idsPerPartitionMap = Hazelcast.getMultiMap("idsPerPartition");
 
     private final ConcurrentMap<String, Object> localEmployees = new ConcurrentHashMap<String, Object>();
 
-    public DefaultEmployeeService(MultiMap<Integer,String> idsPerPartitionMap) {
-
-        logger.info("Created");
-
-        this.idsPerPartitionMap = idsPerPartitionMap;
-    }
-
-    public void fire(String id) {
+     public void fire(String id) {
         Partition partition = Hazelcast.getPartitionService().getPartition(id);
         idsPerPartitionMap.put(partition.getPartitionId(), id);
         localEmployees.put(id,this);

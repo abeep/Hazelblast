@@ -20,4 +20,4 @@ echo running demo for $CLASS from $CP at $@
 
 pwd
 echo java $JAVA_OPTS -cp "$CP" $CLASS $@
-java $JAVA_OPTS -cp "$CP" $CLASS -puName jan -puFactory com.hazelblast.server.spring.SpringPuFactory
+java $JAVA_OPTS -cp "$CP" $CLASS -puFactory com.hazelblast.server.spring.SpringPuFactory
