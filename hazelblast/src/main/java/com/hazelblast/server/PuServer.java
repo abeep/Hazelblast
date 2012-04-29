@@ -31,6 +31,7 @@ import static java.lang.String.format;
  */
 public final class PuServer {
     public static final int DEFAULT_SCAN_DELAY_MS = 5000;
+    public static final String DEFAULT_PU_NAME = "default";
 
     private static final ILogger logger = Logger.getLogger(PuServer.class.getName());
     private static final ConcurrentMap<String, PuServer> puMap = new ConcurrentHashMap<String, PuServer>();
@@ -51,7 +52,7 @@ public final class PuServer {
             System.exit(0);
         }
 
-        String puName = commandLine.getOptionValue("puName", "default");
+        String puName = commandLine.getOptionValue("puName", DEFAULT_PU_NAME);
         String puFactory = commandLine.getOptionValue("puFactory");
         long scanDelayMs = Long.parseLong(commandLine.getOptionValue("scanDelay", "" + DEFAULT_SCAN_DELAY_MS));
 

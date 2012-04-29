@@ -18,7 +18,7 @@ this service). The fire method is routed on the employeeId.
 
 And it can be called like this:
 
-    ProxyProvider proxyProvider = new ProxyProvider();
+    ProxyProvider proxyProvider = new DefaultProxyProvider();
     FireService fireService = proxyProvider.getProxy(FireService.class);
     fireService.fire("123");
 

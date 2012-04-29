@@ -1,17 +1,18 @@
 package com.employee;
 
 import com.employee.api.EmployeeService;
+import com.hazelblast.client.DefaultProxyProvider;
 import com.hazelblast.client.ProxyProvider;
 
 public class ClientMain {
 
     public static void main(String[] args) {
-        ProxyProvider proxyProvider = new ProxyProvider();
+        ProxyProvider proxyProvider = new DefaultProxyProvider();
         EmployeeService service = proxyProvider.getProxy(EmployeeService.class);
 
         System.out.println("Partitioned call");
         for (int k = 0; k < 100; k++) {
-            service.fire(""+k);
+            service.fire("" + k);
             System.out.println("Finished");
         }
 
