@@ -164,14 +164,19 @@ public final class DefaultProxyProvider implements ProxyProvider {
                 break;
             case PARTITIONED:
                 if (method.getParameterTypes().length == 0) {
-                    throw new IllegalArgumentException("@Partitioned method '" + method + "', should have a least 1 argument to use as @PartitionKey.");
+                    throw new IllegalArgumentException(format("@Partitioned method '%s', should have a least 1 argument to use as @PartitionKey.", method));
                 }
 
-                PartitionKeyInfo partitionKeyInfo = getPartitionKeyIndex(method);
-                if (partitionKeyInfo == null) {
-                    throw new IllegalArgumentException("Failed to find @PartitionKey on arguments of @Partitioned method: '" + method + "'");
+                List<PartitionKeyInfo> partitionKeyInfoList = getPartitionKeyIndex(method);
+                if (partitionKeyInfoList.isEmpty()) {
+                    throw new IllegalArgumentException(format("@PartitionedMethod '%s' has no argument with the @PartitionKey annotation", method));
                 }
 
+                if (partitionKeyInfoList.size() > 1) {
+                    throw new IllegalArgumentException(format("@PartitionedMethod '%s' has too many arguments with the @PartitionKey annotation", method));
+                }
+
+                PartitionKeyInfo partitionKeyInfo = partitionKeyInfoList.get(0);
                 partitionKeyIndex = partitionKeyInfo.index;
 
                 if (partitionKeyInfo.property != null) {
@@ -180,20 +185,23 @@ public final class DefaultProxyProvider implements ProxyProvider {
                     try {
                         partitionKeyProperty = argType.getMethod(partitionKeyInfo.property);
                         if (partitionKeyProperty.getReturnType().equals(Void.class)) {
-                            throw new IllegalArgumentException(format("[%s] The @PartitionKey.property method '%s' can't return void", method, partitionKeyProperty));
+                            throw new IllegalArgumentException(
+                                    format("Argument with index '%s' of type '%s' in PartitionedMethod '%s' has an invalid @PartitionKey.property configuration. " +
+                                            "The property method '%s' can't return void", partitionKeyIndex + 1, argType.getName(), method, partitionKeyProperty));
                         }
                     } catch (NoSuchMethodException e) {
-                        throw new IllegalArgumentException(format("[%s] The @PartitionKey.property method '%s' doesn't exist",
-                                method, argType.getName() + "." + partitionKeyInfo.property + "()"), e);
+                        throw new IllegalArgumentException(
+                                format("Argument with index '%s' of type '%s' in PartitionedMethod '%s' has an invalid @PartitionKey.property configuration. " +
+                                        "The property method '%s' doesnt exist", partitionKeyIndex + 1, argType.getName(), method, partitionKeyProperty));
                     }
                 }
 
                 break;
             default:
-                throw new IllegalStateException("Unrecognized methodtype: " + methodType);
+                throw new IllegalStateException("Unrecognized method type: " + methodType);
         }
 
-        return new RemoteMethodInfo(methodType, partitionKeyIndex, partitionKeyProperty);
+        return new RemoteMethodInfo(method, methodType, partitionKeyIndex, partitionKeyProperty);
 
     }
 
@@ -207,7 +215,9 @@ public final class DefaultProxyProvider implements ProxyProvider {
         }
     }
 
-    private static PartitionKeyInfo getPartitionKeyIndex(Method method) {
+    private static List<PartitionKeyInfo> getPartitionKeyIndex(Method method) {
+        List<PartitionKeyInfo> result = new LinkedList<PartitionKeyInfo>();
+
         Annotation[][] annotations = method.getParameterAnnotations();
 
         for (int argIndex = 0; argIndex < annotations.length; argIndex++) {
@@ -217,12 +227,12 @@ public final class DefaultProxyProvider implements ProxyProvider {
                 if (annotation instanceof PartitionKey) {
                     PartitionKey partitionKey = (PartitionKey) annotation;
                     String property = partitionKey.property();
-                    return new PartitionKeyInfo(argIndex, property.isEmpty() ? null : property);
+                    result.add(new PartitionKeyInfo(argIndex, property.isEmpty() ? null : property));
                 }
             }
         }
 
-        return null;
+        return result;
     }
 
     private static List<MethodType> getMethodTypes(Method method) {
@@ -254,16 +264,7 @@ public final class DefaultProxyProvider implements ProxyProvider {
         public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
             RemoteMethodInfo methodInfo = remoteInterfaceInfo.methodInfoMap.get(method);
             if (methodInfo == null) {
-                String methodName = method.getName();
-                if (methodName.equals("toString")) {
-                    return remoteInterfaceInfo.targetInterface.getName()+"@" + System.identityHashCode(proxy);
-                } else if (methodName.equals("hashCode")) {
-                    return System.identityHashCode(proxy);
-                } else if (methodName.equals("equals")) {
-                    return proxy == args[0];
-                } else {
-                    throw new RuntimeException(format("unhandled method '%s'", method));
-                }
+                return invokeNonProxied(proxy, method, args);
             }
 
             long startTimeNs = 0;
@@ -295,54 +296,17 @@ public final class DefaultProxyProvider implements ProxyProvider {
             return result;
         }
 
-        private Object invokeLoadBalancer(Method method, Object[] args) throws ExecutionException, InterruptedException {
-            LoadBalancedMethodInvocation task = new LoadBalancedMethodInvocation(
-                    puName, remoteInterfaceInfo.targetInterface.getSimpleName(), method.getName(), args);
-
-            Future future = executorService.submit(task);
-            return future.get();
-        }
-
-        private Object invokePartitioned(RemoteMethodInfo methodInfo, Method method, Object[] args) throws ExecutionException, InterruptedException {
-            Object arg = args[methodInfo.partitionKeyIndex];
-            if (arg == null) {
-                throw new NullPointerException("The @PartitionKey argument of @Partitioned method '" + method + "' can't be null");
-            }
-
-            Object partitionKey;
-            if (methodInfo.partitionKeyProperty == null) {
-                if (arg instanceof PartitionAware) {
-                    partitionKey = ((PartitionAware) arg).getPartitionKey();
-                    if (partitionKey == null) {
-                        //todo: improved error message
-                        throw new NullPointerException("");
-                    }
-                } else {
-                    partitionKey = arg;
-                }
+        private Object invokeNonProxied(Object proxy, Method method, Object[] args) {
+            String methodName = method.getName();
+            if (methodName.equals("toString")) {
+                return remoteInterfaceInfo.targetInterface.getName() + "@" + System.identityHashCode(proxy);
+            } else if (methodName.equals("hashCode")) {
+                return System.identityHashCode(proxy);
+            } else if (methodName.equals("equals")) {
+                return proxy == args[0];
             } else {
-                try {
-                    partitionKey = methodInfo.partitionKeyProperty.invoke(arg);
-
-                    if (partitionKey == null) {
-                        //todo: improved error message
-                        throw new NullPointerException();
-                    }
-
-                } catch (InvocationTargetException e) {
-                    throw new IllegalArgumentException(format("[%s] The @PartitionKey.property method '%s' failed to be invoked",
-                            method, methodInfo.partitionKeyProperty), e);
-                } catch (IllegalAccessException e) {
-                    throw new IllegalArgumentException(format("[%s] The @PartitionKey.property method '%s' failed to be invoked",
-                            method, methodInfo.partitionKeyProperty), e);
-                }
+                throw new RuntimeException(format("unhandled method '%s'", method));
             }
-
-            PartitionedMethodInvocation task = new PartitionedMethodInvocation(
-                    puName, remoteInterfaceInfo.targetInterface.getSimpleName(), method.getName(), args, partitionKey);
-
-            Future future = executorService.submit(task);
-            return future.get();
         }
 
         private Object invokeForkJoin(Method method, Object[] args) throws ExecutionException, InterruptedException {
@@ -352,6 +316,64 @@ public final class DefaultProxyProvider implements ProxyProvider {
             executorService.execute(task);
             task.get();
             return null;
+        }
+
+        private Object invokeLoadBalancer(Method method, Object[] args) throws ExecutionException, InterruptedException {
+            LoadBalancedMethodInvocation task = new LoadBalancedMethodInvocation(
+                    puName, remoteInterfaceInfo.targetInterface.getSimpleName(), method.getName(), args);
+
+            Future future = executorService.submit(task);
+            return future.get();
+        }
+
+        private Object invokePartitioned(RemoteMethodInfo methodInfo, Method method, Object[] args) throws ExecutionException, InterruptedException {
+            Object partitionKey = getPartitionKey(methodInfo, args);
+
+            PartitionedMethodInvocation task = new PartitionedMethodInvocation(
+                    puName, remoteInterfaceInfo.targetInterface.getSimpleName(), method.getName(), args, partitionKey);
+
+            Future future = executorService.submit(task);
+            return future.get();
+        }
+
+        private Object getPartitionKey(RemoteMethodInfo methodInfo, Object[] args) {
+            Object arg = args[methodInfo.partitionKeyIndex];
+            if (arg == null) {
+                throw new NullPointerException(format("The @PartitionKey argument '%s' of partitioned method '%s' can' be null",
+                        methodInfo.partitionKeyIndex + 1, methodInfo.method));
+            }
+
+            Object partitionKey;
+            if (methodInfo.partitionKeyProperty == null) {
+                if (arg instanceof PartitionAware) {
+                    partitionKey = ((PartitionAware) arg).getPartitionKey();
+                    if (partitionKey == null) {
+                        throw new NullPointerException(format("The @PartitionKey argument '%s' of PartitionAware type '%s' of partitioned method '%s' can't return null for PartitionAware.getPartitionKey()",
+                                methodInfo.partitionKeyIndex, args[methodInfo.partitionKeyIndex].getClass().getName(), methodInfo.method));
+                    }
+                } else {
+                    partitionKey = arg;
+                }
+            } else {
+                try {
+                    partitionKey = methodInfo.partitionKeyProperty.invoke(arg);
+
+                    if (partitionKey == null) {
+                        throw new NullPointerException(format("The @PartitionKey argument '%s' of PartitionAware type '%s' of partitioned method '%s' can't return null for '%s'",
+                                methodInfo.partitionKeyIndex, args[methodInfo.partitionKeyIndex].getClass().getName(), methodInfo.method, methodInfo.partitionKeyProperty));
+
+                    }
+
+                } catch (InvocationTargetException e) {
+                    throw new IllegalArgumentException(format("[%s] The @PartitionKey.property method '%s' failed to be invoked",
+                            methodInfo.method, methodInfo.partitionKeyProperty), e);
+                } catch (IllegalAccessException e) {
+                    throw new IllegalArgumentException(format("[%s] The @PartitionKey.property method '%s' failed to be invoked",
+                            methodInfo.method, methodInfo.partitionKeyProperty), e);
+                }
+            }
+
+            return partitionKey;
         }
     }
 
@@ -368,11 +390,13 @@ public final class DefaultProxyProvider implements ProxyProvider {
     }
 
     private static class RemoteMethodInfo {
+        final Method method;
         final MethodType methodType;
         final int partitionKeyIndex;
         final Method partitionKeyProperty;
 
-        private RemoteMethodInfo(MethodType methodType, int partitionKeyIndex, Method partitionKeyProperty) {
+        private RemoteMethodInfo(Method method, MethodType methodType, int partitionKeyIndex, Method partitionKeyProperty) {
+            this.method = method;
             this.methodType = methodType;
             this.partitionKeyIndex = partitionKeyIndex;
             this.partitionKeyProperty = partitionKeyProperty;
