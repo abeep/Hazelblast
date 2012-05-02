@@ -9,7 +9,6 @@ import com.hazelcast.core.PartitionAware;
 import com.hazelcast.logging.ILogger;
 import com.hazelcast.logging.Logger;
 
-import java.io.Serializable;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
@@ -21,6 +20,15 @@ import java.util.logging.Level;
 
 import static java.lang.String.format;
 
+/**
+ * The default {@link ProxyProvider} implementation.
+ *
+ * By default the DefaultProxyProvider is configured with the {@link SerializableRemoteMethodInvocationFactory}, so
+ * it relies on the standard java serialization mechanism. If you want to use a different serialization mechanism, a
+ * different factory can be injected.
+ *
+ * @author Peter Veentjer.
+ */
 public final class DefaultProxyProvider implements ProxyProvider {
 
     private final static ILogger logger = Logger.getLogger(DefaultProxyProvider.class.getName());
@@ -28,6 +36,7 @@ public final class DefaultProxyProvider implements ProxyProvider {
     private final ExecutorService executorService;
     private final ConcurrentMap<Class, Object> proxies = new ConcurrentHashMap<Class, Object>();
     private final String puName;
+    private volatile RemoteMethodInvocationFactory remoteMethodInvocationFactory = SerializableRemoteMethodInvocationFactory.INSTANCE;
 
     /**
      * Creates a new ProxyProvider that connects to the 'default' pu.
@@ -65,10 +74,36 @@ public final class DefaultProxyProvider implements ProxyProvider {
         return puName;
     }
 
+    /**
+     * Gets the RemoteMethodInvocationFactory.
+     *
+     * @return the RemoteMethodInvocationFactory.
+     */
+    public RemoteMethodInvocationFactory getRemoteMethodInvocationFactory() {
+        return remoteMethodInvocationFactory;
+    }
+
+    /**
+     * Sets the RemoteMethodInvocationFactory.
+     * <p/>
+     * A volatile field is used to store the RemoteMethodInvocationFactory.
+     *
+     * @param remoteMethodInvocationFactory the new RemoteMethodInvocationFactory.
+     * @throws NullPointerException if remoteMethodInvocationFactory is null.
+     */
+    public void setRemoteMethodInvocationFactory(RemoteMethodInvocationFactory remoteMethodInvocationFactory) {
+        if (remoteMethodInvocationFactory == null) {
+            throw new NullPointerException("remoteMethodInvocationFactory can't be null");
+        }
+        this.remoteMethodInvocationFactory = remoteMethodInvocationFactory;
+    }
+
     public <T> T getProxy(Class<T> targetInterface) {
         if (targetInterface == null) {
             throw new NullPointerException("targetInterface can't be null");
         }
+
+        //TODO: Improved logging
 
         Object proxy = proxies.get(targetInterface);
         if (proxy == null) {
@@ -133,7 +168,6 @@ public final class DefaultProxyProvider implements ProxyProvider {
     }
 
     private static class RemoteInterfaceInfo {
-
         private final Class targetInterface;
         private final Map<Method, RemoteMethodInfo> methodInfoMap;
 
@@ -310,8 +344,8 @@ public final class DefaultProxyProvider implements ProxyProvider {
         }
 
         private Object invokeForkJoin(Method method, Object[] args) throws ExecutionException, InterruptedException {
-            LoadBalancedMethodInvocation callable = new LoadBalancedMethodInvocation(
-                    puName, remoteInterfaceInfo.targetInterface.getSimpleName(), method.getName(), args);
+            Callable callable = remoteMethodInvocationFactory.create(
+                    puName, remoteInterfaceInfo.targetInterface.getSimpleName(), method.getName(), args, null);
             MultiTask task = new MultiTask(callable, getPuMembers());
             executorService.execute(task);
             task.get();
@@ -319,17 +353,17 @@ public final class DefaultProxyProvider implements ProxyProvider {
         }
 
         private Object invokeLoadBalancer(Method method, Object[] args) throws ExecutionException, InterruptedException {
-            LoadBalancedMethodInvocation task = new LoadBalancedMethodInvocation(
-                    puName, remoteInterfaceInfo.targetInterface.getSimpleName(), method.getName(), args);
+            Callable callable = remoteMethodInvocationFactory.create(
+                    puName, remoteInterfaceInfo.targetInterface.getSimpleName(), method.getName(), args,null);
 
-            Future future = executorService.submit(task);
+            Future future = executorService.submit(callable);
             return future.get();
         }
 
         private Object invokePartitioned(RemoteMethodInfo methodInfo, Method method, Object[] args) throws ExecutionException, InterruptedException {
             Object partitionKey = getPartitionKey(methodInfo, args);
 
-            PartitionedMethodInvocation task = new PartitionedMethodInvocation(
+            Callable task = remoteMethodInvocationFactory.create(
                     puName, remoteInterfaceInfo.targetInterface.getSimpleName(), method.getName(), args, partitionKey);
 
             Future future = executorService.submit(task);
@@ -407,67 +441,5 @@ public final class DefaultProxyProvider implements ProxyProvider {
         FORK_JOIN,
         PARTITIONED,
         LOAD_BALANCED
-    }
-
-    protected static class LoadBalancedMethodInvocation implements Callable, Serializable {
-        private final String serviceName;
-        private final String methodName;
-        private final Object[] args;
-        private final String puName;
-
-        LoadBalancedMethodInvocation(String puName, String serviceName, String methodName, Object[] args) {
-            this.puName = puName;
-            this.serviceName = serviceName;
-            this.methodName = methodName;
-            this.args = args == null ? new Object[]{} : args;
-        }
-
-        public Object call() throws Exception {
-            ProcessingUnit pu = PuServer.getProcessingUnit(puName);
-
-            Object service = pu.getService(serviceName);
-
-            Class[] argTypes = new Class[args.length];
-            for (int k = 0; k < argTypes.length; k++) {
-                argTypes[k] = args[k].getClass();
-            }
-
-            Method method = service.getClass().getMethod(methodName, argTypes);
-            return method.invoke(service, args);
-        }
-    }
-
-    protected static class PartitionedMethodInvocation implements Callable, PartitionAware, Serializable {
-        private final String puName;
-        private final String serviceName;
-        private final String methodName;
-        private final Object[] args;
-        private transient final Object partitionKey;
-
-        PartitionedMethodInvocation(String puName, String serviceName, String methodName, Object[] args, Object partitionKey) {
-            this.puName = puName;
-            this.serviceName = serviceName;
-            this.methodName = methodName;
-            this.args = args;
-            this.partitionKey = partitionKey;
-        }
-
-        public Object call() throws Exception {
-            ProcessingUnit pu = PuServer.getProcessingUnit(puName);
-
-            Object service = pu.getService(serviceName);
-
-            Class[] argTypes = new Class[args.length];
-            for (int k = 0; k < argTypes.length; k++) {
-                argTypes[k] = args[k].getClass();
-            }
-
-            Method method = service.getClass().getMethod(methodName, argTypes);
-            return method.invoke(service, args);
-        }
-
-        public Object getPartitionKey() {
-            return partitionKey;
-        }
     }
 }

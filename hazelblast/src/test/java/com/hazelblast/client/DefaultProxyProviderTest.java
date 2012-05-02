@@ -194,7 +194,7 @@ public class DefaultProxyProviderTest {
 
     @Test
     public void partitioned_normalPartitionKey() {
-        DummyExecutorService executorService = new DummyExecutorService();
+        StubExecutorService executorService = new StubExecutorService();
         executorService.result = "";
         DefaultProxyProvider proxyProvider = new DefaultProxyProvider("default", executorService);
 
@@ -203,13 +203,13 @@ public class DefaultProxyProviderTest {
         String arg = "foo";
         service.valid(arg);
 
-        DefaultProxyProvider.PartitionedMethodInvocation x = (DefaultProxyProvider.PartitionedMethodInvocation) executorService.callable;
+        SerializableRemoteMethodInvocationFactory.RemoteMethodInvocation x = (SerializableRemoteMethodInvocationFactory.RemoteMethodInvocation) executorService.callable;
         assertEquals(arg, x.getPartitionKey());
     }
 
     @Test
     public void partitioned_partitionKeyWithProperty() {
-        DummyExecutorService executorService = new DummyExecutorService();
+        StubExecutorService executorService = new StubExecutorService();
         executorService.result = "";
         DefaultProxyProvider proxyProvider = new DefaultProxyProvider("default", executorService);
 
@@ -219,13 +219,13 @@ public class DefaultProxyProviderTest {
         Person person = new Person(name);
         service.validWithProperty(person);
 
-        DefaultProxyProvider.PartitionedMethodInvocation x = (DefaultProxyProvider.PartitionedMethodInvocation) executorService.callable;
+        SerializableRemoteMethodInvocationFactory.RemoteMethodInvocation x = (SerializableRemoteMethodInvocationFactory.RemoteMethodInvocation) executorService.callable;
         assertEquals(name, x.getPartitionKey());
     }
 
     @Test
     public void partitioned_partitionKeyWithPartitionAware() {
-        DummyExecutorService executorService = new DummyExecutorService();
+        StubExecutorService executorService = new StubExecutorService();
         executorService.result = "";
         DefaultProxyProvider proxyProvider = new DefaultProxyProvider("default", executorService);
 
@@ -235,7 +235,7 @@ public class DefaultProxyProviderTest {
         PartitionAwareObject person = new PartitionAwareObject(partitionKey);
         service.valid(person);
 
-        DefaultProxyProvider.PartitionedMethodInvocation x = (DefaultProxyProvider.PartitionedMethodInvocation) executorService.callable;
+        SerializableRemoteMethodInvocationFactory.RemoteMethodInvocation x = (SerializableRemoteMethodInvocationFactory.RemoteMethodInvocation) executorService.callable;
         assertEquals(partitionKey, x.getPartitionKey());
     }
 

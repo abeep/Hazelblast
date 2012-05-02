@@ -7,6 +7,7 @@ import com.hazelcast.logging.ILogger;
 import com.hazelcast.logging.Logger;
 import org.apache.commons.cli.*;
 
+import java.lang.reflect.Method;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
@@ -111,7 +112,7 @@ public final class PuServer {
         PuServer server = puMap.get(name);
         if (server == null) {
             throw new IllegalStateException(format("No pu found with name [%s] on member [%s], available pu's %s",
-                    name, Hazelcast.getCluster().getLocalMember(),puMap.keySet()));
+                    name, Hazelcast.getCluster().getLocalMember(), puMap.keySet()));
         }
 
         return server.puContainer.getPu();
@@ -134,6 +135,20 @@ public final class PuServer {
         } catch (IllegalAccessException e) {
             throw new RuntimeException(format("Failed to create ProcessingUnit using puFactor.class [%s]", factoryName), e);
         }
+    }
+
+    public static Object executeMethod(String puName, String serviceName, String methodName, Object[] args) throws Exception{
+        ProcessingUnit pu = PuServer.getProcessingUnit(puName);
+
+        Object service = pu.getService(serviceName);
+
+        Class[] argTypes = new Class[args.length];
+        for (int k = 0; k < argTypes.length; k++) {
+            argTypes[k] = args[k].getClass();
+        }
+
+        Method method = service.getClass().getMethod(methodName, argTypes);
+        return method.invoke(service, args);
     }
 
     protected enum Status {Unstarted, Running, Terminating, Terminated}
@@ -182,7 +197,7 @@ public final class PuServer {
         this.puName = puName;
         this.scanDelayMs = scanDelayMs;
         this.scheduler.setContinueExistingPeriodicTasksAfterShutdownPolicy(true);
-        this.puContainer = new PuContainer(pu,puName);
+        this.puContainer = new PuContainer(pu, puName);
         this.puMonitor = new PuMonitor(puContainer);
     }
 

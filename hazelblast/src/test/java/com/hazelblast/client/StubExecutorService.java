@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.concurrent.*;
 
 
-public class DummyExecutorService implements ExecutorService {
+public class StubExecutorService implements ExecutorService {
 
     public Callable callable;
     public Object result;
