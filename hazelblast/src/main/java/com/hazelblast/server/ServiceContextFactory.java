@@ -1,7 +1,9 @@
-package com.hazelblast.api;
+package com.hazelblast.server;
+
+import com.hazelblast.server.ServiceContext;
 
 /**
- * A Factory responsible for creating {@link ServiceContext} instances.
+ * A Factory responsible for creating {@link com.hazelblast.server.ServiceContext} instances.
  * <p/>
  * By providing different ServiceContextFactory implementations, the system can switch between different mechanisms
  * (e.g. Spring or Google-Guice) to create a ServiceContext and set up the services to be exposed to the outside

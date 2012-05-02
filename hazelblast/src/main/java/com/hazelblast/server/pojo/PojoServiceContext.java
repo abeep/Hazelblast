@@ -1,6 +1,6 @@
 package com.hazelblast.server.pojo;
 
-import com.hazelblast.api.ServiceContext;
+import com.hazelblast.server.ServiceContext;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -10,7 +10,7 @@ import java.util.Map;
 import static java.lang.String.format;
 
 /**
- * The PojoServiceContext is a {@link com.hazelblast.api.ServiceContext} that contains a single Pojo and all public fields on this Pojo will be
+ * The PojoServiceContext is a {@link com.hazelblast.server.ServiceContext} that contains a single Pojo and all public fields on this Pojo will be
  * exposed as a service.
  * <p/>
  * <h2>onStart</h2>

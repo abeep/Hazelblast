@@ -1,6 +1,5 @@
 package com.hazelblast.server;
 
-import com.hazelblast.api.ServiceContext;
 import com.hazelblast.server.pojo.PojoServiceContextFactory;
 import junit.framework.Assert;
 import org.junit.After;

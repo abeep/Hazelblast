@@ -1,7 +1,7 @@
 package com.hazelblast.server.pojo;
 
-import com.hazelblast.api.ServiceContext;
-import com.hazelblast.api.ServiceContextFactory;
+import com.hazelblast.server.ServiceContext;
+import com.hazelblast.server.ServiceContextFactory;
 import com.hazelcast.logging.ILogger;
 import com.hazelcast.logging.Logger;
 
@@ -12,7 +12,7 @@ import java.util.logging.Level;
 import static java.lang.String.format;
 
 /**
- * A {@link com.hazelblast.api.ServiceContextFactory} that where an ordinary Pojo can be used.
+ * A {@link com.hazelblast.server.ServiceContextFactory} that where an ordinary Pojo can be used.
  * <p/>
  * This factory expects a pojoPu System property. This value should point to a class with a no arg constructor.
  * <p/>

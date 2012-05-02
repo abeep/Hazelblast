@@ -1,7 +1,12 @@
-package com.hazelblast.api;
+package com.hazelblast.server;
 
 /**
  * The ServiceContext is an place where all kinds of Services can be exposed to the outside world.
+ *
+ * A ServiceContext has lifecycle hooks that are called when it is started and stopped, but also when a partition
+ * is removed or added from this node.
+ *
+ * In Spring terms it would be called an ApplicationContext.
  *
  * @author Peter Veentjer.
  */

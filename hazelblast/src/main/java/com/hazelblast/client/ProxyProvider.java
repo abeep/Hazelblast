@@ -16,7 +16,7 @@ package com.hazelblast.client;
 public interface ProxyProvider {
 
     /**
-     * Returns the name of the {@link com.hazelblast.api.ServiceContext} this ProxyProvider will send requests to.
+     * Returns the name of the {@link com.hazelblast.server.ServiceContext} this ProxyProvider will send requests to.
      *
      * @return the name of the ServiceContext.
      */

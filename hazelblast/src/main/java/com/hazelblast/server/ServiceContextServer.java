@@ -1,7 +1,5 @@
 package com.hazelblast.server;
 
-import com.hazelblast.api.ServiceContext;
-import com.hazelblast.api.ServiceContextFactory;
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.logging.ILogger;
 import com.hazelcast.logging.Logger;
@@ -22,11 +20,11 @@ import static java.lang.String.format;
  * The ServiceContextServer is responsible for hosting the {@link ServiceContextContainer} and can either run
  * standalone, or can be embedded in an existing java application.
  * <p/>
- * If the ServiceContextServer is embedded, Multiple PuServers can be run in parallel.
+ * If the ServiceContextServer is embedded, Multiple ServiceContextServers can be run in parallel.
  * <p/>
- * As soon as a ServiceContextServer is started, it automatically registers itself in a global registry (contained in this ServiceContextServer)
- * so that a client can look up the ServiceContextServer when a remote call is executed. When the ServiceContextServer stops, the ServiceContextServer will
- * automatically be unregistered.
+ * As soon as a ServiceContextServer is started, it automatically registers itself in a global registry (contained in
+ * this ServiceContextServer) so that a client can look up the ServiceContextServer when a remote call is executed. When
+ * the ServiceContextServer stops, the ServiceContextServer will automatically be unregistered.
  *
  * @author Peter Veentjer.
  */
@@ -35,7 +33,7 @@ public final class ServiceContextServer {
     public static final String DEFAULT_PU_NAME = "default";
 
     private static final ILogger logger = Logger.getLogger(ServiceContextServer.class.getName());
-    private static final ConcurrentMap<String, ServiceContextServer> puMap = new ConcurrentHashMap<String, ServiceContextServer>();
+    private static final ConcurrentMap<String, ServiceContextServer> serviceContextMap = new ConcurrentHashMap<String, ServiceContextServer>();
 
     public static void main(String[] args) {
         Options options = buildOptions();
@@ -109,10 +107,10 @@ public final class ServiceContextServer {
             throw new NullPointerException("name can't be null");
         }
 
-        ServiceContextServer server = puMap.get(name);
+        ServiceContextServer server = serviceContextMap.get(name);
         if (server == null) {
             throw new IllegalStateException(format("No serviceContext found with name [%s] on member [%s], available serviceContext's %s",
-                    name, Hazelcast.getCluster().getLocalMember(), puMap.keySet()));
+                    name, Hazelcast.getCluster().getLocalMember(), serviceContextMap.keySet()));
         }
 
         return server.serviceContextContainer.getServiceContext();
@@ -223,7 +221,7 @@ public final class ServiceContextServer {
                     status = Status.Running;
                     serviceContextContainer.onStart();
 
-                    if (puMap.putIfAbsent(serviceContextName, this) != null) {
+                    if (serviceContextMap.putIfAbsent(serviceContextName, this) != null) {
                         shutdown();
                         throw new IllegalStateException(
                                 format("ServiceContextServer with name [%s] can't be started, there is another ServiceContextServer registered under the same name", serviceContextName));
@@ -271,7 +269,7 @@ public final class ServiceContextServer {
         try {
             switch (status) {
                 case Unstarted:
-                    puMap.remove(serviceContextName, this);
+                    serviceContextMap.remove(serviceContextName, this);
                     serviceContextContainer.onStop();
                     if (logger.isLoggable(Level.FINE)) {
                         logger.log(Level.FINE, format("[%s] ServiceContextServer not started yet, so will be immediately terminated", serviceContextName));
@@ -279,7 +277,7 @@ public final class ServiceContextServer {
                     status = Status.Terminated;
                     break;
                 case Running:
-                    puMap.remove(serviceContextName, this);
+                    serviceContextMap.remove(serviceContextName, this);
                     if (logger.isLoggable(Level.FINE)) {
                         logger.log(Level.FINE, format("[%s] ServiceContextServer is running, and will now be terminating", serviceContextName));
                     }

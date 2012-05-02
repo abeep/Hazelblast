@@ -1,13 +1,13 @@
 package com.hazelblast.server.spring;
 
-import com.hazelblast.api.ServiceContext;
-import com.hazelblast.api.ServiceContextFactory;
+import com.hazelblast.server.ServiceContext;
+import com.hazelblast.server.ServiceContextFactory;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
 import static java.lang.String.format;
 
 /**
- * A Spring based {@link com.hazelblast.api.ServiceContextFactory}.
+ * A Spring based {@link com.hazelblast.server.ServiceContextFactory}.
  * <p/>
  * It expects a servicecontext.xml to be available in the root of the jar.
  *

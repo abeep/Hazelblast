@@ -1,6 +1,5 @@
 package com.hazelblast.server;
 
-import com.hazelblast.api.ServiceContext;
 import com.hazelcast.logging.ILogger;
 import com.hazelcast.logging.Logger;
 
@@ -11,7 +10,7 @@ import java.util.logging.Level;
 import static java.lang.String.format;
 
 /**
- * The container that runs the {@link com.hazelblast.api.ServiceContext}.
+ * The container that runs the {@link ServiceContext}.
  *
  * @author Peter Veentjer.
  */
@@ -117,7 +116,7 @@ final class ServiceContextContainer {
     /**
      * Called when the ServiceContextContainer needs to start up.
      * <p/>
-     * If the {@link com.hazelblast.api.ServiceContext#onStart()} throws an Exception, it will be logged but not
+     * If the {@link ServiceContext#onStart()} throws an Exception, it will be logged but not
      * propagated.
      */
     public void onStart() {
@@ -135,7 +134,7 @@ final class ServiceContextContainer {
     /**
      * Called when the ServiceContextContainer needs to shut down.
      * <p/>
-     * If the {@link com.hazelblast.api.ServiceContext#onStop()} throws an Exception, it will be logged but not
+     * If the {@link ServiceContext#onStop()} throws an Exception, it will be logged but not
      * propagated.
      */
     public void onStop() {
