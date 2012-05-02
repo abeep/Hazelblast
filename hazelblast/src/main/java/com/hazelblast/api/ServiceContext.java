@@ -1,11 +1,11 @@
 package com.hazelblast.api;
 
 /**
- * The ProcessingUnit is an place where all kinds of Services can be exposed to the outside world.
+ * The ServiceContext is an place where all kinds of Services can be exposed to the outside world.
  *
  * @author Peter Veentjer.
  */
-public interface ProcessingUnit {
+public interface ServiceContext {
 
     /**
      * Gets the Service with the given serviceName.
@@ -18,28 +18,28 @@ public interface ProcessingUnit {
     Object getService(String serviceName);
 
     /**
-     * Called when the processing unit needs to be started.
+     * Called when the {@link ServiceContext} is started.
      * <p/>
      * This method will be called only once on an instance.
      */
     void onStart();
 
     /**
-     * Called when processing unit needs to be stopped.
+     * Called when the {@link ServiceContext} is stopped.
      * <p/>
      * This method will be called only once on an instance.
      */
     void onStop();
 
     /**
-     * Called when a partition is added to the processing unit.
+     * Called when a partition is added to this {@link ServiceContext}.
      *
      * @param partitionId the id of the partition.
      */
     void onPartitionAdded(int partitionId);
 
     /**
-     * Called when a partition is removed from a processing unit.
+     * Called when a partition is removed from this {@link ServiceContext}.
      *
      * @param partitionId the id of this partition.
      */

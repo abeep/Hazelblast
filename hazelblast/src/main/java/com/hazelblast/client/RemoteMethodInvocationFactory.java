@@ -13,5 +13,5 @@ import java.util.concurrent.Callable;
  */
 public interface RemoteMethodInvocationFactory {
 
-   <T> Callable<T> create(String puName, String serviceName, String methodName, Object[] args, Object partitionKey);
+   <T> Callable<T> create(String serviceContext, String serviceName, String methodName, Object[] args, Object partitionKey);
 }

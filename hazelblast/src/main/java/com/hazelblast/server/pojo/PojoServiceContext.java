@@ -1,25 +1,23 @@
 package com.hazelblast.server.pojo;
 
-import com.hazelblast.api.ProcessingUnit;
+import com.hazelblast.api.ServiceContext;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
-import java.util.HashMap;
 import java.util.Map;
 
 import static java.lang.String.format;
 
 /**
- * The PojoPu is a {@link ProcessingUnit} that contains a single Pojo and all public fields on this Pojo will be
+ * The PojoServiceContext is a {@link com.hazelblast.api.ServiceContext} that contains a single Pojo and all public fields on this Pojo will be
  * exposed as a service.
  * <p/>
  * <h2>onStart</h2>
- * If the pojo exposes a method 'public void onStart()' it will be called when this ProcessingUnit it started.
+ * If the pojo exposes a method 'public void onStart()' it will be called when this ServiceContext it started.
  * <p/>
  * <h2>onStop</h2>
- * If the pojo exposes a method 'public void onStop()' it will be called when this ProcessingUnit is stopped.
+ * If the pojo exposes a method 'public void onStop()' it will be called when this ServiceContext is stopped.
  * <p/>
  * <h2>onPartitionAdded</h2>
  * If the pojo exposes a method 'public void onPartitionAdded(int partitionId)' it will be called when a partition
@@ -31,7 +29,7 @@ import static java.lang.String.format;
  *
  * @author Peter Veentjer.
  */
-public final class PojoPu implements ProcessingUnit {
+public final class PojoServiceContext implements ServiceContext {
 
     private final Object target;
     private final Method onPartitionAddedMethod;
@@ -41,12 +39,12 @@ public final class PojoPu implements ProcessingUnit {
     private final Map<String,Field> services;
 
     /**
-     * Creates a PojoPu.
+     * Creates a PojoServiceContext.
      *
-     * @param target the object this PojoPu wraps.
+     * @param target the object this PojoServiceContext wraps.
      * @throws NullPointerException if target is null.
      */
-    public PojoPu(Object target) {
+    public PojoServiceContext(Object target) {
         if (target == null) {
             throw new NullPointerException("target can't be null");
         }

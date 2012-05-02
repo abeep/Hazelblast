@@ -1,6 +1,6 @@
 package com.hazelblast.client;
 
-import com.hazelblast.server.PuServer;
+import com.hazelblast.server.ServiceContextServer;
 import com.hazelcast.core.PartitionAware;
 
 import java.io.Serializable;
@@ -16,19 +16,19 @@ public final class SerializableRemoteMethodInvocationFactory implements RemoteMe
 
     public final static SerializableRemoteMethodInvocationFactory INSTANCE = new SerializableRemoteMethodInvocationFactory();
 
-    public <T> Callable<T> create(String puName, String serviceName, String methodName, Object[] args, Object partitionKey) {
-        return new RemoteMethodInvocation(puName, serviceName, methodName, args, partitionKey);
+    public <T> Callable<T> create(String serviceContext, String serviceName, String methodName, Object[] args, Object partitionKey) {
+        return new RemoteMethodInvocation(serviceContext, serviceName, methodName, args, partitionKey);
     }
 
     protected static class RemoteMethodInvocation implements Callable, PartitionAware, Serializable {
-        private final String puName;
+        private final String serviceContext;
         private final String serviceName;
         private final String methodName;
         private final Object[] args;
         private transient final Object partitionKey;
 
-        RemoteMethodInvocation(String puName, String serviceName, String methodName, Object[] args, Object partitionKey) {
-            this.puName = puName;
+        RemoteMethodInvocation(String serviceContext, String serviceName, String methodName, Object[] args, Object partitionKey) {
+            this.serviceContext = serviceContext;
             this.serviceName = serviceName;
             this.methodName = methodName;
             this.args = args;
@@ -36,7 +36,7 @@ public final class SerializableRemoteMethodInvocationFactory implements RemoteMe
         }
 
         public Object call() throws Exception {
-            return PuServer.executeMethod(puName, serviceName, methodName, args);
+            return ServiceContextServer.executeMethod(serviceContext, serviceName, methodName, args);
         }
 
         public Object getPartitionKey() {

@@ -1,7 +1,7 @@
 package com.hazelblast.client;
 
 import com.hazelblast.api.*;
-import com.hazelblast.server.PuServer;
+import com.hazelblast.server.ServiceContextServer;
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.Member;
 import com.hazelcast.core.MultiTask;
@@ -35,43 +35,43 @@ public final class DefaultProxyProvider implements ProxyProvider {
 
     private final ExecutorService executorService;
     private final ConcurrentMap<Class, Object> proxies = new ConcurrentHashMap<Class, Object>();
-    private final String puName;
+    private final String serviceContextName;
     private volatile RemoteMethodInvocationFactory remoteMethodInvocationFactory = SerializableRemoteMethodInvocationFactory.INSTANCE;
 
     /**
-     * Creates a new ProxyProvider that connects to the 'default' pu.
+     * Creates a new ProxyProvider that connects to the 'default' ServiceContext.
      */
     public DefaultProxyProvider() {
-        this(PuServer.DEFAULT_PU_NAME, Hazelcast.getExecutorService());
+        this(ServiceContextServer.DEFAULT_PU_NAME, Hazelcast.getExecutorService());
     }
 
     /**
-     * Creates a ProxyProvider that connects to a ProcessingUnit with the given name
+     * Creates a ProxyProvider that connects to a ServiceContext with the given name
      *
-     * @param puName          the ProcessingUnit to connect to.
+     * @param serviceContextName          the ServiceContext to connect to.
      * @param executorService the (Hazelcast) ExecutorService used to execute the remote calls on.
-     * @throws NullPointerException if puName or executorService is null.
+     * @throws NullPointerException if serviceContextName or executorService is null.
      */
-    public DefaultProxyProvider(String puName, ExecutorService executorService) {
-        if (puName == null) {
-            throw new NullPointerException("puName can't be null");
+    public DefaultProxyProvider(String serviceContextName, ExecutorService executorService) {
+        if (serviceContextName == null) {
+            throw new NullPointerException("serviceContextName can't be null");
         }
 
         if (executorService == null) {
             throw new NullPointerException("executorService can't be null");
         }
 
-        this.puName = puName;
+        this.serviceContextName = serviceContextName;
         this.executorService = executorService;
     }
 
     /**
-     * Returns the name of the pu this ProxyProvider is going to call.
+     * Returns the name of the ServiceContext this ProxyProvider is going to call.
      *
-     * @return the name of the pu.
+     * @return the name of the ServiceContext.
      */
-    public String getPuName() {
-        return puName;
+    public String getServiceContextName() {
+        return serviceContextName;
     }
 
     /**
@@ -345,7 +345,7 @@ public final class DefaultProxyProvider implements ProxyProvider {
 
         private Object invokeForkJoin(Method method, Object[] args) throws ExecutionException, InterruptedException {
             Callable callable = remoteMethodInvocationFactory.create(
-                    puName, remoteInterfaceInfo.targetInterface.getSimpleName(), method.getName(), args, null);
+                    serviceContextName, remoteInterfaceInfo.targetInterface.getSimpleName(), method.getName(), args, null);
             MultiTask task = new MultiTask(callable, getPuMembers());
             executorService.execute(task);
             task.get();
@@ -354,7 +354,7 @@ public final class DefaultProxyProvider implements ProxyProvider {
 
         private Object invokeLoadBalancer(Method method, Object[] args) throws ExecutionException, InterruptedException {
             Callable callable = remoteMethodInvocationFactory.create(
-                    puName, remoteInterfaceInfo.targetInterface.getSimpleName(), method.getName(), args,null);
+                    serviceContextName, remoteInterfaceInfo.targetInterface.getSimpleName(), method.getName(), args,null);
 
             Future future = executorService.submit(callable);
             return future.get();
@@ -364,7 +364,7 @@ public final class DefaultProxyProvider implements ProxyProvider {
             Object partitionKey = getPartitionKey(methodInfo, args);
 
             Callable task = remoteMethodInvocationFactory.create(
-                    puName, remoteInterfaceInfo.targetInterface.getSimpleName(), method.getName(), args, partitionKey);
+                    serviceContextName, remoteInterfaceInfo.targetInterface.getSimpleName(), method.getName(), args, partitionKey);
 
             Future future = executorService.submit(task);
             return future.get();

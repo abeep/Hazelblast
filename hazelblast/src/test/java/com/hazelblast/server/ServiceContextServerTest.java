@@ -1,7 +1,7 @@
 package com.hazelblast.server;
 
-import com.hazelblast.api.ProcessingUnit;
-import com.hazelblast.server.pojo.PojoPuFactory;
+import com.hazelblast.api.ServiceContext;
+import com.hazelblast.server.pojo.PojoServiceContextFactory;
 import junit.framework.Assert;
 import org.junit.After;
 import org.junit.Before;
@@ -14,17 +14,17 @@ import static org.easymock.EasyMock.createMock;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 
-public class PuServerTest {
+public class ServiceContextServerTest {
 
-    private PuServer server;
-    private ProcessingUnit puMock;
+    private ServiceContextServer server;
+    private ServiceContext puMock;
 
     @Before
     public void setUp() {
-        System.setProperty("puFactory.class", PojoPuFactory.class.getName());
+        System.setProperty("puFactory.class", PojoServiceContextFactory.class.getName());
         System.setProperty("pojoPu.class", TestPojo.class.getName());
-        puMock = createMock(ProcessingUnit.class);
-        server = new PuServer(puMock,"default");
+        puMock = createMock(ServiceContext.class);
+        server = new ServiceContextServer(puMock,"default");
     }
 
     @After
@@ -39,7 +39,7 @@ public class PuServerTest {
 
     @Test
     public void unstartedServer() {
-        assertEquals(server.getStatus(), PuServer.Status.Unstarted);
+        assertEquals(server.getStatus(), ServiceContextServer.Status.Unstarted);
         assertFalse(server.isShutdown());
         assertFalse(server.isTerminated());
         assertFalse(server.isTerminating());
@@ -49,7 +49,7 @@ public class PuServerTest {
     public void start_whenUnstarted_thenStarted() {
         server.start();
 
-        assertEquals(server.getStatus(), PuServer.Status.Running);
+        assertEquals(server.getStatus(), ServiceContextServer.Status.Running);
         assertFalse(server.isShutdown());
         assertFalse(server.isTerminated());
         assertFalse(server.isTerminating());
@@ -60,7 +60,7 @@ public class PuServerTest {
         server.start();
 
         server.start();
-        assertEquals(server.getStatus(), PuServer.Status.Running);
+        assertEquals(server.getStatus(), ServiceContextServer.Status.Running);
         assertFalse(server.isShutdown());
         assertFalse(server.isTerminated());
         assertFalse(server.isTerminating());
@@ -76,7 +76,7 @@ public class PuServerTest {
         } catch (IllegalStateException e) {
         }
 
-        assertEquals(server.getStatus(), PuServer.Status.Terminated);
+        assertEquals(server.getStatus(), ServiceContextServer.Status.Terminated);
         assertTrue(server.isShutdown());
         assertTrue(server.isTerminated());
         assertFalse(server.isTerminating());
@@ -89,7 +89,7 @@ public class PuServerTest {
     public void shutdown_whenUnstarted() {
         server.shutdown();
 
-        Assert.assertEquals(PuServer.Status.Terminated, server.getStatus());
+        Assert.assertEquals(ServiceContextServer.Status.Terminated, server.getStatus());
         assertTrue(server.isShutdown());
         assertTrue(server.isTerminated());
     }
@@ -101,7 +101,7 @@ public class PuServerTest {
         server.shutdown();
         server.awaitTermination();
 
-        Assert.assertEquals(PuServer.Status.Terminated, server.getStatus());
+        Assert.assertEquals(ServiceContextServer.Status.Terminated, server.getStatus());
         assertTrue(server.isShutdown());
         assertTrue(server.isTerminated());
     }
@@ -118,7 +118,7 @@ public class PuServerTest {
 
         server.shutdown();
 
-        Assert.assertEquals(PuServer.Status.Terminated, server.getStatus());
+        Assert.assertEquals(ServiceContextServer.Status.Terminated, server.getStatus());
         assertTrue(server.isShutdown());
         assertTrue(server.isTerminated());
         assertFalse(server.isTerminating());

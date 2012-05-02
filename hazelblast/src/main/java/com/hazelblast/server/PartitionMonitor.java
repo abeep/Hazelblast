@@ -14,33 +14,33 @@ import java.util.logging.Level;
 import static java.lang.String.format;
 
 /**
- * The PuMonitor is responsible for seeing changes in the Hazelcast partitions, and to notify these changes
- * back to the PuContainer.
+ * The PartitionMonitor is responsible for seeing changes in the Hazelcast partitions, and to notify these changes
+ * back to the ServiceContextContainer.
  * <p/>
  * There is a  {@link #scan()} method that is called externally by some scheduler, so no threading inside this
  * structure.
  *
  * @author Peter Veentjer.
  */
-final class PuMonitor {
+final class PartitionMonitor {
 
-    private final static ILogger logger = Logger.getLogger(PuMonitor.class.getName());
+    private final static ILogger logger = Logger.getLogger(PartitionMonitor.class.getName());
 
-    private final PuContainer puContainer;
+    private final ServiceContextContainer serviceContextContainer;
     private final Member self = Hazelcast.getCluster().getLocalMember();
     private final PartitionService partitionService = Hazelcast.getPartitionService();
 
     /**
-     * Creates a new PuMonitor.
+     * Creates a new PartitionMonitor.
      *
-     * @param puContainer the puContainer that is signalled by this PuMonitor.
-     * @throws NullPointerException if puContainer is null.
+     * @param serviceContextContainer the serviceContextContainer that is signalled by this PartitionMonitor.
+     * @throws NullPointerException if serviceContextContainer is null.
      */
-    public PuMonitor(PuContainer puContainer) {
-        if (puContainer == null) {
-            throw new NullPointerException("puContainer can't be null");
+    public PartitionMonitor(ServiceContextContainer serviceContextContainer) {
+        if (serviceContextContainer == null) {
+            throw new NullPointerException("serviceContextContainer can't be null");
         }
-        this.puContainer = puContainer;
+        this.serviceContextContainer = serviceContextContainer;
     }
 
     /**
@@ -48,7 +48,7 @@ final class PuMonitor {
      */
     public void scan() {
         if (logger.isLoggable(Level.FINE)) {
-            logger.log(Level.FINE, format("[%s] Scan",puContainer.getPuName()));
+            logger.log(Level.FINE, format("[%s] Scan", serviceContextContainer.getServiceContextName()));
         }
 
         Set<Partition> partitions = partitionService.getPartitions();
@@ -58,24 +58,24 @@ final class PuMonitor {
         for (Partition p : partitions) {
             int partitionId = p.getPartitionId();
             if (p.getOwner().equals(self)) {
-                boolean addPu = !puContainer.containsPartition(partitionId);
+                boolean addPu = !serviceContextContainer.containsPartition(partitionId);
                 if (addPu) {
                     Lock lock = Hazelcast.getLock("PartitionLock-" + partitionId);
                     if (!lock.tryLock()) {
                         if (logger.isLoggable(Level.FINE)) {
-                            logger.log(Level.FINE, format("[%s] Could not obtain lock on partition [%s], maybe more luck next time.",puContainer.getPuName(),partitionId));
+                            logger.log(Level.FINE, format("[%s] Could not obtain lock on partition [%s], maybe more luck next time.", serviceContextContainer.getServiceContextName(),partitionId));
                         }
 
                         break;
                     }
 
                     change = true;
-                    puContainer.onPartitionAdded(partitionId);
+                    serviceContextContainer.onPartitionAdded(partitionId);
                 }
             } else {
-                boolean removePu = puContainer.containsPartition(partitionId);
+                boolean removePu = serviceContextContainer.containsPartition(partitionId);
                 if (removePu) {
-                    puContainer.onPartitionRemoved(partitionId);
+                    serviceContextContainer.onPartitionRemoved(partitionId);
 
                     Lock lock = Hazelcast.getLock("PartitionLock-" + partitionId);
                     lock.unlock();
@@ -86,7 +86,7 @@ final class PuMonitor {
         }
 
         if (change) {
-            logger.log(Level.INFO, format("[%s] Scan complete, managed partitions [%s] ",puContainer.getPuName(),puContainer.getPartitionCount()));
+            logger.log(Level.INFO, format("[%s] Scan complete, managed partitions [%s] ", serviceContextContainer.getServiceContextName(), serviceContextContainer.getPartitionCount()));
         }
     }
 }

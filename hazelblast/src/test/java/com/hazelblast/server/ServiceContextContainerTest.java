@@ -1,17 +1,17 @@
 package com.hazelblast.server;
 
-import com.hazelblast.server.pojo.PojoPu;
-import com.hazelblast.server.pojo.PojoPuFactory;
+import com.hazelblast.server.pojo.PojoServiceContext;
+import com.hazelblast.server.pojo.PojoServiceContextFactory;
 import org.junit.Before;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
 
-public class PuContainerTest {
+public class ServiceContextContainerTest {
 
     @Before
     public void setUp() {
-        System.setProperty("puFactory.class", PojoPuFactory.class.getName());
+        System.setProperty("puFactory.class", PojoServiceContextFactory.class.getName());
         System.setProperty("pojoPu.class", TestPojo.class.getName());
     }
 
@@ -19,7 +19,7 @@ public class PuContainerTest {
 
     @Test
     public void containsPartition_whenNonExisting() {
-        PuContainer container = new PuContainer(new PojoPu(new TestPojo()),"default");
+        ServiceContextContainer container = new ServiceContextContainer(new PojoServiceContext(new TestPojo()),"default");
         boolean result = container.containsPartition(1);
 
         assertFalse(result);
@@ -27,7 +27,7 @@ public class PuContainerTest {
 
     @Test
     public void whenNewPartitionAdded() {
-        PuContainer container = new PuContainer(new PojoPu(new TestPojo()),"default");
+        ServiceContextContainer container = new ServiceContextContainer(new PojoServiceContext(new TestPojo()),"default");
 
         container.onPartitionAdded(1);
 
@@ -38,7 +38,7 @@ public class PuContainerTest {
 
     @Test
     public void whenExistingPartitionAddedAgain() {
-        PuContainer container = new PuContainer(new PojoPu(new TestPojo()),"default");
+        ServiceContextContainer container = new ServiceContextContainer(new PojoServiceContext(new TestPojo()),"default");
 
         container.onPartitionAdded(1);
         try {
@@ -55,7 +55,7 @@ public class PuContainerTest {
 
     @Test
     public void whenExistingPartitionRemoved() {
-        PuContainer container = new PuContainer(new PojoPu(new TestPojo()),"default");
+        ServiceContextContainer container = new ServiceContextContainer(new PojoServiceContext(new TestPojo()),"default");
 
         container.onPartitionAdded(1);
         container.onPartitionRemoved(1);
@@ -67,7 +67,7 @@ public class PuContainerTest {
 
     @Test
     public void whenNonExistingPartitionRemoved() {
-        PuContainer container = new PuContainer(new PojoPu(new TestPojo()),"default");
+        ServiceContextContainer container = new ServiceContextContainer(new PojoServiceContext(new TestPojo()),"default");
 
         try {
             container.onPartitionRemoved(1);

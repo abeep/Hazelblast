@@ -1,7 +1,7 @@
 package com.hazelblast.server;
 
-import com.hazelblast.api.ProcessingUnit;
-import com.hazelblast.api.PuFactory;
+import com.hazelblast.api.ServiceContext;
+import com.hazelblast.api.ServiceContextFactory;
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.logging.ILogger;
 import com.hazelcast.logging.Logger;
@@ -19,23 +19,23 @@ import java.util.logging.Level;
 import static java.lang.String.format;
 
 /**
- * The PuServer is responsible for hosting the {@link PuContainer} and can either run
+ * The ServiceContextServer is responsible for hosting the {@link ServiceContextContainer} and can either run
  * standalone, or can be embedded in an existing java application.
  * <p/>
- * If the PuServer is embedded, Multiple PuServers can be run in parallel.
+ * If the ServiceContextServer is embedded, Multiple PuServers can be run in parallel.
  * <p/>
- * As soon as a PuServer is started, it automatically registers itself in a global registry (contained in this PuServer)
- * so that a client can look up the PuServer when a remote call is executed. When the PuServer stops, the PuServer will
+ * As soon as a ServiceContextServer is started, it automatically registers itself in a global registry (contained in this ServiceContextServer)
+ * so that a client can look up the ServiceContextServer when a remote call is executed. When the ServiceContextServer stops, the ServiceContextServer will
  * automatically be unregistered.
  *
  * @author Peter Veentjer.
  */
-public final class PuServer {
+public final class ServiceContextServer {
     public static final int DEFAULT_SCAN_DELAY_MS = 5000;
     public static final String DEFAULT_PU_NAME = "default";
 
-    private static final ILogger logger = Logger.getLogger(PuServer.class.getName());
-    private static final ConcurrentMap<String, PuServer> puMap = new ConcurrentHashMap<String, PuServer>();
+    private static final ILogger logger = Logger.getLogger(ServiceContextServer.class.getName());
+    private static final ConcurrentMap<String, ServiceContextServer> puMap = new ConcurrentHashMap<String, ServiceContextServer>();
 
     public static void main(String[] args) {
         Options options = buildOptions();
@@ -43,7 +43,7 @@ public final class PuServer {
         CommandLine commandLine = buildCommandLine(args, options, parser);
 
         if (commandLine.hasOption("version")) {
-            logger.log(Level.INFO, "PuServer version is 0.1-SNAPSHOT");
+            logger.log(Level.INFO, "ServiceContextServer version is 0.1-SNAPSHOT");
             System.exit(0);
         }
 
@@ -53,11 +53,11 @@ public final class PuServer {
             System.exit(0);
         }
 
-        String puName = commandLine.getOptionValue("puName", DEFAULT_PU_NAME);
-        String puFactory = commandLine.getOptionValue("puFactory");
+        String serviceContextName = commandLine.getOptionValue("serviceContextName", DEFAULT_PU_NAME);
+        String serviceContextFactory = commandLine.getOptionValue("serviceContextFactory");
         long scanDelayMs = Long.parseLong(commandLine.getOptionValue("scanDelay", "" + DEFAULT_SCAN_DELAY_MS));
 
-        PuServer main = new PuServer(buildPu(puFactory), puName, scanDelayMs);
+        ServiceContextServer main = new ServiceContextServer(buildPu(serviceContextFactory), serviceContextName, scanDelayMs);
         main.start();
     }
 
@@ -73,18 +73,18 @@ public final class PuServer {
     }
 
     private static Options buildOptions() {
-        Option puFile = OptionBuilder.withArgName("puName")
+        Option serviceContextName = OptionBuilder.withArgName("serviceContextName")
                 .hasArg()
-                .withDescription("The name of the processing unit")
+                .withDescription("The name of the service context")
                 .withType(String.class)
-                .create("puName");
+                .create("serviceContextFactory");
 
-        Option puFactory = OptionBuilder.withArgName("puFactory")
+        Option serviceContextFactory = OptionBuilder.withArgName("serviceContextFactory")
                 .hasArg()
                 .isRequired(true)
                 .withType(String.class)
-                .withDescription("The class of the com.hazelblast.api.PuFactory instance that creates the processing unit")
-                .create("puFactory");
+                .withDescription("The class of the com.hazelblast.api.ServiceContextFactory instance that creates the ServiceContext")
+                .create("serviceContextFactory");
 
         Option scanDelay = OptionBuilder.withArgName("scanDelay")
                 .hasArg()
@@ -96,51 +96,51 @@ public final class PuServer {
         Option version = new Option("version", "Print the version information and exit");
 
         Options options = new Options();
-        options.addOption(puFile);
-        options.addOption(puFactory);
+        options.addOption(serviceContextName);
+        options.addOption(serviceContextFactory);
         options.addOption(scanDelay);
         options.addOption(help);
         options.addOption(version);
         return options;
     }
 
-    public static ProcessingUnit getProcessingUnit(String name) {
+    public static ServiceContext getProcessingUnit(String name) {
         if (name == null) {
             throw new NullPointerException("name can't be null");
         }
 
-        PuServer server = puMap.get(name);
+        ServiceContextServer server = puMap.get(name);
         if (server == null) {
-            throw new IllegalStateException(format("No pu found with name [%s] on member [%s], available pu's %s",
+            throw new IllegalStateException(format("No serviceContext found with name [%s] on member [%s], available serviceContext's %s",
                     name, Hazelcast.getCluster().getLocalMember(), puMap.keySet()));
         }
 
-        return server.puContainer.getPu();
+        return server.serviceContextContainer.getServiceContext();
     }
 
-    private static ProcessingUnit buildPu(String factoryName) {
+    private static ServiceContext buildPu(String factoryName) {
         if (logger.isLoggable(Level.FINE)) {
-            logger.log(Level.FINE, format("Creating ProcessingUnit using puFactory [%s]", factoryName));
+            logger.log(Level.FINE, format("Creating ServiceContext using puFactory [%s]", factoryName));
         }
 
-        ClassLoader classLoader = PuServer.class.getClassLoader();
+        ClassLoader classLoader = ServiceContextServer.class.getClassLoader();
         try {
-            Class<PuFactory> factoryClazz = (Class<PuFactory>) classLoader.loadClass(factoryName);
-            PuFactory puFactory = factoryClazz.newInstance();
-            return puFactory.create();
+            Class<ServiceContextFactory> factoryClazz = (Class<ServiceContextFactory>) classLoader.loadClass(factoryName);
+            ServiceContextFactory serviceContextFactory = factoryClazz.newInstance();
+            return serviceContextFactory.create();
         } catch (ClassNotFoundException e) {
-            throw new RuntimeException(format("Failed to create ProcessingUnit using puFactory.class [%s] ", factoryName), e);
+            throw new RuntimeException(format("Failed to create ServiceContext using puFactory.class [%s] ", factoryName), e);
         } catch (InstantiationException e) {
-            throw new RuntimeException(format("Failed to create ProcessingUnit using puFactor.class [%s]", factoryName), e);
+            throw new RuntimeException(format("Failed to create ServiceContext using puFactor.class [%s]", factoryName), e);
         } catch (IllegalAccessException e) {
-            throw new RuntimeException(format("Failed to create ProcessingUnit using puFactor.class [%s]", factoryName), e);
+            throw new RuntimeException(format("Failed to create ServiceContext using puFactor.class [%s]", factoryName), e);
         }
     }
 
-    public static Object executeMethod(String puName, String serviceName, String methodName, Object[] args) throws Exception{
-        ProcessingUnit pu = PuServer.getProcessingUnit(puName);
+    public static Object executeMethod(String serviceContextName, String serviceName, String methodName, Object[] args) throws Exception{
+        ServiceContext serviceContext = ServiceContextServer.getProcessingUnit(serviceContextName);
 
-        Object service = pu.getService(serviceName);
+        Object service = serviceContext.getService(serviceName);
 
         Class[] argTypes = new Class[args.length];
         for (int k = 0; k < argTypes.length; k++) {
@@ -153,67 +153,67 @@ public final class PuServer {
 
     protected enum Status {Unstarted, Running, Terminating, Terminated}
 
-    private final String puName;
-    private final PuMonitor puMonitor;
-    private final PuContainer puContainer;
+    private final String serviceContextName;
+    private final PartitionMonitor partitionMonitor;
+    private final ServiceContextContainer serviceContextContainer;
     private final ScheduledThreadPoolExecutor scheduler = new ScheduledThreadPoolExecutor(1);
     private final Lock stateLock = new ReentrantLock();
     private final long scanDelayMs;
     private volatile Status status = Status.Unstarted;
 
     /**
-     * Creates a new PuServer.
+     * Creates a new ServiceContextServer.
      *
-     * @param pu     the pu this PuServer 'contains'.
-     * @param puName the name of the pu.
-     * @throws NullPointerException if pu or puName is null.
+     * @param serviceContext     the serviceContext this ServiceContextServer 'contains'.
+     * @param serviceContextName the name of the serviceContext.
+     * @throws NullPointerException if serviceContext or serviceContextName is null.
      */
-    public PuServer(ProcessingUnit pu, String puName) {
-        this(pu, puName, DEFAULT_SCAN_DELAY_MS);
+    public ServiceContextServer(ServiceContext serviceContext, String serviceContextName) {
+        this(serviceContext, serviceContextName, DEFAULT_SCAN_DELAY_MS);
     }
 
     /**
-     * Creates a PuServer.
+     * Creates a ServiceContextServer.
      *
-     * @param pu          the ProcessingUnit that is hosted by this PuServer.
-     * @param puName      the name of the pu.
+     * @param serviceContext          the ServiceContext that is hosted by this ServiceContextServer.
+     * @param serviceContextName      the name of the serviceContext.
      * @param scanDelayMs the delay between partition change checks.
-     * @throws NullPointerException     if pu or puName is null.
+     * @throws NullPointerException     if serviceContext or serviceContextName is null.
      * @throws IllegalArgumentException if scanDelayMs smaller than zero.
      */
-    public PuServer(ProcessingUnit pu, String puName, long scanDelayMs) {
-        if (pu == null) {
-            throw new NullPointerException("pu can't be null");
+    public ServiceContextServer(ServiceContext serviceContext, String serviceContextName, long scanDelayMs) {
+        if (serviceContext == null) {
+            throw new NullPointerException("serviceContext can't be null");
         }
 
         if (scanDelayMs < 0) {
             throw new IllegalArgumentException(format("scanDelayMs can't be smaller or equal than zero, scanDelayMs was [%s]", scanDelayMs));
         }
 
-        if (puName == null) {
-            throw new NullPointerException("puName can't be null");
+        if (serviceContextName == null) {
+            throw new NullPointerException("serviceContextName can't be null");
         }
 
-        this.puName = puName;
+        this.serviceContextName = serviceContextName;
         this.scanDelayMs = scanDelayMs;
         this.scheduler.setContinueExistingPeriodicTasksAfterShutdownPolicy(true);
-        this.puContainer = new PuContainer(pu, puName);
-        this.puMonitor = new PuMonitor(puContainer);
+        this.serviceContextContainer = new ServiceContextContainer(serviceContext, serviceContextName);
+        this.partitionMonitor = new PartitionMonitor(serviceContextContainer);
     }
 
     /**
-     * Starts the PuServer.
+     * Starts the ServiceContextServer.
      * <p/>
-     * This call safely can be made if the PuServer already has been started.
+     * This call safely can be made if the ServiceContextServer already has been started.
      * <p/>
      * This method is thread safe.
      *
-     * @throws IllegalStateException if the PuServer already is shutdown or terminated or if another processing unit with the same name
+     * @throws IllegalStateException if the ServiceContextServer already is shutdown or terminated or if another processing unit with the same name
      *                               has been started.
      */
     public void start() {
         if (logger.isLoggable(Level.INFO)) {
-            logger.log(Level.INFO, format("[%s] Start", puName));
+            logger.log(Level.INFO, format("[%s] Start", serviceContextName));
         }
 
         stateLock.lock();
@@ -221,29 +221,29 @@ public final class PuServer {
             switch (status) {
                 case Unstarted:
                     status = Status.Running;
-                    puContainer.onStart();
+                    serviceContextContainer.onStart();
 
-                    if (puMap.putIfAbsent(puName, this) != null) {
+                    if (puMap.putIfAbsent(serviceContextName, this) != null) {
                         shutdown();
                         throw new IllegalStateException(
-                                format("PuServer with name [%s] can't be started, there is another PuServer registered under the same name", puName));
+                                format("ServiceContextServer with name [%s] can't be started, there is another ServiceContextServer registered under the same name", serviceContextName));
                     }
 
                     scheduler.scheduleAtFixedRate(new ScanTask(), 0, scanDelayMs, TimeUnit.MILLISECONDS);
                     if (logger.isLoggable(Level.FINE)) {
-                        logger.log(Level.FINE, format("[%s] Started", puName));
+                        logger.log(Level.FINE, format("[%s] Started", serviceContextName));
                     }
 
                     break;
                 case Running:
                     if (logger.isLoggable(Level.FINE)) {
-                        logger.log(Level.FINE, format("[%s] Start call is ignored, PuServer is already running", puName));
+                        logger.log(Level.FINE, format("[%s] Start call is ignored, ServiceContextServer is already running", serviceContextName));
                     }
                     break;
                 case Terminating:
-                    throw new IllegalStateException("Can't start an already shutdown PuServer");
+                    throw new IllegalStateException("Can't start an already shutdown ServiceContextServer");
                 case Terminated:
-                    throw new IllegalStateException("Can't start an already terminated PuServer");
+                    throw new IllegalStateException("Can't start an already terminated ServiceContextServer");
                 default:
                     throw new IllegalStateException("Unrecognized states: " + status);
             }
@@ -253,47 +253,47 @@ public final class PuServer {
     }
 
     /**
-     * Shuts down this PuServer.
+     * Shuts down this ServiceContextServer.
      * <p/>
      * This call is thread safe.
      * <p/>
-     * This call can safely be made if this PuServer already is shutdown or terminated.
+     * This call can safely be made if this ServiceContextServer already is shutdown or terminated.
      * <p/>
-     * This call gives no guarantee that the PuServer has terminated after this call completes. To wait for termination,
+     * This call gives no guarantee that the ServiceContextServer has terminated after this call completes. To wait for termination,
      * call the {@link #awaitTermination()} or {@link #awaitTermination(long, java.util.concurrent.TimeUnit)}.
      */
     public void shutdown() {
         if (logger.isLoggable(Level.INFO)) {
-            logger.log(Level.INFO, format("[%s] Shutdown", puName));
+            logger.log(Level.INFO, format("[%s] Shutdown", serviceContextName));
         }
 
         stateLock.lock();
         try {
             switch (status) {
                 case Unstarted:
-                    puMap.remove(puName, this);
-                    puContainer.onStop();
+                    puMap.remove(serviceContextName, this);
+                    serviceContextContainer.onStop();
                     if (logger.isLoggable(Level.FINE)) {
-                        logger.log(Level.FINE, format("[%s] PuServer not started yet, so will be immediately terminated", puName));
+                        logger.log(Level.FINE, format("[%s] ServiceContextServer not started yet, so will be immediately terminated", serviceContextName));
                     }
                     status = Status.Terminated;
                     break;
                 case Running:
-                    puMap.remove(puName, this);
+                    puMap.remove(serviceContextName, this);
                     if (logger.isLoggable(Level.FINE)) {
-                        logger.log(Level.FINE, format("[%s] PuServer is running, and will now be terminating", puName));
+                        logger.log(Level.FINE, format("[%s] ServiceContextServer is running, and will now be terminating", serviceContextName));
                     }
                     status = Status.Terminating;
                     scheduler.shutdown();
                     break;
                 case Terminating:
                     if (logger.isLoggable(Level.FINE)) {
-                        logger.log(Level.FINE, format("[%s] Shutdown call ignored, PuServer already terminating", puName));
+                        logger.log(Level.FINE, format("[%s] Shutdown call ignored, ServiceContextServer already terminating", serviceContextName));
                     }
                     break;
                 case Terminated:
                     if (logger.isLoggable(Level.FINE)) {
-                        logger.log(Level.FINE, format("[%s] Shutdown call ignored, PuServer already terminated", puName));
+                        logger.log(Level.FINE, format("[%s] Shutdown call ignored, ServiceContextServer already terminated", serviceContextName));
                     }
                     break;
                 default:
@@ -305,7 +305,7 @@ public final class PuServer {
     }
 
     /**
-     * Checks if this PuServer is shutdown. It could be that this PuServer is still terminating and has not
+     * Checks if this ServiceContextServer is shutdown. It could be that this ServiceContextServer is still terminating and has not
      * yet fully terminated.
      *
      * @return true if shutdown, false otherwise.
@@ -316,7 +316,7 @@ public final class PuServer {
     }
 
     /**
-     * Checks if this PuServer is terminating, but not yet terminated.
+     * Checks if this ServiceContextServer is terminating, but not yet terminated.
      *
      * @return <tt>true</tt> if terminating, <tt>false</tt> otherwise.
      */
@@ -326,7 +326,7 @@ public final class PuServer {
     }
 
     /**
-     * Checks if this PuServer is terminated (so fully shutdown).
+     * Checks if this ServiceContextServer is terminated (so fully shutdown).
      *
      * @return <tt>true</tt> if terminated, <tt>false</tt> otherwise.
      */
@@ -335,7 +335,7 @@ public final class PuServer {
     }
 
     /**
-     * Returns the Status of this PuServer. This method is only here for testing purposes.
+     * Returns the Status of this ServiceContextServer. This method is only here for testing purposes.
      *
      * @return the status.
      */
@@ -344,7 +344,7 @@ public final class PuServer {
     }
 
     /**
-     * Blocks until this PuServer has fully terminated after a shutdown
+     * Blocks until this ServiceContextServer has fully terminated after a shutdown
      * request, or the current thread is interrupted, whichever happens first.
      *
      * @throws InterruptedException if interrupted while waiting
@@ -354,7 +354,7 @@ public final class PuServer {
     }
 
     /**
-     * Blocks until this PuServer has fully terminated after a shutdown
+     * Blocks until this ServiceContextServer has fully terminated after a shutdown
      * request, or the timeout occurs, or the current thread is
      * interrupted, whichever happens first.
      *
@@ -376,9 +376,9 @@ public final class PuServer {
                 scheduler.setContinueExistingPeriodicTasksAfterShutdownPolicy(false);
             } else {
                 try {
-                    puMonitor.scan();
+                    partitionMonitor.scan();
                 } catch (RuntimeException e) {
-                    logger.log(Level.SEVERE, "Failed to run PuMonitor.scan", e);
+                    logger.log(Level.SEVERE, "Failed to run PartitionMonitor.scan", e);
                 }
             }
         }

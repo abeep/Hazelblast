@@ -1,18 +1,18 @@
 package com.hazelblast.server.spring;
 
-import com.hazelblast.api.ProcessingUnit;
-import com.hazelblast.api.PuFactory;
+import com.hazelblast.api.ServiceContext;
+import com.hazelblast.api.ServiceContextFactory;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
 import static java.lang.String.format;
 
 /**
- * A Spring based {@link PuFactory}.
+ * A Spring based {@link com.hazelblast.api.ServiceContextFactory}.
  * <p/>
- * It expects a pu.xml to be available in the root of the jar.
+ * It expects a servicecontext.xml to be available in the root of the jar.
  *
  * <h2>exposedBeans bean</h2>
- * The pu.xml should contain a bean called 'exposedBeans' where all the beans that
+ * The servicecontext.xml should contain a bean called 'exposedBeans' where all the beans that
  * should be exposed remotely, should be registered.
  * <pre>
  * {@code
@@ -32,18 +32,18 @@ import static java.lang.String.format;
  *
  * @author Peter Veentjer.
  */
-public class SpringPuFactory implements PuFactory {
+public class SpringServiceContextFactory implements ServiceContextFactory {
 
-    public ProcessingUnit create() {
-        return new SpringPu();
+    public ServiceContext create() {
+        return new SpringServiceContext();
     }
 
-    private static class SpringPu implements ProcessingUnit {
+    private static class SpringServiceContext implements ServiceContext {
         private final ClassPathXmlApplicationContext appContext;
         private final ExposedBeans exposedBeans;
 
-        private SpringPu() {
-            appContext = new ClassPathXmlApplicationContext("pu.xml");
+        private SpringServiceContext() {
+            appContext = new ClassPathXmlApplicationContext("servicecontext.xml");
             exposedBeans = appContext.getBean("exposedBeans",ExposedBeans.class);
         }
 
