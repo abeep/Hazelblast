@@ -23,8 +23,8 @@ public final class SerializableRemoteMethodInvocationFactory implements RemoteMe
 
     public final static SerializableRemoteMethodInvocationFactory INSTANCE = new SerializableRemoteMethodInvocationFactory();
 
-    public <T> Callable<T> create(String serviceContext, String serviceName, String methodName, Object[] args, int methodId, Object partitionKey) {
-        return new RemoteMethodInvocation(serviceContext, serviceName, methodName, args, methodId,  partitionKey);
+    public <T> Callable<T> create(String serviceContext, String serviceName, String methodName, Object[] args, String[] argTypes, Object partitionKey) {
+        return new RemoteMethodInvocation(serviceContext, serviceName, methodName, args, argTypes, partitionKey);
     }
 
     protected static class RemoteMethodInvocation implements Callable, PartitionAware, Serializable {
@@ -33,15 +33,15 @@ public final class SerializableRemoteMethodInvocationFactory implements RemoteMe
         private final String methodName;
         private final Object[] args;
         private transient final Object partitionKey;
-        private final int methodId;
+        private final String[] argTypes;
 
-        RemoteMethodInvocation(String serviceContext, String serviceName, String methodName, Object[] args,int methodId, Object partitionKey) {
+        RemoteMethodInvocation(String serviceContext, String serviceName, String methodName, Object[] args, String[] argTypes, Object partitionKey) {
             this.serviceContext = serviceContext;
             this.serviceName = serviceName;
             this.methodName = methodName;
             this.args = args;
             this.partitionKey = partitionKey;
-            this.methodId = methodId;
+            this.argTypes = argTypes;
         }
 
         public Object call() throws Exception {
@@ -51,7 +51,7 @@ public final class SerializableRemoteMethodInvocationFactory implements RemoteMe
             }
 
             try {
-                Object result = ServiceContextServer.executeMethod(serviceContext, serviceName, methodName, args);
+                Object result = ServiceContextServer.executeMethod(serviceContext, serviceName, methodName, argTypes,args);
                 if (logger.isLoggable(Level.FINE)) {
                     //todo: better message
                     logger.log(Level.FINE, format("finished %s.%s in serviceContext %s", serviceName, methodName, serviceName));

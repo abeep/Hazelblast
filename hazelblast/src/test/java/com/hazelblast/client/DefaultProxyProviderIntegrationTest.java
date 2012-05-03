@@ -98,13 +98,11 @@ public class DefaultProxyProviderIntegrationTest {
     }
 
     @Test
-    @Ignore
     public void whenCalledWithNullArgument() {
         TestService proxy = proxyProvider.getProxy(TestService.class);
-        String arg = null;
+        String arg = "foo";
         String result = "result";
-        expect(testServiceMock.singleArg(arg)).andReturn(result);
-
+        expect(testServiceMock.multipleArgs(arg, null)).andReturn(result);
 
         replay(testServiceMock);
 

@@ -26,5 +26,5 @@ public interface RemoteMethodInvocationFactory {
      * @return the Callable.
      * @throws NullPointerException if serviceContextName, serviceName, methodName or args is null.
      */
-    <T> Callable<T> create(String serviceContextName, String serviceName, String methodName, Object[] args, int methodId, Object partitionKey);
+    <T> Callable<T> create(String serviceContextName, String serviceName, String methodName, Object[] args, String[] argTypes, Object partitionKey);
 }

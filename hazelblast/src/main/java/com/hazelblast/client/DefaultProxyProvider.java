@@ -333,8 +333,9 @@ public final class DefaultProxyProvider implements ProxyProvider {
         }
 
         private Object invokeForkJoin(RemoteMethodInfo remoteMethodInfo, Object[] args) throws Throwable {
+
             Callable callable = remoteMethodInvocationFactory.create(
-                    serviceContextName, remoteInterfaceInfo.targetInterface.getSimpleName(), remoteMethodInfo.method.getName(), args, remoteMethodInfo.methodId, null);
+                    serviceContextName, remoteInterfaceInfo.targetInterface.getSimpleName(), remoteMethodInfo.method.getName(), args, remoteMethodInfo.argTypes, null);
 
             MultiTask task = new MultiTask(callable, getPuMembers());
             executorService.execute(task);
@@ -348,7 +349,7 @@ public final class DefaultProxyProvider implements ProxyProvider {
 
         private Object invokeLoadBalancer(RemoteMethodInfo remoteMethodInfo, Object[] args) throws Throwable {
             Callable callable = remoteMethodInvocationFactory.create(
-                    serviceContextName, remoteInterfaceInfo.targetInterface.getSimpleName(), remoteMethodInfo.method.getName(), args, remoteMethodInfo.methodId,null);
+                    serviceContextName, remoteInterfaceInfo.targetInterface.getSimpleName(), remoteMethodInfo.method.getName(), args, remoteMethodInfo.argTypes, null);
 
             Future future = executorService.submit(callable);
             try {
@@ -362,7 +363,7 @@ public final class DefaultProxyProvider implements ProxyProvider {
             Object partitionKey = getPartitionKey(remoteMethodInfo, args);
 
             Callable callable = remoteMethodInvocationFactory.create(
-                    serviceContextName, remoteInterfaceInfo.targetInterface.getSimpleName(), remoteMethodInfo.method.getName(), args, remoteMethodInfo.methodId, partitionKey);
+                    serviceContextName, remoteInterfaceInfo.targetInterface.getSimpleName(), remoteMethodInfo.method.getName(), args, remoteMethodInfo.argTypes, partitionKey);
 
             Future future = executorService.submit(callable);
             try {
@@ -432,13 +433,19 @@ public final class DefaultProxyProvider implements ProxyProvider {
         final MethodType methodType;
         final int partitionKeyIndex;
         final Method partitionKeyProperty;
-        final int methodId = 0;
+        final String[] argTypes;
 
         private RemoteMethodInfo(Method method, MethodType methodType, int partitionKeyIndex, Method partitionKeyProperty) {
             this.method = method;
             this.methodType = methodType;
             this.partitionKeyIndex = partitionKeyIndex;
             this.partitionKeyProperty = partitionKeyProperty;
+
+            Class[] parameterTypes = method.getParameterTypes();
+            argTypes = new String[parameterTypes.length];
+            for (int k = 0; k < argTypes.length; k++) {
+                argTypes[k] = parameterTypes[k].getName();
+            }
         }
     }
 

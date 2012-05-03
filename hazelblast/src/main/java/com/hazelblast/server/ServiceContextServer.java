@@ -109,11 +109,11 @@ public final class ServiceContextServer {
      *
      * @param name the name of the ServiceContext.
      * @return the found ServiceContext.
-     * @throws NullPointerException if name is null.
+     * @throws NullPointerException  if name is null.
      * @throws IllegalStateException if no ServiceContext with the given name is found.
      */
     public static ServiceContext getServiceContext(String name) {
-        notNull("name",name);
+        notNull("name", name);
 
         ServiceContextServer server = serviceContextMap.get(name);
         if (server == null) {
@@ -145,7 +145,7 @@ public final class ServiceContextServer {
 
     /**
      * Executes a method.
-     *
+     * <p/>
      * This is the call that is executed by ProxyProvider once the task is deserialized and executed on the target machine.
      *
      * @param serviceContextName
@@ -155,35 +155,59 @@ public final class ServiceContextServer {
      * @return
      * @throws Exception
      * @throws IllegalArgumentException if serviceContextName is not pointing to a an existing ServiceContext.
-     * @throws NullPointerException if serviceContextName
+     * @throws NullPointerException     if serviceContextName
      */
-    public static Object executeMethod(String serviceContextName, String serviceName, String methodName, Object[] args) throws Throwable{
-        notNull("serviceContextName",serviceContextName);
-        notNull("serviceName",serviceName);
-        notNull("methodName",methodName);
-        notNull("args",args);
+    public static Object executeMethod(String serviceContextName, String serviceName, String methodName, String[] argTypes, Object[] args) throws Throwable {
+        notNull("serviceContextName", serviceContextName);
+        notNull("serviceName", serviceName);
+        notNull("methodName", methodName);
+        notNull("args", args);
 
         ServiceContext serviceContext = getServiceContext(serviceContextName);
 
         Object service = serviceContext.getService(serviceName);
 
-        //this stuff is no good. First it can't deal with nulls and second it can't deal with subclasses.
-        //On the sending side, the exact signature is known, and that signature needs to be used on the server side to find the right method.
-        //One problem is that it could be costly to send that signature.
-        Class[] argTypes = new Class[args.length];
-        for (int k = 0; k < argTypes.length; k++) {
-            argTypes[k] = args[k].getClass();
+        Class serviceClass = service.getClass();
+        Method[] methods = serviceClass.getMethods();
+        Method foundMethod = null;
+        for (Method method : methods) {
+            if(matches(method,methodName,argTypes)){
+                foundMethod = method;
+                break;
+            }
         }
 
-        //other problem is that no looking up the chain is done.
+        if(foundMethod == null){
+            //todo; better exception
+            throw new IllegalStateException();
+        }
 
-        Class serviceClass = service.getClass();
-        Method method = serviceClass.getMethod(methodName, argTypes);
-        try{
-            return method.invoke(service, args);
-        } catch (InvocationTargetException e){
+        try {
+            return foundMethod.invoke(service, args);
+        } catch (InvocationTargetException e) {
             throw e.getTargetException();
         }
+    }
+
+    private static boolean matches(Method method, String methodName, String[] argTypes) {
+        if (!method.getName().equals(methodName)) {
+            return false;
+        }
+
+        Class[] parameterTypes = method.getParameterTypes();
+        if (parameterTypes.length != argTypes.length) {
+            return false;
+        }
+
+        for (int argIndex = 0; argIndex < parameterTypes.length; argIndex++) {
+            String argType = argTypes[argIndex];
+            String paramType = parameterTypes[argIndex].getCanonicalName();
+            if (!argType.equals(paramType)) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     protected enum Status {Unstarted, Running, Terminating, Terminated}
@@ -210,15 +234,15 @@ public final class ServiceContextServer {
     /**
      * Creates a ServiceContextServer.
      *
-     * @param serviceContext          the ServiceContext that is hosted by this ServiceContextServer.
-     * @param serviceContextName      the name of the serviceContext.
-     * @param scanDelayMs the delay between partition change checks.
+     * @param serviceContext     the ServiceContext that is hosted by this ServiceContextServer.
+     * @param serviceContextName the name of the serviceContext.
+     * @param scanDelayMs        the delay between partition change checks.
      * @throws NullPointerException     if serviceContext or serviceContextName is null.
      * @throws IllegalArgumentException if scanDelayMs smaller than zero.
      */
     public ServiceContextServer(ServiceContext serviceContext, String serviceContextName, long scanDelayMs) {
-        notNull("serviceContext",serviceContext);
-        notNull("serviceContextName",serviceContextName);
+        notNull("serviceContext", serviceContext);
+        notNull("serviceContextName", serviceContextName);
         if (scanDelayMs < 0) {
             throw new IllegalArgumentException(format("scanDelayMs can't be smaller or equal than zero, scanDelayMs was [%s]", scanDelayMs));
         }
