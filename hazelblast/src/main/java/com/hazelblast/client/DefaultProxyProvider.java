@@ -18,11 +18,12 @@ import java.util.*;
 import java.util.concurrent.*;
 import java.util.logging.Level;
 
+import static com.hazelblast.utils.Arguments.notNull;
 import static java.lang.String.format;
 
 /**
  * The default {@link ProxyProvider} implementation.
- *
+ * <p/>
  * By default the DefaultProxyProvider is configured with the {@link SerializableRemoteMethodInvocationFactory}, so
  * it relies on the standard java serialization mechanism. If you want to use a different serialization mechanism, a
  * different factory can be injected.
@@ -48,21 +49,13 @@ public final class DefaultProxyProvider implements ProxyProvider {
     /**
      * Creates a ProxyProvider that connects to a ServiceContext with the given name
      *
-     * @param serviceContextName          the ServiceContext to connect to.
-     * @param executorService the (Hazelcast) ExecutorService used to execute the remote calls on.
+     * @param serviceContextName the ServiceContext to connect to.
+     * @param executorService    the (Hazelcast) ExecutorService used to execute the remote calls on.
      * @throws NullPointerException if serviceContextName or executorService is null.
      */
     public DefaultProxyProvider(String serviceContextName, ExecutorService executorService) {
-        if (serviceContextName == null) {
-            throw new NullPointerException("serviceContextName can't be null");
-        }
-
-        if (executorService == null) {
-            throw new NullPointerException("executorService can't be null");
-        }
-
-        this.serviceContextName = serviceContextName;
-        this.executorService = executorService;
+        this.serviceContextName = notNull("serviceContextName", serviceContextName);
+        this.executorService = notNull("executorService", executorService);
     }
 
     /**
@@ -92,16 +85,12 @@ public final class DefaultProxyProvider implements ProxyProvider {
      * @throws NullPointerException if remoteMethodInvocationFactory is null.
      */
     public void setRemoteMethodInvocationFactory(RemoteMethodInvocationFactory remoteMethodInvocationFactory) {
-        if (remoteMethodInvocationFactory == null) {
-            throw new NullPointerException("remoteMethodInvocationFactory can't be null");
-        }
+        notNull("remoteMethodInvocationFactory", remoteMethodInvocationFactory);
         this.remoteMethodInvocationFactory = remoteMethodInvocationFactory;
     }
 
     public <T> T getProxy(Class<T> targetInterface) {
-        if (targetInterface == null) {
-            throw new NullPointerException("targetInterface can't be null");
-        }
+        notNull("targetInterface", targetInterface);
 
         //TODO: Improved logging
 
@@ -310,13 +299,13 @@ public final class DefaultProxyProvider implements ProxyProvider {
             Object result;
             switch (methodInfo.methodType) {
                 case FORK_JOIN:
-                    result = invokeForkJoin(method, args);
+                    result = invokeForkJoin(methodInfo, args);
                     break;
                 case PARTITIONED:
-                    result = invokePartitioned(methodInfo, method, args);
+                    result = invokePartitioned(methodInfo, args);
                     break;
                 case LOAD_BALANCED:
-                    result = invokeLoadBalancer(method, args);
+                    result = invokeLoadBalancer(methodInfo, args);
                     break;
                 default:
                     throw new RuntimeException("unhandeled method type: " + methodInfo.methodType);
@@ -343,38 +332,51 @@ public final class DefaultProxyProvider implements ProxyProvider {
             }
         }
 
-        private Object invokeForkJoin(Method method, Object[] args) throws ExecutionException, InterruptedException {
+        private Object invokeForkJoin(RemoteMethodInfo remoteMethodInfo, Object[] args) throws Throwable {
             Callable callable = remoteMethodInvocationFactory.create(
-                    serviceContextName, remoteInterfaceInfo.targetInterface.getSimpleName(), method.getName(), args, null);
+                    serviceContextName, remoteInterfaceInfo.targetInterface.getSimpleName(), remoteMethodInfo.method.getName(), args, remoteMethodInfo.methodId, null);
+
             MultiTask task = new MultiTask(callable, getPuMembers());
             executorService.execute(task);
-            task.get();
+            try {
+                task.get();
+            } catch (ExecutionException e) {
+                throw e.getCause();
+            }
             return null;
         }
 
-        private Object invokeLoadBalancer(Method method, Object[] args) throws ExecutionException, InterruptedException {
+        private Object invokeLoadBalancer(RemoteMethodInfo remoteMethodInfo, Object[] args) throws Throwable {
             Callable callable = remoteMethodInvocationFactory.create(
-                    serviceContextName, remoteInterfaceInfo.targetInterface.getSimpleName(), method.getName(), args,null);
+                    serviceContextName, remoteInterfaceInfo.targetInterface.getSimpleName(), remoteMethodInfo.method.getName(), args, remoteMethodInfo.methodId,null);
 
             Future future = executorService.submit(callable);
-            return future.get();
+            try {
+                return future.get();
+            } catch (ExecutionException e) {
+                throw e.getCause();
+            }
         }
 
-        private Object invokePartitioned(RemoteMethodInfo methodInfo, Method method, Object[] args) throws ExecutionException, InterruptedException {
-            Object partitionKey = getPartitionKey(methodInfo, args);
+        private Object invokePartitioned(RemoteMethodInfo remoteMethodInfo, Object[] args) throws Throwable {
+            Object partitionKey = getPartitionKey(remoteMethodInfo, args);
 
-            Callable task = remoteMethodInvocationFactory.create(
-                    serviceContextName, remoteInterfaceInfo.targetInterface.getSimpleName(), method.getName(), args, partitionKey);
+            Callable callable = remoteMethodInvocationFactory.create(
+                    serviceContextName, remoteInterfaceInfo.targetInterface.getSimpleName(), remoteMethodInfo.method.getName(), args, remoteMethodInfo.methodId, partitionKey);
 
-            Future future = executorService.submit(task);
-            return future.get();
+            Future future = executorService.submit(callable);
+            try {
+                return future.get();
+            } catch (ExecutionException e) {
+                throw e.getCause();
+            }
         }
 
         private Object getPartitionKey(RemoteMethodInfo methodInfo, Object[] args) {
             Object arg = args[methodInfo.partitionKeyIndex];
             if (arg == null) {
-                throw new NullPointerException(format("The @PartitionKey argument '%s' of partitioned method '%s' can' be null",
-                        methodInfo.partitionKeyIndex + 1, methodInfo.method));
+                throw new NullPointerException(format("The @PartitionKey argument of partitioned method '%s' can't be null",
+                        methodInfo.method));
             }
 
             Object partitionKey;
@@ -382,8 +384,9 @@ public final class DefaultProxyProvider implements ProxyProvider {
                 if (arg instanceof PartitionAware) {
                     partitionKey = ((PartitionAware) arg).getPartitionKey();
                     if (partitionKey == null) {
-                        throw new NullPointerException(format("The @PartitionKey argument '%s' of PartitionAware type '%s' of partitioned method '%s' can't return null for PartitionAware.getPartitionKey()",
-                                methodInfo.partitionKeyIndex, args[methodInfo.partitionKeyIndex].getClass().getName(), methodInfo.method));
+                        throw new NullPointerException(
+                                format("The @PartitionKey argument of PartitionAware type '%s' of partitioned method '%s' can't return null for PartitionAware.getPartitionKey()",
+                                        args[methodInfo.partitionKeyIndex].getClass().getName(), methodInfo.method));
                     }
                 } else {
                     partitionKey = arg;
@@ -393,8 +396,9 @@ public final class DefaultProxyProvider implements ProxyProvider {
                     partitionKey = methodInfo.partitionKeyProperty.invoke(arg);
 
                     if (partitionKey == null) {
-                        throw new NullPointerException(format("The @PartitionKey argument '%s' of PartitionAware type '%s' of partitioned method '%s' can't return null for '%s'",
-                                methodInfo.partitionKeyIndex, args[methodInfo.partitionKeyIndex].getClass().getName(), methodInfo.method, methodInfo.partitionKeyProperty));
+                        throw new NullPointerException(
+                                format("The @PartitionKey argument of PartitionAware type '%s' of partitioned method '%s' can't return null for '%s'",
+                                        args[methodInfo.partitionKeyIndex].getClass().getName(), methodInfo.method, methodInfo.partitionKeyProperty));
 
                     }
 
@@ -428,6 +432,7 @@ public final class DefaultProxyProvider implements ProxyProvider {
         final MethodType methodType;
         final int partitionKeyIndex;
         final Method partitionKeyProperty;
+        final int methodId = 0;
 
         private RemoteMethodInfo(Method method, MethodType methodType, int partitionKeyIndex, Method partitionKeyProperty) {
             this.method = method;

@@ -7,6 +7,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.logging.Level;
 
+import static com.hazelblast.utils.Arguments.notNull;
 import static java.lang.String.format;
 
 /**
@@ -30,15 +31,9 @@ final class ServiceContextContainer {
      * @throws NullPointerException if serviceContext or serviceContextName is null.
      */
     public ServiceContextContainer(ServiceContext serviceContext, String serviceContextName) {
-        if (serviceContext == null) {
-            throw new NullPointerException("serviceContext can't be null");
-        }
-        if (serviceContextName == null) {
-            throw new NullPointerException("serviceContextName can't be null");
-        }
+        this.serviceContext = notNull("serviceContext",serviceContext);
+        this.serviceContextName = notNull("serviceContextName",serviceContextName);
 
-        this.serviceContext = serviceContext;
-        this.serviceContextName = serviceContextName;
         if (logger.isLoggable(Level.INFO)) {
             logger.log(Level.INFO, format("Created ServiceContextContainer containing ServiceContext [%s]", serviceContext));
         }

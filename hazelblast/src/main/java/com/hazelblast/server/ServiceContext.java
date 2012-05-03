@@ -6,7 +6,7 @@ package com.hazelblast.server;
  * A ServiceContext has lifecycle hooks that are called when it is started and stopped, but also when a partition
  * is removed or added from this node.
  *
- * In Spring terms it would be called an ApplicationContext.
+ * In Spring terminology it would be called an ApplicationContext.
  *
  * @author Peter Veentjer.
  */

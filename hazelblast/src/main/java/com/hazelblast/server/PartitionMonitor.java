@@ -11,6 +11,7 @@ import java.util.Set;
 import java.util.concurrent.locks.Lock;
 import java.util.logging.Level;
 
+import static com.hazelblast.utils.Arguments.notNull;
 import static java.lang.String.format;
 
 /**
@@ -37,9 +38,7 @@ final class PartitionMonitor {
      * @throws NullPointerException if serviceContextContainer is null.
      */
     public PartitionMonitor(ServiceContextContainer serviceContextContainer) {
-        if (serviceContextContainer == null) {
-            throw new NullPointerException("serviceContextContainer can't be null");
-        }
+        notNull("serviceContextContainer",serviceContextContainer);
         this.serviceContextContainer = serviceContextContainer;
     }
 

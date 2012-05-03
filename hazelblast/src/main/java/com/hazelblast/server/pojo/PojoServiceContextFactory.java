@@ -9,6 +9,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.logging.Level;
 
+import static com.hazelblast.utils.Arguments.notNull;
 import static java.lang.String.format;
 
 /**
@@ -35,9 +36,7 @@ public final class PojoServiceContextFactory implements ServiceContextFactory {
      * @throws NullPointerException if pojoClazz is null.
      */
     public PojoServiceContextFactory(Class pojoClazz) {
-        if (pojoClazz == null) {
-            throw new NullPointerException("pojoClazz can't be null");
-        }
+        notNull("pojoClazz",pojoClazz);
 
         try {
             constructor = pojoClazz.getConstructor();

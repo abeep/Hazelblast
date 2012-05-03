@@ -7,11 +7,12 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Map;
 
+import static com.hazelblast.utils.Arguments.notNull;
 import static java.lang.String.format;
 
 /**
- * The PojoServiceContext is a {@link com.hazelblast.server.ServiceContext} that contains a single Pojo and all public fields on this Pojo will be
- * exposed as a service.
+ * The PojoServiceContext is a {@link com.hazelblast.server.ServiceContext} that contains a single Pojo and all public
+ * fields on this Pojo will be exposed as a service.
  * <p/>
  * <h2>onStart</h2>
  * If the pojo exposes a method 'public void onStart()' it will be called when this ServiceContext it started.
@@ -36,7 +37,7 @@ public final class PojoServiceContext implements ServiceContext {
     private final Method onPartitionRemovedMethod;
     private final Method onStopMethod;
     private final Method onStartMethod;
-    private final Map<String,Field> services;
+    private final Map<String, Field> services;
 
     /**
      * Creates a PojoServiceContext.
@@ -45,10 +46,7 @@ public final class PojoServiceContext implements ServiceContext {
      * @throws NullPointerException if target is null.
      */
     public PojoServiceContext(Object target) {
-        if (target == null) {
-            throw new NullPointerException("target can't be null");
-        }
-        this.target = target;
+        this.target = notNull("target", target);
 
         Class targetClass = target.getClass();
 
@@ -60,9 +58,7 @@ public final class PojoServiceContext implements ServiceContext {
     }
 
     public Object getService(String serviceName) {
-        if (serviceName == null) {
-            throw new NullPointerException("serviceName can't be null");
-        }
+        notNull("serviceName", serviceName);
 
         if (serviceName.isEmpty()) {
             throw new IllegalArgumentException("serviceName can't be empty");
@@ -71,8 +67,8 @@ public final class PojoServiceContext implements ServiceContext {
         serviceName = serviceName.substring(0, 1).toLowerCase() + serviceName.substring(1);
 
         Field field = services.get(serviceName);
-        if(field == null){
-            throw new IllegalArgumentException(format("Unknown service [%s], it is not found as field on class "+target.getClass(), serviceName));
+        if (field == null) {
+            throw new IllegalArgumentException(format("Unknown service [%s], it is not found as field on class " + target.getClass(), serviceName));
         }
 
         try {

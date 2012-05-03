@@ -157,8 +157,6 @@ public class DefaultProxyProviderTest {
         DefaultProxyProvider proxyProvider = new DefaultProxyProvider();
         PartitionedService service = proxyProvider.getProxy(PartitionedService.class);
 
-
-        //property but null argument
         try {
             service.validWithProperty(null);
             fail();

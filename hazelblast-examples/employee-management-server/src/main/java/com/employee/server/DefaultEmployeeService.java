@@ -22,10 +22,10 @@ public class DefaultEmployeeService implements EmployeeService, SpringPartitionL
 
     private final ConcurrentMap<String, Object> localEmployees = new ConcurrentHashMap<String, Object>();
 
-     public void fire(String id) {
+    public void fire(String id) {
         Partition partition = Hazelcast.getPartitionService().getPartition(id);
         idsPerPartitionMap.put(partition.getPartitionId(), id);
-        localEmployees.put(id,this);
+        localEmployees.put(id, this);
 
         logger.info("Fire called with id " + id);
     }
@@ -33,7 +33,7 @@ public class DefaultEmployeeService implements EmployeeService, SpringPartitionL
     public void hire(String id) {
         Partition partition = Hazelcast.getPartitionService().getPartition(id);
         idsPerPartitionMap.put(partition.getPartitionId(), id);
-        localEmployees.put(id,this);
+        localEmployees.put(id, this);
 
         logger.info("Hire called with id " + id);
     }
@@ -55,7 +55,7 @@ public class DefaultEmployeeService implements EmployeeService, SpringPartitionL
         }
 
         partitions.put(partitionId, this);
-        logger.debug("Partition added: " + partitionId + ", partitioncount:" + partitions.size()+" localemployees: "+localEmployees.size());
+        logger.debug("Partition added: " + partitionId + ", partitioncount:" + partitions.size() + " localemployees: " + localEmployees.size());
     }
 
     public void onPartitionRemoved(int partitionId) {
@@ -67,7 +67,7 @@ public class DefaultEmployeeService implements EmployeeService, SpringPartitionL
         }
 
         partitions.remove(partitionId);
-        logger.debug("Partition removed: " + partitionId + ", partitioncount: " + partitions.size()+" localemployees: "+localEmployees.size());
+        logger.debug("Partition removed: " + partitionId + ", partitioncount: " + partitions.size() + " localemployees: " + localEmployees.size());
     }
 
     public void init() {

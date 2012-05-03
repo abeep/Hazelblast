@@ -5,6 +5,7 @@ import com.hazelcast.logging.ILogger;
 import com.hazelcast.logging.Logger;
 import org.apache.commons.cli.*;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -14,6 +15,7 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.Level;
 
+import static com.hazelblast.utils.Arguments.notNull;
 import static java.lang.String.format;
 
 /**
@@ -102,10 +104,16 @@ public final class ServiceContextServer {
         return options;
     }
 
-    public static ServiceContext getProcessingUnit(String name) {
-        if (name == null) {
-            throw new NullPointerException("name can't be null");
-        }
+    /**
+     * Gets a ServiceContext with the given name.
+     *
+     * @param name the name of the ServiceContext.
+     * @return the found ServiceContext.
+     * @throws NullPointerException if name is null.
+     * @throws IllegalStateException if no ServiceContext with the given name is found.
+     */
+    public static ServiceContext getServiceContext(String name) {
+        notNull("name",name);
 
         ServiceContextServer server = serviceContextMap.get(name);
         if (server == null) {
@@ -113,7 +121,7 @@ public final class ServiceContextServer {
                     name, Hazelcast.getCluster().getLocalMember(), serviceContextMap.keySet()));
         }
 
-        return server.serviceContextContainer.getServiceContext();
+        return server.container.getServiceContext();
     }
 
     private static ServiceContext buildPu(String factoryName) {
@@ -135,25 +143,54 @@ public final class ServiceContextServer {
         }
     }
 
-    public static Object executeMethod(String serviceContextName, String serviceName, String methodName, Object[] args) throws Exception{
-        ServiceContext serviceContext = ServiceContextServer.getProcessingUnit(serviceContextName);
+    /**
+     * Executes a method.
+     *
+     * This is the call that is executed by ProxyProvider once the task is deserialized and executed on the target machine.
+     *
+     * @param serviceContextName
+     * @param serviceName
+     * @param methodName
+     * @param args
+     * @return
+     * @throws Exception
+     * @throws IllegalArgumentException if serviceContextName is not pointing to a an existing ServiceContext.
+     * @throws NullPointerException if serviceContextName
+     */
+    public static Object executeMethod(String serviceContextName, String serviceName, String methodName, Object[] args) throws Throwable{
+        notNull("serviceContextName",serviceContextName);
+        notNull("serviceName",serviceName);
+        notNull("methodName",methodName);
+        notNull("args",args);
+
+        ServiceContext serviceContext = getServiceContext(serviceContextName);
 
         Object service = serviceContext.getService(serviceName);
 
+        //this stuff is no good. First it can't deal with nulls and second it can't deal with subclasses.
+        //On the sending side, the exact signature is known, and that signature needs to be used on the server side to find the right method.
+        //One problem is that it could be costly to send that signature.
         Class[] argTypes = new Class[args.length];
         for (int k = 0; k < argTypes.length; k++) {
             argTypes[k] = args[k].getClass();
         }
 
-        Method method = service.getClass().getMethod(methodName, argTypes);
-        return method.invoke(service, args);
+        //other problem is that no looking up the chain is done.
+
+        Class serviceClass = service.getClass();
+        Method method = serviceClass.getMethod(methodName, argTypes);
+        try{
+            return method.invoke(service, args);
+        } catch (InvocationTargetException e){
+            throw e.getTargetException();
+        }
     }
 
     protected enum Status {Unstarted, Running, Terminating, Terminated}
 
     private final String serviceContextName;
     private final PartitionMonitor partitionMonitor;
-    private final ServiceContextContainer serviceContextContainer;
+    private final ServiceContextContainer container;
     private final ScheduledThreadPoolExecutor scheduler = new ScheduledThreadPoolExecutor(1);
     private final Lock stateLock = new ReentrantLock();
     private final long scanDelayMs;
@@ -180,23 +217,17 @@ public final class ServiceContextServer {
      * @throws IllegalArgumentException if scanDelayMs smaller than zero.
      */
     public ServiceContextServer(ServiceContext serviceContext, String serviceContextName, long scanDelayMs) {
-        if (serviceContext == null) {
-            throw new NullPointerException("serviceContext can't be null");
-        }
-
+        notNull("serviceContext",serviceContext);
+        notNull("serviceContextName",serviceContextName);
         if (scanDelayMs < 0) {
             throw new IllegalArgumentException(format("scanDelayMs can't be smaller or equal than zero, scanDelayMs was [%s]", scanDelayMs));
-        }
-
-        if (serviceContextName == null) {
-            throw new NullPointerException("serviceContextName can't be null");
         }
 
         this.serviceContextName = serviceContextName;
         this.scanDelayMs = scanDelayMs;
         this.scheduler.setContinueExistingPeriodicTasksAfterShutdownPolicy(true);
-        this.serviceContextContainer = new ServiceContextContainer(serviceContext, serviceContextName);
-        this.partitionMonitor = new PartitionMonitor(serviceContextContainer);
+        this.container = new ServiceContextContainer(serviceContext, serviceContextName);
+        this.partitionMonitor = new PartitionMonitor(container);
     }
 
     /**
@@ -219,12 +250,13 @@ public final class ServiceContextServer {
             switch (status) {
                 case Unstarted:
                     status = Status.Running;
-                    serviceContextContainer.onStart();
+                    container.onStart();
 
                     if (serviceContextMap.putIfAbsent(serviceContextName, this) != null) {
                         shutdown();
                         throw new IllegalStateException(
-                                format("ServiceContextServer with name [%s] can't be started, there is another ServiceContextServer registered under the same name", serviceContextName));
+                                format("ServiceContextServer with name [%s] can't be started, there already is another " +
+                                        "ServiceContextServer registered under the same name", serviceContextName));
                     }
 
                     scheduler.scheduleAtFixedRate(new ScanTask(), 0, scanDelayMs, TimeUnit.MILLISECONDS);
@@ -270,7 +302,7 @@ public final class ServiceContextServer {
             switch (status) {
                 case Unstarted:
                     serviceContextMap.remove(serviceContextName, this);
-                    serviceContextContainer.onStop();
+                    container.onStop();
                     if (logger.isLoggable(Level.FINE)) {
                         logger.log(Level.FINE, format("[%s] ServiceContextServer not started yet, so will be immediately terminated", serviceContextName));
                     }

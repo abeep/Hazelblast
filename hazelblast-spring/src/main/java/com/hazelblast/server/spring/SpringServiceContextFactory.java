@@ -4,6 +4,7 @@ import com.hazelblast.server.ServiceContext;
 import com.hazelblast.server.ServiceContextFactory;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
+import static com.hazelblast.utils.Arguments.notNull;
 import static java.lang.String.format;
 
 /**
@@ -48,9 +49,7 @@ public class SpringServiceContextFactory implements ServiceContextFactory {
         }
 
         public Object getService(String name) {
-            if (name == null) {
-                throw new NullPointerException("name can't be null");
-            }
+            notNull("name",name);
 
             if (name.isEmpty()) {
                 throw new IllegalArgumentException("name can't be empty");

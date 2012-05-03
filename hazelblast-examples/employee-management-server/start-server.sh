@@ -1,6 +1,6 @@
 #!/bin/bash
 
-CLASS=com.hazelblast.server.PuServer
+CLASS=com.hazelblast.server.ServiceContextServer
 
 ROOT=$(cd $(dirname $0) && pwd)
 cd $ROOT

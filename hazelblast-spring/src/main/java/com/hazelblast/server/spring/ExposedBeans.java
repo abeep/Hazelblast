@@ -3,6 +3,8 @@ package com.hazelblast.server.spring;
 import java.util.HashMap;
 import java.util.Map;
 
+import static com.hazelblast.utils.Arguments.notNull;
+
 /**
  * The ExposedBeans is a registration point for all spring beans that should be made available
  * to be called from the outside world.
@@ -20,11 +22,7 @@ public class ExposedBeans {
      * @return the found bean or null if not found.
      */
     public Object getBean(String beanName) {
-        if (beanName == null) {
-            throw new NullPointerException("beanName can't be null");
-        }
-
-        return beans.get(beanName);
+        return beans.get(notNull("beanName",beanName));
     }
 
     /**
@@ -33,10 +31,6 @@ public class ExposedBeans {
      * @param beans the beans to expose.
      */
     public void setBeans(Map<String, Object> beans) {
-        if(beans == null){
-            throw new NullPointerException("beans can't be null");
-        }
-
-        this.beans = beans;
+        this.beans = notNull("beans",beans);
     }
 }

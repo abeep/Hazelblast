@@ -6,6 +6,8 @@ import java.lang.reflect.Modifier;
 import java.util.HashMap;
 import java.util.Map;
 
+import static com.hazelblast.utils.Arguments.notNull;
+
 /**
  * Contains some utility functions for using Pojo's.
  *
@@ -13,7 +15,15 @@ import java.util.Map;
  */
 public final class PojoUtils {
 
+    /**
+     * Gets all public fields of an class, including those of the super classes.
+     *
+     * @param targetClazz the class to get the public fields for.
+     * @return a Map containing all public fields of the targetClazz.
+     */
     public static Map<String, Field> getPublicFields(Class targetClazz) {
+        notNull("targetClass",targetClazz);
+
         Map<String, Field> fields = new HashMap<String, Field>();
         getPublicFields(targetClazz,fields);
         return fields;
@@ -42,8 +52,13 @@ public final class PojoUtils {
      * @param methodName  the name of the method
      * @param argTypes    the types of the arguments
      * @return the found method, or null if nothing is found.
+     * @throws NullPointerException if targetClass, methodName or argTypes is null.
      */
     public static Method getPublicVoidMethod(Class targetClazz, String methodName, Class... argTypes) {
+        notNull("targetClass",targetClazz);
+        notNull("methodName",methodName);
+        notNull("argTypes",argTypes);
+
         Method method;
         try {
             method = targetClazz.getMethod(methodName, argTypes);
