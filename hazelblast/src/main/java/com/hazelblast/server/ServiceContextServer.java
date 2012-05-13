@@ -31,7 +31,7 @@ import static java.lang.String.format;
  * @author Peter Veentjer.
  */
 public final class ServiceContextServer {
-    public static final int DEFAULT_SCAN_DELAY_MS = 5000;
+    public static final int DEFAULT_SCAN_DELAY_MS = 1000;
     public static final String DEFAULT_PU_NAME = "default";
 
     private static final ILogger logger = Logger.getLogger(ServiceContextServer.class.getName());

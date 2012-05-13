@@ -1,5 +1,6 @@
 package com.hazelblast.server;
 
+import com.hazelblast.PartitionMovedException;
 import com.hazelblast.server.pojo.PojoUtils;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.ILock;
@@ -149,10 +150,11 @@ final class ServiceContextContainer {
         if (partitionKey != null) {
             Partition partition = partitionService.getPartition(partitionKey);
 
-            if (!managedPartitions.contains(partition.getPartitionId())) {
-                //if the partition is not managed by this servicecontextcontainer, we throw an exception that
+            int partitionId = partition.getPartitionId();
+            if (!managedPartitions.contains(partitionId)) {
+                //if the partition is not managed by this ServiceContextContainer, we throw an exception that
                 //will be caught by the proxy, and the call will be retried.
-                //throw new PartitionMovedException();
+                throw new PartitionMovedException(format("Partition [%s] is not found on member [%s]",partitionId,self));
             }
 
             //ISemaphore lock = partitionLockMap.get(partition.getPartitionId());
@@ -203,7 +205,7 @@ final class ServiceContextContainer {
 
         for (Partition partition : partitions) {
             int partitionId = partition.getPartitionId();
-            if (partition.getOwner().equals(self)) {
+            if (self.equals(partition.getOwner())) {
                 boolean startManagingPartition = !managedPartitions.contains(partitionId);
 
                 if (startManagingPartition) {

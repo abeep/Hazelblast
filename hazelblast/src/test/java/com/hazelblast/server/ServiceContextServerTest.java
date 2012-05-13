@@ -28,7 +28,7 @@ public class ServiceContextServerTest {
         System.setProperty("puFactory.class", PojoServiceContextFactory.class.getName());
         System.setProperty("pojoPu.class", TestPojo.class.getName());
         serviceContextMock = mock(ServiceContext.class);
-        HazelcastInstance hazelcast = Hazelcast.newHazelcastInstance(new Config());
+        HazelcastInstance hazelcast = Hazelcast.newHazelcastInstance(null);
         server = new ServiceContextServer(serviceContextMock, "default", 1000, hazelcast);
     }
 
@@ -39,6 +39,8 @@ public class ServiceContextServerTest {
             boolean terminated = server.awaitTermination(20, TimeUnit.SECONDS);
             assertTrue("Could not terminate the service within the given timeout", terminated);
         }
+
+        Hazelcast.shutdownAll();
     }
 
     // =========================== start =================================

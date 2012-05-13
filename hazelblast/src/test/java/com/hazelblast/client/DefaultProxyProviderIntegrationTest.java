@@ -7,7 +7,6 @@ import com.hazelblast.api.Partitioned;
 import com.hazelblast.api.RemoteInterface;
 import com.hazelblast.server.ServiceContextServer;
 import com.hazelblast.server.pojo.PojoServiceContext;
-import com.hazelcast.config.Config;
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
 import org.junit.After;
@@ -33,7 +32,7 @@ public class DefaultProxyProviderIntegrationTest {
         Pojo pojo = new Pojo();
         pojo.testService = testServiceMock;
         PojoServiceContext serviceContext = new PojoServiceContext(pojo);
-        HazelcastInstance hazelcastInstance = Hazelcast.newHazelcastInstance(new Config());
+        HazelcastInstance hazelcastInstance = Hazelcast.newHazelcastInstance(null);
 
         server = new ServiceContextServer(serviceContext, "default", 100, hazelcastInstance);
         server.start();
@@ -41,6 +40,11 @@ public class DefaultProxyProviderIntegrationTest {
         Thread.sleep(1000);
 
         proxyProvider = new DefaultProxyProvider("default", hazelcastInstance.getExecutorService());
+    }
+
+    @After
+    public void cleanup() throws Exception {
+        Hazelcast.shutdownAll();
     }
 
     @After
