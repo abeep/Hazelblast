@@ -43,16 +43,13 @@ public class DefaultProxyProviderIntegrationTest {
     }
 
     @After
-    public void cleanup() throws Exception {
-        Hazelcast.shutdownAll();
-    }
-
-    @After
     public void tearDown() throws InterruptedException {
         if (server == null) return;
         server.shutdown();
         boolean terminated = server.awaitTermination(10, TimeUnit.SECONDS);
         assertTrue("Could not terminate the servce within the given timeout", terminated);
+        Hazelcast.shutdownAll();
+
     }
 
     @Test

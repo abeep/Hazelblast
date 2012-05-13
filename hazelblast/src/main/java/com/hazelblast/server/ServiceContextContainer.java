@@ -25,7 +25,7 @@ import static java.lang.String.format;
  */
 final class ServiceContextContainer {
 
-    private final static ILogger logger = Logger.getLogger(ServiceContextContainer.class.getName());
+    private  final ILogger logger = Logger.getLogger(getClass().getName());
 
     private final ServiceContext serviceContext;
     private final Set<Integer> managedPartitions = Collections.synchronizedSet(new HashSet<Integer>());
@@ -34,7 +34,7 @@ final class ServiceContextContainer {
     private final PartitionService partitionService;
     private final Member self;
     private final Map<Integer, ILock> partitionLockMap = new HashMap<Integer, ILock>();
-    private final List<Partition> partitions = new ArrayList<Partition>();
+    //private final List<Partition> partitions = new ArrayList<Partition>();
 
     /**
      * Creates a new ServiceContextContainer with the given ServiceContext.
@@ -58,26 +58,10 @@ final class ServiceContextContainer {
             int partitionId = partition.getPartitionId();
             ILock lock = hazelcastInstance.getLock("PartitionLock-" + partitionId);
             partitionLockMap.put(partitionId, lock);
-            partitions.add(partition);
+        //    partitions.add(partition);
         }
-    }
 
-    /**
-     * Returns the name of the serviceContext.
-     *
-     * @return the name of the ServiceContext.
-     */
-    public String getServiceContextName() {
-        return serviceContextName;
-    }
-
-    /**
-     * Gets the {@link ServiceContext} that is contained in this Container.
-     *
-     * @return the {@link ServiceContext}.
-     */
-    public ServiceContext getServiceContext() {
-        return serviceContext;
+        logger.log(Level.INFO,"--- Partitions: "+partitionLockMap.size());
     }
 
     /**
@@ -86,15 +70,22 @@ final class ServiceContextContainer {
      * If the {@link ServiceContext#onStart()} throws an Exception, it will be logged but not
      * propagated.
      */
-    public void onStart() {
-        if (logger.isLoggable(Level.INFO)) {
-            logger.log(Level.INFO, format("[%s] onStart called", serviceContextName));
+    public void start() {
+        long startMs = System.currentTimeMillis();
+
+        if (logger.isLoggable(Level.FINEST)) {
+            logger.log(Level.FINEST, format("[%s] ServiceContext.onStart() begin", serviceContextName));
         }
 
         try {
             serviceContext.onStart();
-        } catch (Exception e) {
-            logger.log(Level.SEVERE, format("[%s] Failed to execute serviceContext.onStart", serviceContextName), e);
+
+            if (logger.isLoggable(Level.INFO)) {
+                long durationMs = System.currentTimeMillis() - startMs;
+                logger.log(Level.INFO, format("[%s] ServiceContext.onStart() finished in [%s] ms", serviceContextName, durationMs));
+            }
+        } catch (Throwable e) {
+            logger.log(Level.SEVERE, format("[%s] ServiceContext.onStart() failed", serviceContextName), e);
         }
     }
 
@@ -104,37 +95,129 @@ final class ServiceContextContainer {
      * If the {@link ServiceContext#onStop()} throws an Exception, it will be logged but not
      * propagated.
      */
-    public void onStop() {
-        if (logger.isLoggable(Level.INFO)) {
-            logger.log(Level.INFO, format("[%s] onStop called", serviceContextName));
+    public void stop() {
+        long startMs = System.currentTimeMillis();
+
+        if (logger.isLoggable(Level.FINEST)) {
+            logger.log(Level.FINEST, format("[%s] ServiceContext.onStop() begin", serviceContextName));
         }
 
         try {
             serviceContext.onStop();
-        } catch (Exception e) {
-            logger.log(Level.SEVERE, format("[%s] Failed to execute serviceContext.onStop", serviceContextName), e);
+
+            if (logger.isLoggable(Level.INFO)) {
+                long durationMs = System.currentTimeMillis() - startMs;
+                logger.log(Level.INFO, format("[%s] ServiceContext.onStop() finished in [%s] ms", serviceContextName, durationMs));
+            }
+        } catch (Throwable e) {
+            logger.log(Level.SEVERE, format("[%s] ServiceContext.onStop() failed", serviceContextName), e);
+        }
+    }
+
+
+    /**
+     * Executes a scanForPartitionChanges; so checks the partition table to see if there are change.
+     * <p/>
+     * This method should be called by some kind of Scheduler.   It is not threadsafe,
+     * and should always be called by the same thread (because locks are used and they need to be unlocked by
+     * the same thread that acquired the lock).
+     */
+    public void scanForPartitionChanges() {
+        long startMs = System.currentTimeMillis();
+
+        if (logger.isLoggable(Level.FINEST)) {
+            logger.log(Level.FINEST, format("[%s] Scan started", serviceContextName));
         }
 
+        boolean changeDetected = false;
 
+        for (Partition partition : partitionService.getPartitions()) {
+            int partitionId = partition.getPartitionId();
+           if (self.equals(partition.getOwner())) {
+                boolean startManagingPartition = !managedPartitions.contains(partitionId);
+
+                if (startManagingPartition) {
+                    if (addPartition(partitionId)) {
+                        changeDetected = true;
+                    }
+                }
+            } else {
+                boolean stopManagingPartition = managedPartitions.contains(partitionId);
+
+                if (stopManagingPartition) {
+                    removePartition(partitionId);
+                    changeDetected = true;
+                }
+            }
+        }
+
+        if (changeDetected && logger.isLoggable(Level.INFO)) {
+            long durationMs = System.currentTimeMillis()-startMs;
+            logger.log(Level.INFO, format("[%s] Scan complete, managed partitions [%s], total time [%s] ms",
+                    serviceContextName, managedPartitions.size(),durationMs));
+        }
     }
 
-    /**
-     * Checks if a partition with the given id is part of this ServiceContextContainer.
-     *
-     * @param partitionId the id of the partition.
-     * @return true if the partition is part of this ServiceContextContainer, false otherwise.
-     */
-    protected boolean containsPartition(int partitionId) {
-        return managedPartitions.contains(partitionId);
+    private void removePartition(int partitionId) {
+        //removing the partition from the managedPartitions, prevents new calls from being accepted.
+        managedPartitions.remove(partitionId);
+
+        long startMs = System.currentTimeMillis();
+        if (logger.isLoggable(Level.FINEST)) {
+            logger.log(Level.FINEST, format("[%s] ServiceContext.onPartitionRemoved(%s) begin", serviceContextName, partitionId));
+        }
+
+        //first we give the container the chance to terminate/persist all resources that were available
+        //for the given partition.
+        try {
+            serviceContext.onPartitionRemoved(partitionId);
+
+            if (logger.isLoggable(Level.INFO)) {
+                long durationMs = System.currentTimeMillis() - startMs;
+                logger.log(Level.INFO, format("[%s] ServiceContext.onPartitionRemoved(%s) finished in [%s] ms", serviceContextName, partitionId, durationMs));
+            }
+        } catch (Throwable e) {
+            logger.log(Level.SEVERE, format("[%s] ServiceContext.onPartitionRemoved(%s) failed", serviceContextName, partitionId), e);
+        }
+
+        //we release the lock, so that a different node now is able to take over the partition.
+        ILock lock = partitionLockMap.get(partitionId);
+        lock.unlock();
     }
 
-    /**
-     * Gets the number of partitions that are part of this ServiceContextContainer.
-     *
-     * @return the number of partitions.
-     */
-    protected int getPartitionCount() {
-        return managedPartitions.size();
+    private boolean addPartition(int partitionId) {
+        boolean changeDetected = false;
+
+        ILock lock = partitionLockMap.get(partitionId);
+
+        if (!lock.tryLock()) {
+            if (logger.isLoggable(Level.FINEST)) {
+                logger.log(Level.FINEST, format("[%s] Could not obtain lock on partition [%s], maybe more luck next time.",
+                        serviceContextName, partitionId));
+            }
+        } else {
+            changeDetected = true;
+
+            long startMs = System.currentTimeMillis();
+            if (logger.isLoggable(Level.FINEST)) {
+                logger.log(Level.FINEST, format("[%s] ServiceContext.onPartitionAdded(%s) begin", serviceContextName, partitionId));
+            }
+
+            try {
+                serviceContext.onPartitionAdded(partitionId);
+
+                if (logger.isLoggable(Level.INFO)) {
+                    long durationMs = System.currentTimeMillis() - startMs;
+                    logger.log(Level.INFO, format("[%s] ServiceContext.onPartitionAdded(%s) finished in [%s] ms", serviceContextName, partitionId, durationMs));
+                }
+            } catch (Throwable e) {
+                logger.log(Level.SEVERE, format("[%s] ServiceContext.OnPartitionAdded(%s) failed", serviceContextName, partitionId), e);
+            }
+
+            //by adding the partition to the managed partitions, external calls are allowed to be executed again.
+            managedPartitions.add(partitionId);
+        }
+        return changeDetected;
     }
 
     public Object executeMethod(String serviceName, String methodName, String[] argTypes, Object[] args, Object partitionKey) throws Throwable {
@@ -142,6 +225,8 @@ final class ServiceContextContainer {
         notNull("serviceName", serviceName);
         notNull("methodName", methodName);
         notNull("args", args);
+
+        //todo: logging of method under finest
 
         //The first thing that needs to be checked, is if the partition that was expected to be here when the call
         //was send to this machine, is still there. If it isn't, some kind of exception should be thrown, this exception
@@ -154,7 +239,7 @@ final class ServiceContextContainer {
             if (!managedPartitions.contains(partitionId)) {
                 //if the partition is not managed by this ServiceContextContainer, we throw an exception that
                 //will be caught by the proxy, and the call will be retried.
-                throw new PartitionMovedException(format("Partition [%s] is not found on member [%s]",partitionId,self));
+                throw new PartitionMovedException(format("Partition [%s] is not found on member [%s]", partitionId, self));
             }
 
             //ISemaphore lock = partitionLockMap.get(partition.getPartitionId());
@@ -185,79 +270,6 @@ final class ServiceContextContainer {
             return foundMethod.invoke(service, args);
         } catch (InvocationTargetException e) {
             throw e.getTargetException();
-        }
-    }
-
-
-    /**
-     * Executes a scanForPartitionChanges; so checks the partition table to see if there are change.
-     * <p/>
-     * This method should be called by some kind of Scheduler.   It is not threadsafe,
-     * and should always be called by the same thread (because locks are used and they need to be unlocked by
-     * the same thread that acquired the lock).
-     */
-    public void scanForPartitionChanges() {
-        if (logger.isLoggable(Level.FINE)) {
-            logger.log(Level.FINE, format("[%s] Scan", serviceContextName));
-        }
-
-        boolean changeDetected = false;
-
-        for (Partition partition : partitions) {
-            int partitionId = partition.getPartitionId();
-            if (self.equals(partition.getOwner())) {
-                boolean startManagingPartition = !managedPartitions.contains(partitionId);
-
-                if (startManagingPartition) {
-                    ILock lock = partitionLockMap.get(partitionId);
-
-                    if (!lock.tryLock()) {
-                        if (logger.isLoggable(Level.FINE)) {
-                            logger.log(Level.FINE, format("[%s] Could not obtain lock on partition [%s], maybe more luck next time.",
-                                    serviceContextName, partitionId));
-                        }
-                    } else {
-                        changeDetected = true;
-
-                        try {
-                            serviceContext.onPartitionAdded(partitionId);
-                        } catch (Exception e) {
-                            logger.log(Level.SEVERE, format("[%s] Failed to execute ServiceContext.OnPartitionAdded", serviceContextName), e);
-                        }
-
-                        //by adding the partition to the managed partitions, external calls are allowed to be executed again.
-                        managedPartitions.add(partitionId);
-                    }
-                }
-            } else {
-                boolean stopManagingPartition = managedPartitions.contains(partitionId);
-
-                //todo; we should now wait till all threads have returned that are calling services.
-
-                if (stopManagingPartition) {
-                    //removing the partition from the managedPartitions, prevents new calls from being accepted.
-                    managedPartitions.remove(partitionId);
-
-                    //first we give the container the chance to terminate/persist all resources that were available
-                    //for the given partition.
-                    try {
-                        serviceContext.onPartitionRemoved(partitionId);
-                    } catch (Exception e) {
-                        logger.log(Level.SEVERE, format("[%s] Failed to execute ServiceContext.OnPartitionAdded", serviceContextName), e);
-                    }
-
-                    //we release the lock, so that a different node now is able to take over the partition.
-                    ILock lock = partitionLockMap.get(partitionId);
-                    lock.unlock();
-
-                    changeDetected = true;
-                }
-            }
-        }
-
-        if (changeDetected && logger.isLoggable(Level.INFO)) {
-            logger.log(Level.INFO, format("[%s] Scan complete, managed partitions [%s] ",
-                    serviceContextName, getPartitionCount()));
         }
     }
 }

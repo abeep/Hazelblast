@@ -57,7 +57,7 @@ public final class ServiceContextServer {
         String serviceContextFactory = commandLine.getOptionValue("serviceContextFactory");
         long scanDelayMs = Long.parseLong(commandLine.getOptionValue("scanDelay", "" + DEFAULT_SCAN_DELAY_MS));
 
-        HazelcastInstance hazelcastInstance = Hazelcast.newHazelcastInstance(new Config());
+        HazelcastInstance hazelcastInstance = Hazelcast.getDefaultInstance();
         ServiceContextServer main = new ServiceContextServer(buildServiceContext(serviceContextFactory), serviceContextName, scanDelayMs, hazelcastInstance);
         main.start();
     }
@@ -238,7 +238,7 @@ public final class ServiceContextServer {
             switch (status) {
                 case Unstarted:
                     status = Status.Running;
-                    container.onStart();
+                    container.start();
 
                     if (serverMap.putIfAbsent(serviceContextName, this) != null) {
                         shutdown();
@@ -389,7 +389,7 @@ public final class ServiceContextServer {
     private class ScanTask implements Runnable {
         public void run() {
             if (status == Status.Terminating) {
-                container.onStop();
+                container.stop();
                 status = Status.Terminated;
                 scheduler.setContinueExistingPeriodicTasksAfterShutdownPolicy(false);
             } else {

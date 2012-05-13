@@ -14,11 +14,11 @@ import static java.lang.String.format;
  * The PojoServiceContext is a {@link com.hazelblast.server.ServiceContext} that contains a single Pojo and all public
  * fields on this Pojo will be exposed as a service.
  * <p/>
- * <h2>onStart</h2>
- * If the pojo exposes a method 'public void onStart()' it will be called when this ServiceContext it started.
+ * <h2>start</h2>
+ * If the pojo exposes a method 'public void start()' it will be called when this ServiceContext it started.
  * <p/>
- * <h2>onStop</h2>
- * If the pojo exposes a method 'public void onStop()' it will be called when this ServiceContext is stopped.
+ * <h2>stop</h2>
+ * If the pojo exposes a method 'public void stop()' it will be called when this ServiceContext is stopped.
  * <p/>
  * <h2>onPartitionAdded</h2>
  * If the pojo exposes a method 'public void onPartitionAdded(int partitionId)' it will be called when a partition
@@ -52,8 +52,8 @@ public final class PojoServiceContext implements ServiceContext {
 
         this.onPartitionAddedMethod = PojoUtils.getPublicVoidMethod(targetClass, "onPartitionAdded", Integer.TYPE);
         this.onPartitionRemovedMethod = PojoUtils.getPublicVoidMethod(targetClass, "onPartitionRemoved", Integer.TYPE);
-        this.onStartMethod = PojoUtils.getPublicVoidMethod(targetClass, "onStart");
-        this.onStopMethod = PojoUtils.getPublicVoidMethod(targetClass, "onStop");
+        this.onStartMethod = PojoUtils.getPublicVoidMethod(targetClass, "start");
+        this.onStopMethod = PojoUtils.getPublicVoidMethod(targetClass, "stop");
         this.services = PojoUtils.getPublicFields(targetClass);
     }
 
