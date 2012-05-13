@@ -4,10 +4,10 @@ import java.util.Collection;
 
 /**
  * Responsible for reducing the results to a single result when a ForkJoin method has been called.
- * @param <T>
  *
+ * @param <T>
  * @author Peter Veentjer.
  */
 public interface Reducer<T> {
-    T reduce(Collection<T> results) ;
+    T reduce(Collection<T> results);
 }

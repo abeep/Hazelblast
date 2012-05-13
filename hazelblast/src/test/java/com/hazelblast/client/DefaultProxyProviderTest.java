@@ -98,7 +98,7 @@ public class DefaultProxyProviderTest {
     @Test(expected = IllegalArgumentException.class)
     public void badProxy_partitionedMethodWithoutArguments() {
         DefaultProxyProvider proxyProvider = new DefaultProxyProvider();
-        proxyProvider.getProxy(RemoteAnnotationMissing.class);
+        proxyProvider.getProxy(PartitionedMethodWithoutArguments.class);
     }
 
     @RemoteInterface
@@ -136,7 +136,6 @@ public class DefaultProxyProviderTest {
         @Partitioned
         void method(@PartitionKey(property = "nonexising") String s);
     }
-
 
     @Test
     public void partitioned_whenPartitionAwareObjectReturnsNull() {
@@ -248,7 +247,6 @@ public class DefaultProxyProviderTest {
 
     @RemoteInterface
     interface DummyRemoteService {
-
     }
 
     static class Person {

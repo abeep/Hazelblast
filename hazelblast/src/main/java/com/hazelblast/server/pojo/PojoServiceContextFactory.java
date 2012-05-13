@@ -36,7 +36,7 @@ public final class PojoServiceContextFactory implements ServiceContextFactory {
      * @throws NullPointerException if pojoClazz is null.
      */
     public PojoServiceContextFactory(Class pojoClazz) {
-        notNull("pojoClazz",pojoClazz);
+        notNull("pojoClazz", pojoClazz);
 
         try {
             constructor = pojoClazz.getConstructor();
@@ -70,8 +70,8 @@ public final class PojoServiceContextFactory implements ServiceContextFactory {
     }
 
     public ServiceContext create() {
-        if(logger.isLoggable(Level.FINE)){
-            logger.log(Level.FINE,"creating PojoServiceContext using Pojo-constructor "+constructor);
+        if (logger.isLoggable(Level.FINE)) {
+            logger.log(Level.FINE, "creating PojoServiceContext using Pojo-constructor " + constructor);
         }
 
         try {

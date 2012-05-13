@@ -7,7 +7,7 @@ import java.lang.annotation.Target;
 
 /**
  * Annotation that needs to be placed on an interface so that it will be exposed remotely.
- *
+ * <p/>
  * Annotations do not inherit, so if you are extending an interface that has this annotation, the extended interface
  * also needs to have this remoteInterface annotation.
  *

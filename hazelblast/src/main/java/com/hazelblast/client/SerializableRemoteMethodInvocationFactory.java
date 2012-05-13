@@ -32,7 +32,7 @@ public final class SerializableRemoteMethodInvocationFactory implements RemoteMe
         private final String serviceName;
         private final String methodName;
         private final Object[] args;
-        private transient final Object partitionKey;
+        private final Object partitionKey;
         private final String[] argTypes;
 
         RemoteMethodInvocation(String serviceContext, String serviceName, String methodName, Object[] args, String[] argTypes, Object partitionKey) {
@@ -51,7 +51,9 @@ public final class SerializableRemoteMethodInvocationFactory implements RemoteMe
             }
 
             try {
-                Object result = ServiceContextServer.executeMethod(serviceContext, serviceName, methodName, argTypes,args);
+                //todo: deal with PartitionMovedException
+
+                Object result = ServiceContextServer.executeMethod(serviceContext, serviceName, methodName, argTypes, args,partitionKey);
                 if (logger.isLoggable(Level.FINE)) {
                     //todo: better message
                     logger.log(Level.FINE, format("finished %s.%s in serviceContext %s", serviceName, methodName, serviceName));

@@ -2,7 +2,6 @@ package com.hazelblast.api;
 
 
 import com.hazelblast.api.reducers.Reducer;
-import com.hazelblast.api.reducers.VoidReducer;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

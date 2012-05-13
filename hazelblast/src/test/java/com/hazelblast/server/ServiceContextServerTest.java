@@ -1,35 +1,43 @@
 package com.hazelblast.server;
 
 import com.hazelblast.server.pojo.PojoServiceContextFactory;
-import junit.framework.Assert;
+import com.hazelcast.config.Config;
+import com.hazelcast.core.Hazelcast;
+import com.hazelcast.core.HazelcastInstance;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.mockito.Mockito;
+
+import java.util.concurrent.TimeUnit;
 
 import static junit.framework.Assert.assertTrue;
 import static junit.framework.Assert.fail;
-import static org.easymock.EasyMock.createMock;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.mockito.Mockito.*;
 
 public class ServiceContextServerTest {
 
     private ServiceContextServer server;
-    private ServiceContext puMock;
+    private ServiceContext serviceContextMock;
 
     @Before
     public void setUp() {
         System.setProperty("puFactory.class", PojoServiceContextFactory.class.getName());
         System.setProperty("pojoPu.class", TestPojo.class.getName());
-        puMock = createMock(ServiceContext.class);
-        server = new ServiceContextServer(puMock,"default");
+        serviceContextMock = mock(ServiceContext.class);
+        HazelcastInstance hazelcast = Hazelcast.newHazelcastInstance(new Config());
+        server = new ServiceContextServer(serviceContextMock, "default", 1000, hazelcast);
     }
 
     @After
-    public void tearDown() {
+    public void tearDown() throws InterruptedException {
         if (server != null) {
             server.shutdown();
+            boolean terminated = server.awaitTermination(20, TimeUnit.SECONDS);
+            assertTrue("Could not terminate the service within the given timeout", terminated);
         }
     }
 
@@ -39,6 +47,8 @@ public class ServiceContextServerTest {
     @Test
     public void unstartedServer() {
         assertEquals(server.getStatus(), ServiceContextServer.Status.Unstarted);
+
+        Mockito.verifyZeroInteractions(serviceContextMock);
         assertFalse(server.isShutdown());
         assertFalse(server.isTerminated());
         assertFalse(server.isTerminating());
@@ -52,6 +62,9 @@ public class ServiceContextServerTest {
         assertFalse(server.isShutdown());
         assertFalse(server.isTerminated());
         assertFalse(server.isTerminating());
+        verify(serviceContextMock, times(1)).onStart();
+        verify(serviceContextMock, times(0)).onStop();
+
     }
 
     @Test
@@ -63,11 +76,17 @@ public class ServiceContextServerTest {
         assertFalse(server.isShutdown());
         assertFalse(server.isTerminated());
         assertFalse(server.isTerminating());
+        verify(serviceContextMock, times(1)).onStart();
+        verify(serviceContextMock, times(0)).onStop();
     }
 
     @Test
-    public void start_whenTerminated_thenIllegalStateException() {
+    public void start_whenTerminated_thenIllegalStateException() throws InterruptedException {
+        server.start();
         server.shutdown();
+        server.awaitTermination(10, TimeUnit.HOURS);
+
+        reset(serviceContextMock);
 
         try {
             server.start();
@@ -79,7 +98,7 @@ public class ServiceContextServerTest {
         assertTrue(server.isShutdown());
         assertTrue(server.isTerminated());
         assertFalse(server.isTerminating());
-
+        verifyZeroInteractions(serviceContextMock);
     }
 
     // =========================== shutdown =================================
@@ -88,9 +107,10 @@ public class ServiceContextServerTest {
     public void shutdown_whenUnstarted() {
         server.shutdown();
 
-        Assert.assertEquals(ServiceContextServer.Status.Terminated, server.getStatus());
+        assertEquals(ServiceContextServer.Status.Terminated, server.getStatus());
         assertTrue(server.isShutdown());
         assertTrue(server.isTerminated());
+        verifyZeroInteractions(serviceContextMock);
     }
 
     @Test
@@ -100,9 +120,14 @@ public class ServiceContextServerTest {
         server.shutdown();
         server.awaitTermination();
 
-        Assert.assertEquals(ServiceContextServer.Status.Terminated, server.getStatus());
+        assertEquals(ServiceContextServer.Status.Terminated, server.getStatus());
         assertTrue(server.isShutdown());
         assertTrue(server.isTerminated());
+
+        Thread.sleep(1000);
+
+        verify(serviceContextMock, times(1)).onStart();
+        verify(serviceContextMock, times(1)).onStop();
     }
 
     @Test
@@ -117,9 +142,10 @@ public class ServiceContextServerTest {
 
         server.shutdown();
 
-        Assert.assertEquals(ServiceContextServer.Status.Terminated, server.getStatus());
+        assertEquals(ServiceContextServer.Status.Terminated, server.getStatus());
         assertTrue(server.isShutdown());
         assertTrue(server.isTerminated());
         assertFalse(server.isTerminating());
+        verifyZeroInteractions(serviceContextMock);
     }
 }

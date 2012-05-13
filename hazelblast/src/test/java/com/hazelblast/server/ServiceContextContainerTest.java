@@ -17,6 +17,7 @@ public class ServiceContextContainerTest {
 
     // ================= partitions ================
 
+    /*
     @Test
     public void containsPartition_whenNonExisting() {
         ServiceContextContainer container = new ServiceContextContainer(new PojoServiceContext(new TestPojo()),"default");
@@ -82,5 +83,5 @@ public class ServiceContextContainerTest {
     }
 
     // ================= partitions ================
-
+     */
 }

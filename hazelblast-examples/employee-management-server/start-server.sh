@@ -5,7 +5,7 @@ CLASS=com.hazelblast.server.ServiceContextServer
 ROOT=$(cd $(dirname $0) && pwd)
 cd $ROOT
 
-JAVA_OPTS="-Dhazelcast.lite.member=false"
+JAVA_OPTS="-Dhazelcast.lite.member=false -Dhazelcast.map.partition.count=25"
 export CP=`ls target/employee-management-server-*.jar | awk '{print $1}'`
 
 if [ -z "$CP" ]; then

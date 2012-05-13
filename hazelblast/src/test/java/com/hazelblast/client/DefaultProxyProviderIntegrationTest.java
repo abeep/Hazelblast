@@ -7,6 +7,9 @@ import com.hazelblast.api.Partitioned;
 import com.hazelblast.api.RemoteInterface;
 import com.hazelblast.server.ServiceContextServer;
 import com.hazelblast.server.pojo.PojoServiceContext;
+import com.hazelcast.config.Config;
+import com.hazelcast.core.Hazelcast;
+import com.hazelcast.core.HazelcastInstance;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -14,8 +17,9 @@ import org.junit.Test;
 
 import java.util.concurrent.TimeUnit;
 
-import static org.easymock.EasyMock.*;
-import static org.junit.Assert.fail;
+import static org.junit.Assert.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class DefaultProxyProviderIntegrationTest {
 
@@ -24,77 +28,71 @@ public class DefaultProxyProviderIntegrationTest {
     private TestService testServiceMock;
 
     @Before
-    public void setUp() {
-        testServiceMock = createMock(TestService.class);
+    public void setUp() throws InterruptedException {
+        testServiceMock = mock(TestService.class);
         Pojo pojo = new Pojo();
         pojo.testService = testServiceMock;
         PojoServiceContext serviceContext = new PojoServiceContext(pojo);
-        server = new ServiceContextServer(serviceContext, "default");
+        HazelcastInstance hazelcastInstance = Hazelcast.newHazelcastInstance(new Config());
+
+        server = new ServiceContextServer(serviceContext, "default", 100, hazelcastInstance);
         server.start();
-        proxyProvider = new DefaultProxyProvider();
+
+        Thread.sleep(1000);
+
+        proxyProvider = new DefaultProxyProvider("default", hazelcastInstance.getExecutorService());
     }
 
     @After
     public void tearDown() throws InterruptedException {
         if (server == null) return;
         server.shutdown();
-        boolean success = server.awaitTermination(10, TimeUnit.SECONDS);
-        if (!success) throw new RuntimeException("server awaitTermination timed out");
+        boolean terminated = server.awaitTermination(10, TimeUnit.SECONDS);
+        assertTrue("Could not terminate the servce within the given timeout", terminated);
     }
 
     @Test
     public void exceptionUnwrappingPartitionedMethod() {
         TestService proxy = proxyProvider.getProxy(TestService.class);
         String arg = "foo";
-        expect(testServiceMock.singleArg(arg)).andThrow(new MyRuntimeException());
-
-        replay(testServiceMock);
+        when(testServiceMock.singleArg(arg)).thenThrow(new MyRuntimeException());
 
         try {
             proxy.singleArg(arg);
             fail();
         } catch (MyRuntimeException expected) {
-
         }
-        verify(testServiceMock);
     }
 
     @Test
     public void exceptionUnwrappingLoadBalancedMethod() {
         TestService proxy = proxyProvider.getProxy(TestService.class);
         String arg = "foo";
-        expect(testServiceMock.loadBalanced(arg)).andThrow(new MyRuntimeException());
+        when(testServiceMock.loadBalanced(arg)).thenThrow(new MyRuntimeException());
 
-        replay(testServiceMock);
 
         try {
             proxy.loadBalanced(arg);
             fail();
         } catch (MyRuntimeException expected) {
-
         }
-        verify(testServiceMock);
     }
 
     @Test
     @Ignore
     public void exceptionUnwrappingForkJoinMethod() {
-
     }
-
 
     @Test
     public void whenCalledWithNonNullArgument() {
         TestService proxy = proxyProvider.getProxy(TestService.class);
         String arg = "foo";
         String result = "result";
-        expect(testServiceMock.singleArg(arg)).andReturn(result);
 
-        replay(testServiceMock);
+        when(testServiceMock.singleArg(arg)).thenReturn(result);
 
-        proxy.singleArg(arg);
-
-        verify(testServiceMock);
+        String found = proxy.singleArg(arg);
+        assertEquals(result, found);
     }
 
     @Test
@@ -102,13 +100,11 @@ public class DefaultProxyProviderIntegrationTest {
         TestService proxy = proxyProvider.getProxy(TestService.class);
         String arg = "foo";
         String result = "result";
-        expect(testServiceMock.multipleArgs(arg, null)).andReturn(result);
+        when(testServiceMock.multipleArgs(arg, null)).thenReturn(result);
 
-        replay(testServiceMock);
+        String found = proxy.multipleArgs(arg, null);
 
-        proxy.multipleArgs(arg, null);
-
-        verify(testServiceMock);
+        assertEquals(result, found);
     }
 
     static public class Pojo {

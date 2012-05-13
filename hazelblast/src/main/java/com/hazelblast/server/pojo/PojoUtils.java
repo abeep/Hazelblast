@@ -22,10 +22,10 @@ public final class PojoUtils {
      * @return a Map containing all public fields of the targetClazz.
      */
     public static Map<String, Field> getPublicFields(Class targetClazz) {
-        notNull("targetClass",targetClazz);
+        notNull("targetClass", targetClazz);
 
         Map<String, Field> fields = new HashMap<String, Field>();
-        getPublicFields(targetClazz,fields);
+        getPublicFields(targetClazz, fields);
         return fields;
     }
 
@@ -39,8 +39,8 @@ public final class PojoUtils {
         }
 
         Class superClass = targetClass.getSuperclass();
-        if(superClass!=null){
-            getPublicFields(superClass,fields);
+        if (superClass != null) {
+            getPublicFields(superClass, fields);
         }
     }
 
@@ -55,9 +55,9 @@ public final class PojoUtils {
      * @throws NullPointerException if targetClass, methodName or argTypes is null.
      */
     public static Method getPublicVoidMethod(Class targetClazz, String methodName, Class... argTypes) {
-        notNull("targetClass",targetClazz);
-        notNull("methodName",methodName);
-        notNull("argTypes",argTypes);
+        notNull("targetClass", targetClazz);
+        notNull("methodName", methodName);
+        notNull("argTypes", argTypes);
 
         Method method;
         try {
@@ -84,5 +84,26 @@ public final class PojoUtils {
         }
 
         return method;
+    }
+
+    public static boolean matches(Method method, String methodName, String[] argTypes) {
+        if (!method.getName().equals(methodName)) {
+            return false;
+        }
+
+        Class[] parameterTypes = method.getParameterTypes();
+        if (parameterTypes.length != argTypes.length) {
+            return false;
+        }
+
+        for (int argIndex = 0; argIndex < parameterTypes.length; argIndex++) {
+            String argType = argTypes[argIndex];
+            String paramType = parameterTypes[argIndex].getCanonicalName();
+            if (!argType.equals(paramType)) {
+                return false;
+            }
+        }
+
+        return true;
     }
 }

@@ -58,6 +58,7 @@ public final class DefaultProxyProvider implements ProxyProvider {
         this.executorService = notNull("executorService", executorService);
     }
 
+
     /**
      * Returns the name of the ServiceContext this ProxyProvider is going to call.
      *
@@ -85,8 +86,7 @@ public final class DefaultProxyProvider implements ProxyProvider {
      * @throws NullPointerException if remoteMethodInvocationFactory is null.
      */
     public void setRemoteMethodInvocationFactory(RemoteMethodInvocationFactory remoteMethodInvocationFactory) {
-        notNull("remoteMethodInvocationFactory", remoteMethodInvocationFactory);
-        this.remoteMethodInvocationFactory = remoteMethodInvocationFactory;
+        this.remoteMethodInvocationFactory = notNull("remoteMethodInvocationFactory", remoteMethodInvocationFactory);
     }
 
     public <T> T getProxy(Class<T> targetInterface) {
@@ -215,7 +215,7 @@ public final class DefaultProxyProvider implements ProxyProvider {
                     } catch (NoSuchMethodException e) {
                         throw new IllegalArgumentException(
                                 format("Argument with index '%s' of type '%s' in PartitionedMethod '%s' has an invalid @PartitionKey.property configuration. " +
-                                        "The property method '%s' doesnt exist", partitionKeyIndex + 1, argType.getName(), method, partitionKeyProperty));
+                                        "The property method '%s' doesn't exist", partitionKeyIndex + 1, argType.getName(), method, partitionKeyProperty));
                     }
                 }
 
@@ -335,7 +335,8 @@ public final class DefaultProxyProvider implements ProxyProvider {
         private Object invokeForkJoin(RemoteMethodInfo remoteMethodInfo, Object[] args) throws Throwable {
 
             Callable callable = remoteMethodInvocationFactory.create(
-                    serviceContextName, remoteInterfaceInfo.targetInterface.getSimpleName(), remoteMethodInfo.method.getName(), args, remoteMethodInfo.argTypes, null);
+                    serviceContextName, remoteInterfaceInfo.targetInterface.getSimpleName(), remoteMethodInfo.method.getName(),
+                    args, remoteMethodInfo.argTypes, null);
 
             MultiTask task = new MultiTask(callable, getPuMembers());
             executorService.execute(task);
@@ -349,7 +350,8 @@ public final class DefaultProxyProvider implements ProxyProvider {
 
         private Object invokeLoadBalancer(RemoteMethodInfo remoteMethodInfo, Object[] args) throws Throwable {
             Callable callable = remoteMethodInvocationFactory.create(
-                    serviceContextName, remoteInterfaceInfo.targetInterface.getSimpleName(), remoteMethodInfo.method.getName(), args, remoteMethodInfo.argTypes, null);
+                    serviceContextName, remoteInterfaceInfo.targetInterface.getSimpleName(), remoteMethodInfo.method.getName(),
+                    args, remoteMethodInfo.argTypes, null);
 
             Future future = executorService.submit(callable);
             try {
@@ -363,7 +365,8 @@ public final class DefaultProxyProvider implements ProxyProvider {
             Object partitionKey = getPartitionKey(remoteMethodInfo, args);
 
             Callable callable = remoteMethodInvocationFactory.create(
-                    serviceContextName, remoteInterfaceInfo.targetInterface.getSimpleName(), remoteMethodInfo.method.getName(), args, remoteMethodInfo.argTypes, partitionKey);
+                    serviceContextName, remoteInterfaceInfo.targetInterface.getSimpleName(), remoteMethodInfo.method.getName(),
+                    args, remoteMethodInfo.argTypes, partitionKey);
 
             Future future = executorService.submit(callable);
             try {

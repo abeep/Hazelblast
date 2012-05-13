@@ -7,7 +7,7 @@ import java.util.Collection;
  *
  * @author Peter Veentjer.
  */
-public class VoidReducer implements Reducer<Void>{
+public class VoidReducer implements Reducer<Void> {
 
     public Void reduce(Collection<Void> results) {
         return null;

@@ -1,12 +1,12 @@
 package com.hazelblast.server;
 
+import com.hazelcast.config.Config;
 import com.hazelcast.core.Hazelcast;
+import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.logging.ILogger;
 import com.hazelcast.logging.Logger;
 import org.apache.commons.cli.*;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
@@ -35,7 +35,7 @@ public final class ServiceContextServer {
     public static final String DEFAULT_PU_NAME = "default";
 
     private static final ILogger logger = Logger.getLogger(ServiceContextServer.class.getName());
-    private static final ConcurrentMap<String, ServiceContextServer> serviceContextMap = new ConcurrentHashMap<String, ServiceContextServer>();
+    private static final ConcurrentMap<String, ServiceContextServer> serverMap = new ConcurrentHashMap<String, ServiceContextServer>();
 
     public static void main(String[] args) {
         Options options = buildOptions();
@@ -57,7 +57,8 @@ public final class ServiceContextServer {
         String serviceContextFactory = commandLine.getOptionValue("serviceContextFactory");
         long scanDelayMs = Long.parseLong(commandLine.getOptionValue("scanDelay", "" + DEFAULT_SCAN_DELAY_MS));
 
-        ServiceContextServer main = new ServiceContextServer(buildPu(serviceContextFactory), serviceContextName, scanDelayMs);
+        HazelcastInstance hazelcastInstance = Hazelcast.newHazelcastInstance(new Config());
+        ServiceContextServer main = new ServiceContextServer(buildServiceContext(serviceContextFactory), serviceContextName, scanDelayMs, hazelcastInstance);
         main.start();
     }
 
@@ -107,24 +108,25 @@ public final class ServiceContextServer {
     /**
      * Gets a ServiceContext with the given name.
      *
+     *
      * @param name the name of the ServiceContext.
      * @return the found ServiceContext.
      * @throws NullPointerException  if name is null.
      * @throws IllegalStateException if no ServiceContext with the given name is found.
      */
-    public static ServiceContext getServiceContext(String name) {
+    public static ServiceContextContainer getContainer(String name) {
         notNull("name", name);
 
-        ServiceContextServer server = serviceContextMap.get(name);
+        ServiceContextServer server = serverMap.get(name);
         if (server == null) {
-            throw new IllegalStateException(format("No serviceContext found with name [%s] on member [%s], available serviceContext's %s",
-                    name, Hazelcast.getCluster().getLocalMember(), serviceContextMap.keySet()));
+            throw new IllegalStateException(format("No container found with service context with name [%s] on member [%s], available serviceContext's %s",
+                    name, Hazelcast.getCluster().getLocalMember(), serverMap.keySet()));
         }
 
-        return server.container.getServiceContext();
+        return server.container;
     }
 
-    private static ServiceContext buildPu(String factoryName) {
+    private static ServiceContext buildServiceContext(String factoryName) {
         if (logger.isLoggable(Level.FINE)) {
             logger.log(Level.FINE, format("Creating ServiceContext using puFactory [%s]", factoryName));
         }
@@ -157,63 +159,24 @@ public final class ServiceContextServer {
      * @throws IllegalArgumentException if serviceContextName is not pointing to a an existing ServiceContext.
      * @throws NullPointerException     if serviceContextName
      */
-    public static Object executeMethod(String serviceContextName, String serviceName, String methodName, String[] argTypes, Object[] args) throws Throwable {
+    public static Object executeMethod(String serviceContextName, String serviceName, String methodName,
+                                       String[] argTypes, Object[] args, Object partitionKey) throws Throwable {
         notNull("serviceContextName", serviceContextName);
         notNull("serviceName", serviceName);
         notNull("methodName", methodName);
         notNull("args", args);
 
-        ServiceContext serviceContext = getServiceContext(serviceContextName);
+        //The first thing that needs to be checked, is if the partition that was expected to be here when the call
+        //was send to this machine, is still there. If it isn't, some kind of exception should be thrown, this exception
+        //should be caught by the proxy and the method call should be retried, now hoping that
 
-        Object service = serviceContext.getService(serviceName);
-
-        Class serviceClass = service.getClass();
-        Method[] methods = serviceClass.getMethods();
-        Method foundMethod = null;
-        for (Method method : methods) {
-            if(matches(method,methodName,argTypes)){
-                foundMethod = method;
-                break;
-            }
-        }
-
-        if(foundMethod == null){
-            //todo; better exception
-            throw new IllegalStateException();
-        }
-
-        try {
-            return foundMethod.invoke(service, args);
-        } catch (InvocationTargetException e) {
-            throw e.getTargetException();
-        }
-    }
-
-    private static boolean matches(Method method, String methodName, String[] argTypes) {
-        if (!method.getName().equals(methodName)) {
-            return false;
-        }
-
-        Class[] parameterTypes = method.getParameterTypes();
-        if (parameterTypes.length != argTypes.length) {
-            return false;
-        }
-
-        for (int argIndex = 0; argIndex < parameterTypes.length; argIndex++) {
-            String argType = argTypes[argIndex];
-            String paramType = parameterTypes[argIndex].getCanonicalName();
-            if (!argType.equals(paramType)) {
-                return false;
-            }
-        }
-
-        return true;
+        ServiceContextContainer container = getContainer(serviceContextName);
+        return container.executeMethod(serviceName,methodName,argTypes,args,partitionKey);
     }
 
     protected enum Status {Unstarted, Running, Terminating, Terminated}
 
     private final String serviceContextName;
-    private final PartitionMonitor partitionMonitor;
     private final ServiceContextContainer container;
     private final ScheduledThreadPoolExecutor scheduler = new ScheduledThreadPoolExecutor(1);
     private final Lock stateLock = new ReentrantLock();
@@ -228,7 +191,7 @@ public final class ServiceContextServer {
      * @throws NullPointerException if serviceContext or serviceContextName is null.
      */
     public ServiceContextServer(ServiceContext serviceContext, String serviceContextName) {
-        this(serviceContext, serviceContextName, DEFAULT_SCAN_DELAY_MS);
+        this(serviceContext, serviceContextName, DEFAULT_SCAN_DELAY_MS, Hazelcast.getDefaultInstance());
     }
 
     /**
@@ -240,9 +203,11 @@ public final class ServiceContextServer {
      * @throws NullPointerException     if serviceContext or serviceContextName is null.
      * @throws IllegalArgumentException if scanDelayMs smaller than zero.
      */
-    public ServiceContextServer(ServiceContext serviceContext, String serviceContextName, long scanDelayMs) {
+    public ServiceContextServer(ServiceContext serviceContext, String serviceContextName, long scanDelayMs, HazelcastInstance hazelcastInstance) {
         notNull("serviceContext", serviceContext);
         notNull("serviceContextName", serviceContextName);
+        notNull("hazelcastInstance",hazelcastInstance);
+
         if (scanDelayMs < 0) {
             throw new IllegalArgumentException(format("scanDelayMs can't be smaller or equal than zero, scanDelayMs was [%s]", scanDelayMs));
         }
@@ -250,8 +215,7 @@ public final class ServiceContextServer {
         this.serviceContextName = serviceContextName;
         this.scanDelayMs = scanDelayMs;
         this.scheduler.setContinueExistingPeriodicTasksAfterShutdownPolicy(true);
-        this.container = new ServiceContextContainer(serviceContext, serviceContextName);
-        this.partitionMonitor = new PartitionMonitor(container);
+        this.container = new ServiceContextContainer(serviceContext, serviceContextName, hazelcastInstance);
     }
 
     /**
@@ -276,7 +240,7 @@ public final class ServiceContextServer {
                     status = Status.Running;
                     container.onStart();
 
-                    if (serviceContextMap.putIfAbsent(serviceContextName, this) != null) {
+                    if (serverMap.putIfAbsent(serviceContextName, this) != null) {
                         shutdown();
                         throw new IllegalStateException(
                                 format("ServiceContextServer with name [%s] can't be started, there already is another " +
@@ -325,15 +289,14 @@ public final class ServiceContextServer {
         try {
             switch (status) {
                 case Unstarted:
-                    serviceContextMap.remove(serviceContextName, this);
-                    container.onStop();
                     if (logger.isLoggable(Level.FINE)) {
                         logger.log(Level.FINE, format("[%s] ServiceContextServer not started yet, so will be immediately terminated", serviceContextName));
                     }
+                    scheduler.shutdown();
                     status = Status.Terminated;
                     break;
                 case Running:
-                    serviceContextMap.remove(serviceContextName, this);
+                    serverMap.remove(serviceContextName, this);
                     if (logger.isLoggable(Level.FINE)) {
                         logger.log(Level.FINE, format("[%s] ServiceContextServer is running, and will now be terminating", serviceContextName));
                     }
@@ -426,13 +389,14 @@ public final class ServiceContextServer {
     private class ScanTask implements Runnable {
         public void run() {
             if (status == Status.Terminating) {
+                container.onStop();
                 status = Status.Terminated;
                 scheduler.setContinueExistingPeriodicTasksAfterShutdownPolicy(false);
             } else {
                 try {
-                    partitionMonitor.scan();
-                } catch (RuntimeException e) {
-                    logger.log(Level.SEVERE, "Failed to run PartitionMonitor.scan", e);
+                    container.scanForPartitionChanges();
+                } catch (Throwable e) {
+                    logger.log(Level.SEVERE, "Failed to run PartitionMonitor.scanForPartitionChanges", e);
                 }
             }
         }

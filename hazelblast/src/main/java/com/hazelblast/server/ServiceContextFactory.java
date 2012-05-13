@@ -1,7 +1,5 @@
 package com.hazelblast.server;
 
-import com.hazelblast.server.ServiceContext;
-
 /**
  * A Factory responsible for creating {@link com.hazelblast.server.ServiceContext} instances.
  * <p/>
