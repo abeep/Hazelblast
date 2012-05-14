@@ -37,11 +37,13 @@ On the server, the following can be done:
 There is functionality in Hazelblast to use POJO's or Spring to run this service on each Hazelcast node. It
 is quite simple to add additional strategies for running services.
 
-There currently are 3 different types of calls
+There currently are 2 different types of calls
 
 * Partitioned: the call gets forwarded to the machine responsible for running that partition. Once you are
 on that machine, data is local.
 * LoadBalanced: the call gets forwarded to one of the machine; it doesn't matter which one.
+
+In the 0.2 release also the ForkJoin will be added:
 * ForkJoin: the call gets send to all machines, and the results are aggregated.
 
 For a full example check out the Hazelblast-examples module
