@@ -31,7 +31,7 @@
         </dependency>
 
         <dependency>
-            <groupId>com.hazelcast</groupId>
+            <groupId>com.hazelblast</groupId>
             <artifactId>employee-management-api</artifactId>
             <version>${project.version}</version>
         </dependency>

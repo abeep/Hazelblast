@@ -1,6 +1,5 @@
 package com.hazelblast.server;
 
-import com.hazelblast.PartitionMovedException;
 import com.hazelblast.server.pojo.PojoUtils;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.ILock;

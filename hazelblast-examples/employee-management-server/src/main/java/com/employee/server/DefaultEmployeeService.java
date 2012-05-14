@@ -38,11 +38,7 @@ public class DefaultEmployeeService implements EmployeeService, SpringPartitionL
         logger.info("Hire called with id " + id);
     }
 
-    public void printStatisticsOnAllNodes() {
-        logger.info("Statistics on all nodes, partition count " + partitions.size());
-    }
-
-    public void printStatisticsOnOneNode() {
+     public void printStatisticsOnOneNode() {
         logger.info("Statistics on one node, partition count: " + partitions.size());
     }
 

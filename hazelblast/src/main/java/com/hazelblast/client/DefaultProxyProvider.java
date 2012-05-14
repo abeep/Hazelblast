@@ -261,9 +261,9 @@ public final class DefaultProxyProvider implements ProxyProvider {
     private static List<MethodType> getMethodTypes(Method method) {
         List<MethodType> types = new LinkedList<MethodType>();
 
-        if (method.getAnnotation(ForkJoin.class) != null) {
-            types.add(MethodType.FORK_JOIN);
-        }
+        //if (method.getAnnotation(ForkJoin.class) != null) {
+        //    types.add(MethodType.FORK_JOIN);
+        //}
 
         if (method.getAnnotation(LoadBalanced.class) != null) {
             types.add(MethodType.LOAD_BALANCED);

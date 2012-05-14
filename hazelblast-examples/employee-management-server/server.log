@@ -5995,3 +5995,200 @@ Members [1] {
 2012-05-13 22:33:31,596  INFO  [default] ServiceContext.onPartitionAdded(23) finished in [1] ms
 2012-05-13 22:33:31,596  INFO  [default] ServiceContext.onPartitionAdded(24) finished in [0] ms
 2012-05-13 22:33:31,597  INFO  [default] Scan complete, managed partitions [25], total time [38] ms
+2012-05-14 12:49:32,765  INFO  /10.37.129.2:5702 [dev] Remaining migration tasks in queue => Immediate-Tasks: 1, Scheduled-Tasks: 0
+2012-05-14 12:49:32,765  INFO  /10.37.129.2:5702 [dev] Remaining migration tasks in queue => Immediate-Tasks: 1, Scheduled-Tasks: 0
+2012-05-14 12:49:32,766  INFO  /10.37.129.2:5702 [dev] Remaining migration tasks in queue => Immediate-Tasks: 1, Scheduled-Tasks: 0
+2012-05-14 12:49:32,767  INFO  /10.37.129.2:5702 [dev] Remaining migration tasks in queue => Immediate-Tasks: 1, Scheduled-Tasks: 0
+2012-05-14 12:49:32,767  INFO  /10.37.129.2:5702 [dev] Remaining migration tasks in queue => Immediate-Tasks: 1, Scheduled-Tasks: 0
+2012-05-14 12:49:32,768  INFO  /10.37.129.2:5702 [dev] Remaining migration tasks in queue => Immediate-Tasks: 1, Scheduled-Tasks: 0
+2012-05-14 12:49:32,768  INFO  /10.37.129.2:5702 [dev] Remaining migration tasks in queue => Immediate-Tasks: 1, Scheduled-Tasks: 0
+2012-05-14 12:49:32,823  INFO  /10.37.129.2:5701 [dev] ** we are being asked to shutdown when active = true
+2012-05-14 12:49:32,848  INFO  /10.37.129.2:5701 [dev] Remaining migration tasks in queue => Immediate-Tasks: 1, Scheduled-Tasks: 0
+2012-05-14 12:49:32,951  INFO  /10.37.129.2:5701 [dev] Remaining migration tasks in queue => Immediate-Tasks: 1, Scheduled-Tasks: 0
+2012-05-14 12:49:32,858  WARN  /10.37.129.2:5702 [dev] Address[10.37.129.2:5702] is merging [multicast] to Address[10.37.129.2:5701]
+2012-05-14 12:49:32,951  INFO  /10.37.129.2:5701 [dev] Remaining migration tasks in queue => Immediate-Tasks: 1, Scheduled-Tasks: 0
+2012-05-14 12:49:32,952  INFO  /10.37.129.2:5701 [dev] Remaining migration tasks in queue => Immediate-Tasks: 1, Scheduled-Tasks: 0
+2012-05-14 12:49:32,952  INFO  /10.37.129.2:5701 [dev] Remaining migration tasks in queue => Immediate-Tasks: 1, Scheduled-Tasks: 0
+2012-05-14 12:49:32,952  INFO  /10.37.129.2:5701 [dev] Remaining migration tasks in queue => Immediate-Tasks: 1, Scheduled-Tasks: 0
+2012-05-14 12:49:32,953  INFO  /10.37.129.2:5701 [dev] Remaining migration tasks in queue => Immediate-Tasks: 1, Scheduled-Tasks: 0
+2012-05-14 12:49:32,952  INFO  /10.37.129.2:5702 [dev] Address[10.37.129.2:5702] is RESTARTING
+2012-05-14 12:49:32,953  INFO  /10.37.129.2:5701 [dev] Remaining migration tasks in queue => Immediate-Tasks: 1, Scheduled-Tasks: 0
+2012-05-14 12:49:32,953  INFO  /10.37.129.2:5701 [dev] Remaining migration tasks in queue => Immediate-Tasks: 1, Scheduled-Tasks: 0
+2012-05-14 12:49:32,954  INFO  /10.37.129.2:5701 [dev] Remaining migration tasks in queue => Immediate-Tasks: 1, Scheduled-Tasks: 0
+2012-05-14 12:49:32,954  INFO  /10.37.129.2:5701 [dev] Remaining migration tasks in queue => Immediate-Tasks: 1, Scheduled-Tasks: 0
+2012-05-14 12:49:32,954  INFO  /10.37.129.2:5701 [dev] Remaining migration tasks in queue => Immediate-Tasks: 1, Scheduled-Tasks: 0
+2012-05-14 12:49:32,955  INFO  /10.37.129.2:5701 [dev] Remaining migration tasks in queue => Immediate-Tasks: 1, Scheduled-Tasks: 0
+2012-05-14 12:49:32,955  INFO  /10.37.129.2:5701 [dev] Remaining migration tasks in queue => Immediate-Tasks: 1, Scheduled-Tasks: 0
+2012-05-14 12:49:32,955  INFO  /10.37.129.2:5701 [dev] Remaining migration tasks in queue => Immediate-Tasks: 1, Scheduled-Tasks: 0
+2012-05-14 12:49:32,955  INFO  /10.37.129.2:5701 [dev] Remaining migration tasks in queue => Immediate-Tasks: 1, Scheduled-Tasks: 0
+2012-05-14 12:49:32,956  INFO  /10.37.129.2:5701 [dev] Remaining migration tasks in queue => Immediate-Tasks: 1, Scheduled-Tasks: 0
+2012-05-14 12:49:32,956  INFO  /10.37.129.2:5701 [dev] Remaining migration tasks in queue => Immediate-Tasks: 1, Scheduled-Tasks: 0
+2012-05-14 12:49:32,956  INFO  /10.37.129.2:5701 [dev] Remaining migration tasks in queue => Immediate-Tasks: 1, Scheduled-Tasks: 0
+2012-05-14 12:49:32,957  INFO  /10.37.129.2:5701 [dev] Remaining migration tasks in queue => Immediate-Tasks: 1, Scheduled-Tasks: 0
+2012-05-14 12:49:32,959  INFO  /10.37.129.2:5701 [dev] Remaining migration tasks in queue => Immediate-Tasks: 1, Scheduled-Tasks: 0
+2012-05-14 12:49:32,820  INFO  /10.37.129.2:5702 [dev] ** we are being asked to shutdown when active = true
+2012-05-14 12:49:32,950  INFO  /10.37.129.2:5702 [dev] Remaining migration tasks in queue => Immediate-Tasks: 1, Scheduled-Tasks: 0
+2012-05-14 12:49:32,964  INFO  /10.37.129.2:5701 [dev] Remaining migration tasks in queue => Immediate-Tasks: 1, Scheduled-Tasks: 0
+2012-05-14 12:49:32,965  INFO  /10.37.129.2:5701 [dev] Remaining migration tasks in queue => Immediate-Tasks: 1, Scheduled-Tasks: 0
+2012-05-14 12:49:32,965  INFO  /10.37.129.2:5701 [dev] Remaining migration tasks in queue => Immediate-Tasks: 1, Scheduled-Tasks: 0
+2012-05-14 12:49:32,966  INFO  /10.37.129.2:5701 [dev] Remaining migration tasks in queue => Immediate-Tasks: 1, Scheduled-Tasks: 0
+2012-05-14 12:49:32,974  INFO  /10.37.129.2:5701 [dev] Remaining migration tasks in queue => Immediate-Tasks: 1, Scheduled-Tasks: 0
+2012-05-14 12:49:32,978  INFO  /10.37.129.2:5701 [dev] Remaining migration tasks in queue => Immediate-Tasks: 1, Scheduled-Tasks: 0
+2012-05-14 12:49:32,979  INFO  /10.37.129.2:5701 [dev] Remaining migration tasks in queue => Immediate-Tasks: 1, Scheduled-Tasks: 0
+2012-05-14 12:49:32,979  INFO  /10.37.129.2:5701 [dev] Remaining migration tasks in queue => Immediate-Tasks: 1, Scheduled-Tasks: 0
+2012-05-14 12:49:32,980  INFO  /10.37.129.2:5701 [dev] Remaining migration tasks in queue => Immediate-Tasks: 1, Scheduled-Tasks: 0
+2012-05-14 12:49:32,980  INFO  /10.37.129.2:5701 [dev] Remaining migration tasks in queue => Immediate-Tasks: 1, Scheduled-Tasks: 0
+2012-05-14 12:49:32,980  INFO  /10.37.129.2:5701 [dev] Remaining migration tasks in queue => Immediate-Tasks: 1, Scheduled-Tasks: 0
+2012-05-14 12:49:32,981  INFO  /10.37.129.2:5701 [dev] Remaining migration tasks in queue => Immediate-Tasks: 1, Scheduled-Tasks: 0
+2012-05-14 12:49:32,983  INFO  /10.37.129.2:5701 [dev] Remaining migration tasks in queue => Immediate-Tasks: 1, Scheduled-Tasks: 0
+2012-05-14 12:49:32,983  INFO  /10.37.129.2:5701 [dev] Remaining migration tasks in queue => Immediate-Tasks: 1, Scheduled-Tasks: 0
+2012-05-14 12:49:32,984  INFO  /10.37.129.2:5701 [dev] Remaining migration tasks in queue => Immediate-Tasks: 1, Scheduled-Tasks: 0
+2012-05-14 12:49:32,978  INFO  /10.37.129.2:5702 [dev] Remaining migration tasks in queue => Immediate-Tasks: 1, Scheduled-Tasks: 0
+2012-05-14 12:49:32,985  INFO  /10.37.129.2:5702 [dev] Remaining migration tasks in queue => Immediate-Tasks: 1, Scheduled-Tasks: 0
+2012-05-14 12:49:32,986  INFO  /10.37.129.2:5702 [dev] Remaining migration tasks in queue => Immediate-Tasks: 1, Scheduled-Tasks: 0
+2012-05-14 12:49:32,987  INFO  /10.37.129.2:5702 [dev] Remaining migration tasks in queue => Immediate-Tasks: 1, Scheduled-Tasks: 0
+2012-05-14 12:49:32,987  INFO  /10.37.129.2:5702 [dev] Remaining migration tasks in queue => Immediate-Tasks: 1, Scheduled-Tasks: 0
+2012-05-14 12:49:32,985  INFO  /10.37.129.2:5701 [dev] Remaining migration tasks in queue => Immediate-Tasks: 1, Scheduled-Tasks: 0
+2012-05-14 12:49:32,988  INFO  /10.37.129.2:5702 [dev] Remaining migration tasks in queue => Immediate-Tasks: 1, Scheduled-Tasks: 0
+2012-05-14 12:49:32,988  INFO  /10.37.129.2:5702 [dev] Remaining migration tasks in queue => Immediate-Tasks: 1, Scheduled-Tasks: 0
+2012-05-14 12:49:32,988  INFO  /10.37.129.2:5701 [dev] Remaining migration tasks in queue => Immediate-Tasks: 1, Scheduled-Tasks: 0
+2012-05-14 12:49:32,988  INFO  /10.37.129.2:5702 [dev] Remaining migration tasks in queue => Immediate-Tasks: 1, Scheduled-Tasks: 0
+2012-05-14 12:49:32,989  INFO  /10.37.129.2:5701 [dev] Remaining migration tasks in queue => Immediate-Tasks: 1, Scheduled-Tasks: 0
+2012-05-14 12:49:32,989  INFO  /10.37.129.2:5702 [dev] Remaining migration tasks in queue => Immediate-Tasks: 1, Scheduled-Tasks: 0
+2012-05-14 12:49:32,989  INFO  /10.37.129.2:5701 [dev] Remaining migration tasks in queue => Immediate-Tasks: 1, Scheduled-Tasks: 0
+2012-05-14 12:49:32,989  INFO  /10.37.129.2:5702 [dev] Remaining migration tasks in queue => Immediate-Tasks: 1, Scheduled-Tasks: 0
+2012-05-14 12:49:32,989  INFO  /10.37.129.2:5701 [dev] Remaining migration tasks in queue => Immediate-Tasks: 1, Scheduled-Tasks: 0
+2012-05-14 12:49:32,989  INFO  /10.37.129.2:5702 [dev] Remaining migration tasks in queue => Immediate-Tasks: 1, Scheduled-Tasks: 0
+2012-05-14 12:49:32,989  INFO  /10.37.129.2:5701 [dev] Remaining migration tasks in queue => Immediate-Tasks: 1, Scheduled-Tasks: 0
+2012-05-14 12:49:32,990  INFO  /10.37.129.2:5702 [dev] Remaining migration tasks in queue => Immediate-Tasks: 1, Scheduled-Tasks: 0
+2012-05-14 12:49:32,990  INFO  /10.37.129.2:5702 [dev] Remaining migration tasks in queue => Immediate-Tasks: 1, Scheduled-Tasks: 0
+2012-05-14 12:49:32,990  INFO  /10.37.129.2:5702 [dev] Remaining migration tasks in queue => Immediate-Tasks: 1, Scheduled-Tasks: 0
+2012-05-14 12:49:32,990  INFO  /10.37.129.2:5701 [dev] Remaining migration tasks in queue => Immediate-Tasks: 1, Scheduled-Tasks: 0
+2012-05-14 12:49:32,991  INFO  /10.37.129.2:5702 [dev] Remaining migration tasks in queue => Immediate-Tasks: 1, Scheduled-Tasks: 0
+2012-05-14 12:49:33,006  INFO  /10.37.129.2:5701 [dev] Remaining migration tasks in queue => Immediate-Tasks: 1, Scheduled-Tasks: 0
+2012-05-14 12:49:33,007  INFO  /10.37.129.2:5701 [dev] Remaining migration tasks in queue => Immediate-Tasks: 1, Scheduled-Tasks: 0
+2012-05-14 12:49:33,007  INFO  /10.37.129.2:5701 [dev] Remaining migration tasks in queue => Immediate-Tasks: 1, Scheduled-Tasks: 0
+2012-05-14 12:49:33,008  INFO  /10.37.129.2:5701 [dev] Remaining migration tasks in queue => Immediate-Tasks: 1, Scheduled-Tasks: 0
+2012-05-14 12:49:33,008  INFO  /10.37.129.2:5701 [dev] Remaining migration tasks in queue => Immediate-Tasks: 1, Scheduled-Tasks: 0
+2012-05-14 12:49:33,009  INFO  /10.37.129.2:5701 [dev] Remaining migration tasks in queue => Immediate-Tasks: 1, Scheduled-Tasks: 0
+2012-05-14 12:49:33,009  INFO  /10.37.129.2:5701 [dev] Remaining migration tasks in queue => Immediate-Tasks: 1, Scheduled-Tasks: 0
+2012-05-14 12:49:33,009  INFO  /10.37.129.2:5701 [dev] Remaining migration tasks in queue => Immediate-Tasks: 1, Scheduled-Tasks: 0
+2012-05-14 12:49:33,010  INFO  /10.37.129.2:5701 [dev] Remaining migration tasks in queue => Immediate-Tasks: 1, Scheduled-Tasks: 0
+2012-05-14 12:49:33,010  INFO  /10.37.129.2:5701 [dev] Remaining migration tasks in queue => Immediate-Tasks: 1, Scheduled-Tasks: 0
+2012-05-14 12:49:33,011  INFO  /10.37.129.2:5701 [dev] Remaining migration tasks in queue => Immediate-Tasks: 1, Scheduled-Tasks: 0
+2012-05-14 12:49:33,011  INFO  /10.37.129.2:5701 [dev] Remaining migration tasks in queue => Immediate-Tasks: 1, Scheduled-Tasks: 0
+2012-05-14 12:49:33,012  INFO  /10.37.129.2:5701 [dev] Remaining migration tasks in queue => Immediate-Tasks: 1, Scheduled-Tasks: 0
+2012-05-14 12:49:33,012  INFO  /10.37.129.2:5701 [dev] Remaining migration tasks in queue => Immediate-Tasks: 1, Scheduled-Tasks: 0
+2012-05-14 12:49:33,012  INFO  /10.37.129.2:5701 [dev] Remaining migration tasks in queue => Immediate-Tasks: 1, Scheduled-Tasks: 0
+2012-05-14 12:49:33,013  INFO  /10.37.129.2:5701 [dev] Remaining migration tasks in queue => Immediate-Tasks: 1, Scheduled-Tasks: 0
+2012-05-14 12:49:33,015  WARN  /10.37.129.2:5702 [dev] Owner of partition is being removed! Possible data loss for partition[0]. PartitionReplicaChangeEvent{partitionId=0, replicaIndex=0, oldAddress=Address[10.37.129.2:5702], newAddress=null}
+2012-05-14 12:49:33,016  WARN  /10.37.129.2:5702 [dev] Owner of partition is being removed! Possible data loss for partition[1]. PartitionReplicaChangeEvent{partitionId=1, replicaIndex=0, oldAddress=Address[10.37.129.2:5702], newAddress=null}
+2012-05-14 12:49:33,016  WARN  /10.37.129.2:5702 [dev] Owner of partition is being removed! Possible data loss for partition[2]. PartitionReplicaChangeEvent{partitionId=2, replicaIndex=0, oldAddress=Address[10.37.129.2:5702], newAddress=null}
+2012-05-14 12:49:33,016  WARN  /10.37.129.2:5702 [dev] Owner of partition is being removed! Possible data loss for partition[3]. PartitionReplicaChangeEvent{partitionId=3, replicaIndex=0, oldAddress=Address[10.37.129.2:5702], newAddress=null}
+2012-05-14 12:49:33,017  WARN  /10.37.129.2:5702 [dev] Owner of partition is being removed! Possible data loss for partition[4]. PartitionReplicaChangeEvent{partitionId=4, replicaIndex=0, oldAddress=Address[10.37.129.2:5702], newAddress=null}
+2012-05-14 12:49:33,017  WARN  /10.37.129.2:5702 [dev] Owner of partition is being removed! Possible data loss for partition[5]. PartitionReplicaChangeEvent{partitionId=5, replicaIndex=0, oldAddress=Address[10.37.129.2:5702], newAddress=null}
+2012-05-14 12:49:33,017  WARN  /10.37.129.2:5702 [dev] Owner of partition is being removed! Possible data loss for partition[6]. PartitionReplicaChangeEvent{partitionId=6, replicaIndex=0, oldAddress=Address[10.37.129.2:5702], newAddress=null}
+2012-05-14 12:49:33,018  WARN  /10.37.129.2:5702 [dev] Owner of partition is being removed! Possible data loss for partition[7]. PartitionReplicaChangeEvent{partitionId=7, replicaIndex=0, oldAddress=Address[10.37.129.2:5702], newAddress=null}
+2012-05-14 12:49:33,032  WARN  /10.37.129.2:5702 [dev] Owner of partition is being removed! Possible data loss for partition[8]. PartitionReplicaChangeEvent{partitionId=8, replicaIndex=0, oldAddress=Address[10.37.129.2:5702], newAddress=null}
+2012-05-14 12:49:33,032  WARN  /10.37.129.2:5702 [dev] Owner of partition is being removed! Possible data loss for partition[9]. PartitionReplicaChangeEvent{partitionId=9, replicaIndex=0, oldAddress=Address[10.37.129.2:5702], newAddress=null}
+2012-05-14 12:49:33,032  WARN  /10.37.129.2:5702 [dev] Owner of partition is being removed! Possible data loss for partition[10]. PartitionReplicaChangeEvent{partitionId=10, replicaIndex=0, oldAddress=Address[10.37.129.2:5702], newAddress=null}
+2012-05-14 12:49:33,033  WARN  /10.37.129.2:5702 [dev] Owner of partition is being removed! Possible data loss for partition[11]. PartitionReplicaChangeEvent{partitionId=11, replicaIndex=0, oldAddress=Address[10.37.129.2:5702], newAddress=null}
+2012-05-14 12:49:33,033  WARN  /10.37.129.2:5702 [dev] Owner of partition is being removed! Possible data loss for partition[12]. PartitionReplicaChangeEvent{partitionId=12, replicaIndex=0, oldAddress=Address[10.37.129.2:5702], newAddress=null}
+2012-05-14 12:49:33,034  WARN  /10.37.129.2:5702 [dev] Owner of partition is being removed! Possible data loss for partition[13]. PartitionReplicaChangeEvent{partitionId=13, replicaIndex=0, oldAddress=Address[10.37.129.2:5702], newAddress=null}
+2012-05-14 12:49:33,034  WARN  /10.37.129.2:5702 [dev] Owner of partition is being removed! Possible data loss for partition[14]. PartitionReplicaChangeEvent{partitionId=14, replicaIndex=0, oldAddress=Address[10.37.129.2:5702], newAddress=null}
+2012-05-14 12:49:33,034  WARN  /10.37.129.2:5702 [dev] Owner of partition is being removed! Possible data loss for partition[15]. PartitionReplicaChangeEvent{partitionId=15, replicaIndex=0, oldAddress=Address[10.37.129.2:5702], newAddress=null}
+2012-05-14 12:49:33,035  WARN  /10.37.129.2:5702 [dev] Owner of partition is being removed! Possible data loss for partition[16]. PartitionReplicaChangeEvent{partitionId=16, replicaIndex=0, oldAddress=Address[10.37.129.2:5702], newAddress=null}
+2012-05-14 12:49:33,035  WARN  /10.37.129.2:5702 [dev] Owner of partition is being removed! Possible data loss for partition[17]. PartitionReplicaChangeEvent{partitionId=17, replicaIndex=0, oldAddress=Address[10.37.129.2:5702], newAddress=null}
+2012-05-14 12:49:33,036  WARN  /10.37.129.2:5702 [dev] Owner of partition is being removed! Possible data loss for partition[18]. PartitionReplicaChangeEvent{partitionId=18, replicaIndex=0, oldAddress=Address[10.37.129.2:5702], newAddress=null}
+2012-05-14 12:49:33,036  WARN  /10.37.129.2:5702 [dev] Owner of partition is being removed! Possible data loss for partition[19]. PartitionReplicaChangeEvent{partitionId=19, replicaIndex=0, oldAddress=Address[10.37.129.2:5702], newAddress=null}
+2012-05-14 12:49:33,036  WARN  /10.37.129.2:5702 [dev] Owner of partition is being removed! Possible data loss for partition[20]. PartitionReplicaChangeEvent{partitionId=20, replicaIndex=0, oldAddress=Address[10.37.129.2:5702], newAddress=null}
+2012-05-14 12:49:33,037  WARN  /10.37.129.2:5702 [dev] Owner of partition is being removed! Possible data loss for partition[21]. PartitionReplicaChangeEvent{partitionId=21, replicaIndex=0, oldAddress=Address[10.37.129.2:5702], newAddress=null}
+2012-05-14 12:49:33,037  WARN  /10.37.129.2:5702 [dev] Owner of partition is being removed! Possible data loss for partition[22]. PartitionReplicaChangeEvent{partitionId=22, replicaIndex=0, oldAddress=Address[10.37.129.2:5702], newAddress=null}
+2012-05-14 12:49:33,038  WARN  /10.37.129.2:5702 [dev] Owner of partition is being removed! Possible data loss for partition[23]. PartitionReplicaChangeEvent{partitionId=23, replicaIndex=0, oldAddress=Address[10.37.129.2:5702], newAddress=null}
+2012-05-14 12:49:33,038  WARN  /10.37.129.2:5702 [dev] Owner of partition is being removed! Possible data loss for partition[24]. PartitionReplicaChangeEvent{partitionId=24, replicaIndex=0, oldAddress=Address[10.37.129.2:5702], newAddress=null}
+2012-05-14 12:49:33,121  INFO  /10.37.129.2:5702 [dev] ** setting master address to Address[10.37.129.2:5701]
+2012-05-14 12:49:33,180  INFO  /10.37.129.2:5702 [dev] 64882 accepted socket connection from /10.37.129.2:5701
+2012-05-14 12:49:33,209  INFO  /10.37.129.2:5701 [dev] 5701 is accepting socket connection from /10.37.129.2:64882
+2012-05-14 12:49:33,284  INFO  /10.37.129.2:5701 [dev] 5701 accepted socket connection from /10.37.129.2:64882
+2012-05-14 12:49:33,451  INFO  /10.37.129.2:5701 [dev] Shutting down Hazelcast Management Center
+2012-05-14 12:49:33,461  INFO  /10.37.129.2:5702 [dev] Shutting down Hazelcast Management Center
+2012-05-14 12:49:33,499  INFO  /10.37.129.2:5702 [dev] Connection [Address[10.37.129.2:5701]] lost. Reason: Explicit close
+2012-05-14 12:49:33,499  INFO  /10.37.129.2:5701 [dev] Connection [Address[10.37.129.2:5702]] lost. Reason: java.io.EOFException[null]
+2012-05-14 12:49:33,500 FATAL  [default] ServiceContext.onPartitionRemoved(0) failed
+java.lang.IllegalStateException: Hazelcast Instance is not active!
+	at com.hazelcast.impl.FactoryImpl.initialChecks(FactoryImpl.java:697)
+	at com.hazelcast.impl.MultiMapProxyImpl.ensure(MultiMapProxyImpl.java:45)
+	at com.hazelcast.impl.MultiMapProxyImpl.get(MultiMapProxyImpl.java:103)
+	at com.employee.server.DefaultEmployeeService.onPartitionRemoved(DefaultEmployeeService.java:62)
+	at com.hazelblast.server.spring.SpringServiceContextFactory$SpringServiceContext.onPartitionRemoved(SpringServiceContextFactory.java:87)
+	at com.hazelblast.server.ServiceContextContainer.removePartition(ServiceContextContainer.java:173)
+	at com.hazelblast.server.ServiceContextContainer.scanForPartitionChanges(ServiceContextContainer.java:148)
+	at com.hazelblast.server.ServiceContextServer$ScanTask.run(ServiceContextServer.java:397)
+	at java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:441)
+	at java.util.concurrent.FutureTask$Sync.innerRunAndReset(FutureTask.java:317)
+	at java.util.concurrent.FutureTask.runAndReset(FutureTask.java:150)
+	at java.util.concurrent.ScheduledThreadPoolExecutor$ScheduledFutureTask.access$101(ScheduledThreadPoolExecutor.java:98)
+	at java.util.concurrent.ScheduledThreadPoolExecutor$ScheduledFutureTask.runPeriodic(ScheduledThreadPoolExecutor.java:180)
+	at java.util.concurrent.ScheduledThreadPoolExecutor$ScheduledFutureTask.run(ScheduledThreadPoolExecutor.java:204)
+	at java.util.concurrent.ThreadPoolExecutor$Worker.runTask(ThreadPoolExecutor.java:886)
+	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:908)
+	at java.lang.Thread.run(Thread.java:680)
+2012-05-14 12:49:33,503  INFO  /10.37.129.2:5702 [dev] Address[10.37.129.2:5702] is RESTARTED
+2012-05-14 12:49:33,519 FATAL  Failed to run PartitionMonitor.scanForPartitionChanges
+java.lang.IllegalStateException: Hazelcast Instance is not active!
+	at com.hazelcast.impl.FactoryImpl.initialChecks(FactoryImpl.java:697)
+	at com.hazelcast.impl.LockProxyImpl.ensure(LockProxyImpl.java:56)
+	at com.hazelcast.impl.LockProxyImpl.unlock(LockProxyImpl.java:110)
+	at com.hazelblast.server.ServiceContextContainer.removePartition(ServiceContextContainer.java:185)
+	at com.hazelblast.server.ServiceContextContainer.scanForPartitionChanges(ServiceContextContainer.java:148)
+	at com.hazelblast.server.ServiceContextServer$ScanTask.run(ServiceContextServer.java:397)
+	at java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:441)
+	at java.util.concurrent.FutureTask$Sync.innerRunAndReset(FutureTask.java:317)
+	at java.util.concurrent.FutureTask.runAndReset(FutureTask.java:150)
+	at java.util.concurrent.ScheduledThreadPoolExecutor$ScheduledFutureTask.access$101(ScheduledThreadPoolExecutor.java:98)
+	at java.util.concurrent.ScheduledThreadPoolExecutor$ScheduledFutureTask.runPeriodic(ScheduledThreadPoolExecutor.java:180)
+	at java.util.concurrent.ScheduledThreadPoolExecutor$ScheduledFutureTask.run(ScheduledThreadPoolExecutor.java:204)
+	at java.util.concurrent.ThreadPoolExecutor$Worker.runTask(ThreadPoolExecutor.java:886)
+	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:908)
+	at java.lang.Thread.run(Thread.java:680)
+2012-05-14 12:49:33,520  INFO  /10.37.129.2:5702 [dev] Destroying node initializer.
+2012-05-14 12:49:33,549  INFO  /10.37.129.2:5702 [dev] Hazelcast Shutdown is completed in 729 ms.
+2012-05-14 12:49:33,570  WARN  /10.37.129.2:5701 [dev] hz._hzInstance_1_dev.IO.thread-1 Closing socket to endpoint Address[10.37.129.2:5702], Cause:java.io.EOFException
+2012-05-14 12:49:33,571 FATAL  [default] ServiceContext.onPartitionRemoved(0) failed
+java.lang.IllegalStateException: Hazelcast Instance is not active!
+	at com.hazelcast.impl.FactoryImpl.initialChecks(FactoryImpl.java:697)
+	at com.hazelcast.impl.MultiMapProxyImpl.ensure(MultiMapProxyImpl.java:45)
+	at com.hazelcast.impl.MultiMapProxyImpl.get(MultiMapProxyImpl.java:103)
+	at com.employee.server.DefaultEmployeeService.onPartitionRemoved(DefaultEmployeeService.java:62)
+	at com.hazelblast.server.spring.SpringServiceContextFactory$SpringServiceContext.onPartitionRemoved(SpringServiceContextFactory.java:87)
+	at com.hazelblast.server.ServiceContextContainer.removePartition(ServiceContextContainer.java:173)
+	at com.hazelblast.server.ServiceContextContainer.scanForPartitionChanges(ServiceContextContainer.java:148)
+	at com.hazelblast.server.ServiceContextServer$ScanTask.run(ServiceContextServer.java:397)
+	at java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:441)
+	at java.util.concurrent.FutureTask$Sync.innerRunAndReset(FutureTask.java:317)
+	at java.util.concurrent.FutureTask.runAndReset(FutureTask.java:150)
+	at java.util.concurrent.ScheduledThreadPoolExecutor$ScheduledFutureTask.access$101(ScheduledThreadPoolExecutor.java:98)
+	at java.util.concurrent.ScheduledThreadPoolExecutor$ScheduledFutureTask.runPeriodic(ScheduledThreadPoolExecutor.java:180)
+	at java.util.concurrent.ScheduledThreadPoolExecutor$ScheduledFutureTask.run(ScheduledThreadPoolExecutor.java:204)
+	at java.util.concurrent.ThreadPoolExecutor$Worker.runTask(ThreadPoolExecutor.java:886)
+	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:908)
+	at java.lang.Thread.run(Thread.java:680)
+2012-05-14 12:49:33,681 FATAL  Failed to run PartitionMonitor.scanForPartitionChanges
+java.lang.IllegalStateException: Hazelcast Instance is not active!
+	at com.hazelcast.impl.FactoryImpl.initialChecks(FactoryImpl.java:697)
+	at com.hazelcast.impl.LockProxyImpl.ensure(LockProxyImpl.java:56)
+	at com.hazelcast.impl.LockProxyImpl.unlock(LockProxyImpl.java:110)
+	at com.hazelblast.server.ServiceContextContainer.removePartition(ServiceContextContainer.java:185)
+	at com.hazelblast.server.ServiceContextContainer.scanForPartitionChanges(ServiceContextContainer.java:148)
+	at com.hazelblast.server.ServiceContextServer$ScanTask.run(ServiceContextServer.java:397)
+	at java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:441)
+	at java.util.concurrent.FutureTask$Sync.innerRunAndReset(FutureTask.java:317)
+	at java.util.concurrent.FutureTask.runAndReset(FutureTask.java:150)
+	at java.util.concurrent.ScheduledThreadPoolExecutor$ScheduledFutureTask.access$101(ScheduledThreadPoolExecutor.java:98)
+	at java.util.concurrent.ScheduledThreadPoolExecutor$ScheduledFutureTask.runPeriodic(ScheduledThreadPoolExecutor.java:180)
+	at java.util.concurrent.ScheduledThreadPoolExecutor$ScheduledFutureTask.run(ScheduledThreadPoolExecutor.java:204)
+	at java.util.concurrent.ThreadPoolExecutor$Worker.runTask(ThreadPoolExecutor.java:886)
+	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:908)
+	at java.lang.Thread.run(Thread.java:680)
+2012-05-14 12:49:33,685  INFO  /10.37.129.2:5701 [dev] Destroying node initializer.
+2012-05-14 12:49:33,685  INFO  /10.37.129.2:5701 [dev] Hazelcast Shutdown is completed in 863 ms.
