@@ -6,10 +6,12 @@ import com.hazelblast.api.Partitioned;
 import com.hazelblast.api.RemoteInterface;
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.PartitionAware;
+import com.hazelcast.core.Transaction;
 import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.List;
+import java.util.Map;
 
 import static org.junit.Assert.*;
 

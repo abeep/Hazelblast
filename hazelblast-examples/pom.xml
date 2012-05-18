@@ -19,8 +19,8 @@
     </parent>
 
     <modules>
-        <module>employee-management-api</module>
-        <module>employee-management-client</module>
-        <module>employee-management-server</module>
+        <module>shop-api</module>
+        <module>shop-client</module>
+        <module>shop-server</module>
     </modules>
 </project>

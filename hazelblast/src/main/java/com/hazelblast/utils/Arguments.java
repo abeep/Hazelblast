@@ -10,6 +10,7 @@ import static java.lang.String.format;
  */
 public final class Arguments {
 
+
     public static <T> T notNull(String name, T object) {
         if (object == null) {
             throw new NullPointerException(format("'%s' can't be null", name));
