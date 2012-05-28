@@ -19,7 +19,7 @@
 
     <dependencies>
         <dependency>
-            <groupId>com.hazelcast</groupId>
+            <groupId>com.hazelblast</groupId>
             <artifactId>hazelblast</artifactId>
             <version>${project.version}</version>
         </dependency>

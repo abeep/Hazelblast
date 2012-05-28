@@ -2,7 +2,12 @@ package com.hazelblast.server.spring;
 
 import com.hazelblast.server.ServiceContext;
 import com.hazelblast.server.ServiceContextFactory;
+import com.hazelblast.server.ServiceContextServer;
+import com.hazelcast.logging.ILogger;
+import com.hazelcast.logging.Logger;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+
+import java.util.logging.Level;
 
 import static com.hazelblast.utils.Arguments.notNull;
 import static java.lang.String.format;
@@ -35,6 +40,8 @@ import static java.lang.String.format;
  */
 public class SpringServiceContextFactory implements ServiceContextFactory {
 
+    private static final ILogger logger = Logger.getLogger(SpringServiceContextFactory.class.getName());
+
     public ServiceContext create() {
         return new SpringServiceContext();
     }
@@ -65,11 +72,13 @@ public class SpringServiceContextFactory implements ServiceContextFactory {
         }
 
         public void onStart() {
-            appContext.start();
+           logger.log(Level.INFO, "starting");
+           appContext.start();
         }
 
         public void onStop() {
-            appContext.stop();
+            logger.log(Level.INFO,"onStop");
+            appContext.close();
         }
 
         public void onPartitionAdded(int partitionId) {

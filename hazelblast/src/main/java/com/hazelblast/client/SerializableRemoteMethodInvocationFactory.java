@@ -65,7 +65,7 @@ public final class SerializableRemoteMethodInvocationFactory implements RemoteMe
 
                         return result;
                     } catch (PartitionMovedException e) {
-                        logger.log(Level.INFO, "PartitionMoved event encountered");
+                        logger.log(Level.INFO, "Remote method was invoked at wrong machine, partition has moved. Waiting and then retrying.");
                         Thread.sleep(100);
                     }
                 }

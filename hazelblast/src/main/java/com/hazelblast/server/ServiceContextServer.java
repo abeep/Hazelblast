@@ -1,6 +1,5 @@
 package com.hazelblast.server;
 
-import com.hazelcast.config.Config;
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.logging.ILogger;
@@ -108,7 +107,6 @@ public final class ServiceContextServer {
     /**
      * Gets a ServiceContext with the given name.
      *
-     *
      * @param name the name of the ServiceContext.
      * @return the found ServiceContext.
      * @throws NullPointerException  if name is null.
@@ -171,7 +169,7 @@ public final class ServiceContextServer {
         //should be caught by the proxy and the method call should be retried, now hoping that
 
         ServiceContextContainer container = getContainer(serviceContextName);
-        return container.executeMethod(serviceName,methodName,argTypes,args,partitionKey);
+        return container.executeMethod(serviceName, methodName, argTypes, args, partitionKey);
     }
 
     protected enum Status {Unstarted, Running, Terminating, Terminated}
@@ -203,10 +201,10 @@ public final class ServiceContextServer {
      * @throws NullPointerException     if serviceContext or serviceContextName is null.
      * @throws IllegalArgumentException if scanDelayMs smaller than zero.
      */
-    public ServiceContextServer(ServiceContext serviceContext, String serviceContextName, long scanDelayMs, HazelcastInstance hazelcastInstance) {
+    public ServiceContextServer(ServiceContext serviceContext, final String serviceContextName, long scanDelayMs, HazelcastInstance hazelcastInstance) {
         notNull("serviceContext", serviceContext);
         notNull("serviceContextName", serviceContextName);
-        notNull("hazelcastInstance",hazelcastInstance);
+        notNull("hazelcastInstance", hazelcastInstance);
 
         if (scanDelayMs < 0) {
             throw new IllegalArgumentException(format("scanDelayMs can't be smaller or equal than zero, scanDelayMs was [%s]", scanDelayMs));
@@ -216,6 +214,31 @@ public final class ServiceContextServer {
         this.scanDelayMs = scanDelayMs;
         this.scheduler.setContinueExistingPeriodicTasksAfterShutdownPolicy(true);
         this.container = new ServiceContextContainer(serviceContext, serviceContextName, hazelcastInstance);
+
+        Runtime.getRuntime().addShutdownHook(new Thread() {
+            {
+                setName("ServiceContextServer-" + serviceContextName + "-shutdownHook-thread");
+            }
+
+            public void run() {
+                if (logger.isLoggable(Level.INFO)) {
+                    logger.log(Level.INFO, format("[%s] Shutdown hook is shutting down ServiceContextServer'", serviceContextName));
+                }
+                shutdown();
+
+                if (logger.isLoggable(Level.INFO)) {
+                    logger.log(Level.INFO, format("[%s] Shutdown hook is awaiting termination", serviceContextName));
+                }
+                try {
+                    awaitTermination();
+                } catch (InterruptedException e) {
+                }
+
+                if (logger.isLoggable(Level.INFO)) {
+                    logger.log(Level.INFO, format("[%s] Shutdown hook is finished", serviceContextName));
+                }
+            }
+        });
     }
 
     /**
