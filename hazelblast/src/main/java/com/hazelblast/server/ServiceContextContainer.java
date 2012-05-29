@@ -24,7 +24,7 @@ import static java.lang.String.format;
  */
 final class ServiceContextContainer {
 
-    private  final ILogger logger = Logger.getLogger(getClass().getName());
+    private final ILogger logger = Logger.getLogger(getClass().getName());
 
     private final ServiceContext serviceContext;
     private final Set<Integer> managedPartitions = Collections.synchronizedSet(new HashSet<Integer>());
@@ -33,7 +33,7 @@ final class ServiceContextContainer {
     private final PartitionService partitionService;
     private final Member self;
     private final Map<Integer, ILock> partitionLockMap = new HashMap<Integer, ILock>();
-    //private final List<Partition> partitions = new ArrayList<Partition>();
+    private final List<Partition> partitions = new ArrayList<Partition>();
 
     /**
      * Creates a new ServiceContextContainer with the given ServiceContext.
@@ -57,10 +57,8 @@ final class ServiceContextContainer {
             int partitionId = partition.getPartitionId();
             ILock lock = hazelcastInstance.getLock("PartitionLock-" + partitionId);
             partitionLockMap.put(partitionId, lock);
-        //    partitions.add(partition);
+            partitions.add(partition);
         }
-
-        logger.log(Level.INFO,"--- Partitions: "+partitionLockMap.size());
     }
 
     /**
@@ -130,9 +128,9 @@ final class ServiceContextContainer {
 
         boolean changeDetected = false;
 
-        for (Partition partition : partitionService.getPartitions()) {
+        for (Partition partition : partitions) {
             int partitionId = partition.getPartitionId();
-           if (self.equals(partition.getOwner())) {
+            if (self.equals(partition.getOwner())) {
                 boolean startManagingPartition = !managedPartitions.contains(partitionId);
 
                 if (startManagingPartition) {
@@ -151,9 +149,9 @@ final class ServiceContextContainer {
         }
 
         if (changeDetected && logger.isLoggable(Level.INFO)) {
-            long durationMs = System.currentTimeMillis()-startMs;
+            long durationMs = System.currentTimeMillis() - startMs;
             logger.log(Level.INFO, format("[%s] Scan complete, managed partitions [%s], total time [%s] ms",
-                    serviceContextName, managedPartitions.size(),durationMs));
+                    serviceContextName, managedPartitions.size(), durationMs));
         }
     }
 
@@ -240,13 +238,7 @@ final class ServiceContextContainer {
                 //will be caught by the proxy, and the call will be retried.
                 throw new PartitionMovedException(format("Partition [%s] is not found on member [%s]", partitionId, self));
             }
-
-            //ISemaphore lock = partitionLockMap.get(partition.getPartitionId());
-            //if (lock.availablePermits() == 1) {
-            //    //the pa
-            //}
         }
-
 
         Object service = serviceContext.getService(serviceName);
 

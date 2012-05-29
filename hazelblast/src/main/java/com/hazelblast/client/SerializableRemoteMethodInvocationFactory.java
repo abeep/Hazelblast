@@ -1,10 +1,11 @@
 package com.hazelblast.client;
 
-import com.hazelblast.server.PartitionMovedException;
 import com.hazelblast.server.ServiceContextServer;
+import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.PartitionAware;
 import com.hazelcast.logging.ILogger;
 import com.hazelcast.logging.Logger;
+import com.hazelcast.partition.Partition;
 
 import java.io.Serializable;
 import java.util.concurrent.Callable;
@@ -54,21 +55,13 @@ public final class SerializableRemoteMethodInvocationFactory implements RemoteMe
             }
 
             try {
-                //todo: instead of looping till the end of time, some kind of timeout.
-                while (true) {
-                    try {
-                        Object result = ServiceContextServer.executeMethod(serviceContext, serviceName, methodName, argTypes, args, partitionKey);
-                        if (logger.isLoggable(Level.FINE)) {
-                            //todo: better message
-                            logger.log(Level.FINE, format("finished %s.%s in serviceContext %s", serviceName, methodName, serviceName));
-                        }
-
-                        return result;
-                    } catch (PartitionMovedException e) {
-                        logger.log(Level.INFO, "Remote method was invoked at wrong machine, partition has moved. Waiting and then retrying.");
-                        Thread.sleep(100);
-                    }
+                Object result = ServiceContextServer.executeMethod(serviceContext, serviceName, methodName, argTypes, args, partitionKey);
+                if (logger.isLoggable(Level.FINE)) {
+                    //todo: better message
+                    logger.log(Level.FINE, format("finished %s.%s in serviceContext %s", serviceName, methodName, serviceName));
                 }
+
+                return result;
             } catch (Exception e) {
                 //todo: improved exception, want to include args
                 if (logger.isLoggable(Level.FINE)) {

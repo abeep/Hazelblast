@@ -1,6 +1,10 @@
 package com.hazelblast.client;
 
-import com.hazelblast.api.*;
+import com.hazelblast.api.LoadBalanced;
+import com.hazelblast.api.PartitionKey;
+import com.hazelblast.api.Partitioned;
+import com.hazelblast.api.RemoteInterface;
+import com.hazelblast.server.PartitionMovedException;
 import com.hazelblast.server.ServiceContextServer;
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.Member;
@@ -296,27 +300,35 @@ public final class DefaultProxyProvider implements ProxyProvider {
                 startTimeNs = System.nanoTime();
             }
 
-            Object result;
-            switch (methodInfo.methodType) {
-                case FORK_JOIN:
-                    result = invokeForkJoin(methodInfo, args);
-                    break;
-                case PARTITIONED:
-                    result = invokePartitioned(methodInfo, args);
-                    break;
-                case LOAD_BALANCED:
-                    result = invokeLoadBalancer(methodInfo, args);
-                    break;
-                default:
-                    throw new RuntimeException("unhandeled method type: " + methodInfo.methodType);
-            }
+             //TODO: Number of retries should be configurable in the future.
+            while (true) {
+                try {
+                    Object result;
+                    switch (methodInfo.methodType) {
+                        case FORK_JOIN:
+                            result = invokeForkJoin(methodInfo, args);
+                            break;
+                        case PARTITIONED:
+                            result = invokePartitioned(methodInfo, args);
+                            break;
+                        case LOAD_BALANCED:
+                            result = invokeLoadBalancer(methodInfo, args);
+                            break;
+                        default:
+                            throw new RuntimeException("unhandled method type: " + methodInfo.methodType);
+                    }
 
-            if (logger.isLoggable(Level.FINE)) {
-                long delayNs = System.nanoTime() - startTimeNs;
-                logger.log(Level.FINE, "Completed " + method + " in " + (delayNs / 1000) + " microseconds");
-            }
+                    if (logger.isLoggable(Level.FINE)) {
+                        long delayNs = System.nanoTime() - startTimeNs;
+                        logger.log(Level.FINE, "Completed " + method + " in " + (delayNs / 1000) + " microseconds");
+                    }
 
-            return result;
+                    return result;
+                } catch (PartitionMovedException e) {
+                    logger.log(Level.INFO,"Method invocation was send to bad partition, retrying");
+                    Thread.sleep(100);
+                }
+            }
         }
 
         private Object invokeNonProxied(Object proxy, Method method, Object[] args) {
