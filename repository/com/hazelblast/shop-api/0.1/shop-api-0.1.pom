@@ -1,0 +1,26 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <packaging>jar</packaging>
+
+    <artifactId>shop-api</artifactId>
+    <name>Hazelblast Shop Example - Api package</name>
+
+    <description>
+        Spring integration for the Hazelcast Services
+    </description>
+
+    <parent>
+        <groupId>com.hazelblast</groupId>
+        <artifactId>hazelblast-examples</artifactId>
+        <version>0.1</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.hazelblast</groupId>
+            <artifactId>hazelblast</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+    </dependencies>
+</project>
