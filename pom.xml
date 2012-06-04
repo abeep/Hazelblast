@@ -36,6 +36,12 @@
         </snapshotRepository>
     </distributionManagement>
 
+    <scm>
+        <connection>scm:git:git@github.com:pveentjer/Hazelblast.git</connection>
+        <url>scm:git:git@github.com:pveentjer/Hazelblast.git</url>
+        <developerConnection>scm:git:git@github.com:pveentjer/Hazelblast.git</developerConnection>
+    </scm>
+
     <build>
         <plugins>
             <plugin>
