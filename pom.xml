@@ -19,9 +19,16 @@
         <mockito.version>1.9.0</mockito.version>
     </properties>
 
-     <modules>
+    <modules>
         <module>hazelblast</module>
         <module>hazelblast-spring</module>
         <module>hazelblast-examples</module>
     </modules>
+
+    <distributionManagement>
+        <repository>
+            <id>gh-pages</id>
+            <url>file:///${basedir}/../hazelblast-pages/repository/</url>
+        </repository>
+    </distributionManagement>
 </project>
