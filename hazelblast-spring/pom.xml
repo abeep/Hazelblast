@@ -10,6 +10,13 @@
         Spring integration for the Hazelblast
     </description>
 
+    <parent>
+        <groupId>com.hazelblast</groupId>
+        <artifactId>hazelblast-root</artifactId>
+        <version>0.1-SNAPSHOT</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
+
     <dependencies>
         <dependency>
             <groupId>com.hazelblast</groupId>
@@ -29,12 +36,5 @@
             <version>${spring.version}</version>
         </dependency>
     </dependencies>
-
-    <parent>
-        <groupId>com.hazelblast</groupId>
-        <artifactId>hazelblast-root</artifactId>
-        <version>0.1-SNAPSHOT</version>
-        <relativePath>../pom.xml</relativePath>
-    </parent>
 
 </project>
