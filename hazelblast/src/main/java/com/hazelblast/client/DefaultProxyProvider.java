@@ -1,9 +1,6 @@
 package com.hazelblast.client;
 
-import com.hazelblast.api.LoadBalanced;
-import com.hazelblast.api.PartitionKey;
-import com.hazelblast.api.Partitioned;
-import com.hazelblast.api.RemoteInterface;
+import com.hazelblast.api.*;
 import com.hazelblast.server.PartitionMovedException;
 import com.hazelblast.server.ServiceContextServer;
 import com.hazelcast.core.Hazelcast;
@@ -265,9 +262,9 @@ public final class DefaultProxyProvider implements ProxyProvider {
     private static List<MethodType> getMethodTypes(Method method) {
         List<MethodType> types = new LinkedList<MethodType>();
 
-        //if (method.getAnnotation(ForkJoin.class) != null) {
-        //    types.add(MethodType.FORK_JOIN);
-        //}
+        if (method.getAnnotation(ForkJoin.class) != null) {
+            types.add(MethodType.FORK_JOIN);
+        }
 
         if (method.getAnnotation(LoadBalanced.class) != null) {
             types.add(MethodType.LOAD_BALANCED);

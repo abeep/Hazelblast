@@ -1,11 +1,12 @@
 package com.hazelblast.api;
 
-/**
- * Created with IntelliJ IDEA.
- * User: alarmnummer
- * Date: 6/5/12
- * Time: 2:47 PM
- * To change this template use File | Settings | File Templates.
- */
-public class ForkJoin {
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.METHOD)
+public @interface ForkJoin {
+    String reducer() default "com.hazelblast.api.NoOpReducer";
 }

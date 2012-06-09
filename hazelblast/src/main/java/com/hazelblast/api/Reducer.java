@@ -1,11 +1,10 @@
 package com.hazelblast.api;
 
-/**
- * Created with IntelliJ IDEA.
- * User: alarmnummer
- * Date: 6/5/12
- * Time: 2:56 PM
- * To change this template use File | Settings | File Templates.
- */
+import com.hazelcast.core.DistributedTask;
+
+import java.util.Collection;
+
 public interface Reducer {
+
+    Collection reduce(DistributedTask distributedTask);
 }
