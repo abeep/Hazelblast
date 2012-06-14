@@ -3,6 +3,10 @@ Hazelblast
 
 A layer on top of Hazelcast to provide transparent remote interfaces.
 
+News
+-------------------------
+* 10 June 2012: Hazelblast 0.1 has been released
+
 Example
 -------------------------
 
@@ -47,3 +51,33 @@ In the 0.2 release also the ForkJoin will be added:
 * ForkJoin: the call gets send to all machines, and the results are aggregated.
 
 For a full example check out the Hazelblast-examples module
+
+Maven
+-------------------------
+
+Hazelblast can be used from Maven like this:
+
+     <distributionManagement>
+        <!-- use this if you want to work against a final-->
+        <repository>
+            <id>hazelblast-repository</id>
+            <url>http://pveentjer.github.com/Hazelblast/repository//</url>
+        </repository>
+
+        <!-- use this if you want to use a snapshot of multiverse -->
+        <snapshotRepository>
+            <id>hazelblast-snapshot-repository</id>
+            <url>http://pveentjer.github.com/Hazelblast/snapshot-repository/</url>
+        </snapshotRepository>
+    </distributionManagement>
+
+
+And add the following dependency:
+
+       <dependencies>
+            <dependency>
+                <groupId>com.hazelblast</groupId>
+                <artifactId>hazelblast</artifactId>
+                <version>0.1</version>
+            </dependency>
+        </dependencies>
