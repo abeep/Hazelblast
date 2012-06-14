@@ -139,142 +139,11 @@ public class DefaultProxyProviderTest {
         void method(@PartitionKey(property = "nonexising") String s);
     }
 
-    @Test
-    public void partitioned_whenPartitionAwareObjectReturnsNull() {
-        DefaultProxyProvider proxyProvider = new DefaultProxyProvider();
-        PartitionedService service = proxyProvider.getProxy(PartitionedService.class);
-
-        try {
-            PartitionAwareObject p = new PartitionAwareObject(null);
-            service.valid(p);
-            fail();
-        } catch (NullPointerException e) {
-
-        }
-    }
-
-    @Test
-    public void partitioned_whenPartitionKeyWithPropertyIsNull() {
-        DefaultProxyProvider proxyProvider = new DefaultProxyProvider();
-        PartitionedService service = proxyProvider.getProxy(PartitionedService.class);
-
-        try {
-            service.validWithProperty(null);
-            fail();
-        } catch (NullPointerException e) {
-
-        }
-    }
-
-    @Test
-    public void partitioned_whenPartitionKeyArgumentWithPropertyReturnsNull() {
-        DefaultProxyProvider proxyProvider = new DefaultProxyProvider();
-        PartitionedService service = proxyProvider.getProxy(PartitionedService.class);
-
-        try {
-            Person p = new Person(null);
-            service.validWithProperty(p);
-            fail();
-        } catch (NullPointerException e) {
-
-        }
-    }
-
-    @Test
-    public void partitioned_whenNullPartitionedKeyArgument() {
-        DefaultProxyProvider proxyProvider = new DefaultProxyProvider();
-        PartitionedService service = proxyProvider.getProxy(PartitionedService.class);
-        try {
-            service.valid(null);
-            fail();
-        } catch (NullPointerException e) {
-        }
-    }
-
-    @Test
-    public void partitioned_normalPartitionKey() {
-        StubExecutorService executorService = new StubExecutorService();
-        executorService.result = "";
-        DefaultProxyProvider proxyProvider = new DefaultProxyProvider("default", executorService);
-
-        PartitionedService service = proxyProvider.getProxy(PartitionedService.class);
-
-        String arg = "foo";
-        service.valid(arg);
-
-        SerializableRemoteMethodInvocationFactory.RemoteMethodInvocation x = (SerializableRemoteMethodInvocationFactory.RemoteMethodInvocation) executorService.callable;
-        assertEquals(arg, x.getPartitionKey());
-    }
-
-    @Test
-    public void partitioned_partitionKeyWithProperty() {
-        StubExecutorService executorService = new StubExecutorService();
-        executorService.result = "";
-        DefaultProxyProvider proxyProvider = new DefaultProxyProvider("default", executorService);
-
-        PartitionedService service = proxyProvider.getProxy(PartitionedService.class);
-
-        String name = "peter";
-        Person person = new Person(name);
-        service.validWithProperty(person);
-
-        SerializableRemoteMethodInvocationFactory.RemoteMethodInvocation x = (SerializableRemoteMethodInvocationFactory.RemoteMethodInvocation) executorService.callable;
-        assertEquals(name, x.getPartitionKey());
-    }
-
-    @Test
-    public void partitioned_partitionKeyWithPartitionAware() {
-        StubExecutorService executorService = new StubExecutorService();
-        executorService.result = "";
-        DefaultProxyProvider proxyProvider = new DefaultProxyProvider("default", executorService);
-
-        PartitionedService service = proxyProvider.getProxy(PartitionedService.class);
-
-        String partitionKey = "peter";
-        PartitionAwareObject person = new PartitionAwareObject(partitionKey);
-        service.valid(person);
-
-        SerializableRemoteMethodInvocationFactory.RemoteMethodInvocation x = (SerializableRemoteMethodInvocationFactory.RemoteMethodInvocation) executorService.callable;
-        assertEquals(partitionKey, x.getPartitionKey());
-    }
-
-    @RemoteInterface
-    interface PartitionedService {
-        @Partitioned
-        void valid(@PartitionKey Object a);
-
-        @Partitioned
-        void validWithProperty(@PartitionKey(property = "name") Person a);
-    }
-
     @RemoteInterface
     interface DummyRemoteService {
     }
 
-    static class Person {
-        final String name;
-
-        Person(String name) {
-            this.name = name;
-        }
-
-        public String name() {
-            return name;
-        }
-    }
-
-    static class PartitionAwareObject implements PartitionAware {
-        private final Object partitionKey;
-
-        PartitionAwareObject(Object partitionKey) {
-            this.partitionKey = partitionKey;
-        }
-
-        public Object getPartitionKey() {
-            return partitionKey;
-        }
-    }
-
+    /*
     @Test
     public void test_toString() {
         DefaultProxyProvider proxyProvider = new DefaultProxyProvider();
@@ -299,5 +168,5 @@ public class DefaultProxyProviderTest {
 
         assertTrue(service.equals(service));
         assertFalse(service.equals("foo"));
-    }
+    } */
 }

@@ -4,6 +4,7 @@ import com.hazelblast.api.LoadBalanced;
 import com.hazelblast.api.PartitionKey;
 import com.hazelblast.api.Partitioned;
 import com.hazelblast.api.RemoteInterface;
+import com.hazelblast.api.exceptions.RemoteMethodTimeoutException;
 import com.hazelblast.server.PartitionMovedException;
 import com.hazelblast.server.ServiceContextServer;
 import com.hazelcast.core.Hazelcast;
@@ -171,65 +172,86 @@ public final class DefaultProxyProvider implements ProxyProvider {
     }
 
     private RemoteMethodInfo analyzeMethod(Method method) {
-        List<MethodType> methodTypes = getMethodTypes(method);
+        Annotation annotation = getRemotingAnnotation(method);
 
-        if (methodTypes.isEmpty()) {
+        long timeoutMs;
+        int partitionKeyIndex = -1;
+        Method partitionKeyProperty = null;
+        MethodType methodType;
+        if (annotation instanceof LoadBalanced) {
+            LoadBalanced loadBalancedAnnotation = (LoadBalanced) annotation;
+            timeoutMs = loadBalancedAnnotation.timeoutMs();
+            methodType = MethodType.LOAD_BALANCED;
+        } else if (annotation instanceof Partitioned) {
+            Partitioned partitionedAnnotation = (Partitioned) annotation;
+            timeoutMs = partitionedAnnotation.timeoutMs();
+            methodType = MethodType.PARTITIONED;
+            PartitionKeyInfo partitionKeyInfo = getPartitionKeyInfo(method);
+            partitionKeyIndex = partitionKeyInfo.index;
+
+            if (partitionKeyInfo.property != null) {
+                Class argType = method.getParameterTypes()[partitionKeyIndex];
+
+                try {
+                    partitionKeyProperty = argType.getMethod(partitionKeyInfo.property);
+                    if (partitionKeyProperty.getReturnType().equals(Void.class)) {
+                        throw new IllegalArgumentException(
+                                format("Argument with index '%s' of type '%s' in PartitionedMethod '%s' has an invalid @PartitionKey.property configuration. " +
+                                        "The property method '%s' can't return void", partitionKeyIndex + 1, argType.getName(), method, partitionKeyProperty));
+                    }
+                } catch (NoSuchMethodException e) {
+                    throw new IllegalArgumentException(
+                            format("Argument with index '%s' of type '%s' in PartitionedMethod '%s' has an invalid @PartitionKey.property configuration. " +
+                                    "The property method '%s' doesn't exist", partitionKeyIndex + 1, argType.getName(), method, partitionKeyProperty));
+                }
+            }
+
+        } else {
+            throw new IllegalStateException("Unrecognized method annotation: " + annotation);
+        }
+
+        return new RemoteMethodInfo(method, methodType, partitionKeyIndex, partitionKeyProperty, timeoutMs);
+    }
+
+    private PartitionKeyInfo getPartitionKeyInfo(Method method) {
+        if (method.getParameterTypes().length == 0) {
+            throw new IllegalArgumentException(format("@Partitioned method '%s', should have a least 1 argument to use as @PartitionKey.", method));
+        }
+
+        List<PartitionKeyInfo> partitionKeyInfoList = getPartitionKeyIndex(method);
+        if (partitionKeyInfoList.isEmpty()) {
+            throw new IllegalArgumentException(format("@PartitionedMethod '%s' has no argument with the @PartitionKey annotation", method));
+        }
+
+        if (partitionKeyInfoList.size() > 1) {
+            throw new IllegalArgumentException(format("@PartitionedMethod '%s' has too many arguments with the @PartitionKey annotation", method));
+        }
+
+        return partitionKeyInfoList.get(0);
+    }
+
+    private Annotation getRemotingAnnotation(Method method) {
+        List<Annotation> annotations = new LinkedList<Annotation>();
+
+        Annotation loadBalanced = method.getAnnotation(LoadBalanced.class);
+        if (loadBalanced != null) {
+            annotations.add(loadBalanced);
+        }
+
+        Annotation partitioned = method.getAnnotation(Partitioned.class);
+        if (partitioned != null) {
+            annotations.add(partitioned);
+        }
+
+        if (annotations.isEmpty()) {
             throw new IllegalArgumentException("Method '%s' is missing a remoting annotation");
         }
 
-        if (methodTypes.size() > 1) {
+        if (annotations.size() > 1) {
             throw new IllegalArgumentException("Method '%s' has too many remoting annotations");
         }
 
-        MethodType methodType = methodTypes.get(0);
-        int partitionKeyIndex = -1;
-        Method partitionKeyProperty = null;
-        switch (methodType) {
-            case FORK_JOIN:
-                break;
-            case LOAD_BALANCED:
-                break;
-            case PARTITIONED:
-                if (method.getParameterTypes().length == 0) {
-                    throw new IllegalArgumentException(format("@Partitioned method '%s', should have a least 1 argument to use as @PartitionKey.", method));
-                }
-
-                List<PartitionKeyInfo> partitionKeyInfoList = getPartitionKeyIndex(method);
-                if (partitionKeyInfoList.isEmpty()) {
-                    throw new IllegalArgumentException(format("@PartitionedMethod '%s' has no argument with the @PartitionKey annotation", method));
-                }
-
-                if (partitionKeyInfoList.size() > 1) {
-                    throw new IllegalArgumentException(format("@PartitionedMethod '%s' has too many arguments with the @PartitionKey annotation", method));
-                }
-
-                PartitionKeyInfo partitionKeyInfo = partitionKeyInfoList.get(0);
-                partitionKeyIndex = partitionKeyInfo.index;
-
-                if (partitionKeyInfo.property != null) {
-                    Class argType = method.getParameterTypes()[partitionKeyIndex];
-
-                    try {
-                        partitionKeyProperty = argType.getMethod(partitionKeyInfo.property);
-                        if (partitionKeyProperty.getReturnType().equals(Void.class)) {
-                            throw new IllegalArgumentException(
-                                    format("Argument with index '%s' of type '%s' in PartitionedMethod '%s' has an invalid @PartitionKey.property configuration. " +
-                                            "The property method '%s' can't return void", partitionKeyIndex + 1, argType.getName(), method, partitionKeyProperty));
-                        }
-                    } catch (NoSuchMethodException e) {
-                        throw new IllegalArgumentException(
-                                format("Argument with index '%s' of type '%s' in PartitionedMethod '%s' has an invalid @PartitionKey.property configuration. " +
-                                        "The property method '%s' doesn't exist", partitionKeyIndex + 1, argType.getName(), method, partitionKeyProperty));
-                    }
-                }
-
-                break;
-            default:
-                throw new IllegalStateException("Unrecognized method type: " + methodType);
-        }
-
-        return new RemoteMethodInfo(method, methodType, partitionKeyIndex, partitionKeyProperty);
-
+        return annotations.get(0);
     }
 
     static class PartitionKeyInfo {
@@ -262,24 +284,6 @@ public final class DefaultProxyProvider implements ProxyProvider {
         return result;
     }
 
-    private static List<MethodType> getMethodTypes(Method method) {
-        List<MethodType> types = new LinkedList<MethodType>();
-
-        //if (method.getAnnotation(ForkJoin.class) != null) {
-        //    types.add(MethodType.FORK_JOIN);
-        //}
-
-        if (method.getAnnotation(LoadBalanced.class) != null) {
-            types.add(MethodType.LOAD_BALANCED);
-        }
-
-        if (method.getAnnotation(Partitioned.class) != null) {
-            types.add(MethodType.PARTITIONED);
-        }
-
-        return types;
-    }
-
     private class InvocationHandlerImpl implements InvocationHandler {
 
         private final RemoteInterfaceInfo remoteInterfaceInfo;
@@ -300,7 +304,7 @@ public final class DefaultProxyProvider implements ProxyProvider {
                 startTimeNs = System.nanoTime();
             }
 
-             //TODO: Number of retries should be configurable in the future.
+            //TODO: Number of retries should be configurable in the future.
             while (true) {
                 try {
                     Object result;
@@ -325,7 +329,7 @@ public final class DefaultProxyProvider implements ProxyProvider {
 
                     return result;
                 } catch (PartitionMovedException e) {
-                    logger.log(Level.INFO,"Method invocation was send to bad partition, retrying");
+                    logger.log(Level.INFO, "Method invocation was send to bad partition, retrying");
                     Thread.sleep(100);
                 }
             }
@@ -353,7 +357,7 @@ public final class DefaultProxyProvider implements ProxyProvider {
             MultiTask task = new MultiTask(callable, getPuMembers());
             executorService.execute(task);
             try {
-                task.get();
+                task.get(remoteMethodInfo.timeoutMs, TimeUnit.MILLISECONDS);
             } catch (ExecutionException e) {
                 throw e.getCause();
             }
@@ -367,9 +371,13 @@ public final class DefaultProxyProvider implements ProxyProvider {
 
             Future future = executorService.submit(callable);
             try {
-                return future.get();
+                return future.get(remoteMethodInfo.timeoutMs, TimeUnit.MILLISECONDS);
             } catch (ExecutionException e) {
                 throw e.getCause();
+            } catch (TimeoutException e) {
+                throw new RemoteMethodTimeoutException(
+                        format("method '%s' failed to complete in the %s ms",
+                                remoteMethodInfo.method.toString(), remoteMethodInfo.timeoutMs), e);
             }
         }
 
@@ -382,9 +390,13 @@ public final class DefaultProxyProvider implements ProxyProvider {
 
             Future future = executorService.submit(callable);
             try {
-                return future.get();
+                return future.get(remoteMethodInfo.timeoutMs, TimeUnit.MILLISECONDS);
             } catch (ExecutionException e) {
                 throw e.getCause();
+            } catch (TimeoutException e) {
+                throw new RemoteMethodTimeoutException(
+                        format("method '%s' failed to complete in the %s ms",
+                                remoteMethodInfo.method.toString(), remoteMethodInfo.timeoutMs), e);
             }
         }
 
@@ -449,12 +461,15 @@ public final class DefaultProxyProvider implements ProxyProvider {
         final int partitionKeyIndex;
         final Method partitionKeyProperty;
         final String[] argTypes;
+        final long timeoutMs;
 
-        private RemoteMethodInfo(Method method, MethodType methodType, int partitionKeyIndex, Method partitionKeyProperty) {
+        private RemoteMethodInfo(Method method, MethodType methodType, int partitionKeyIndex,
+                                 Method partitionKeyProperty, long timeoutMs) {
             this.method = method;
             this.methodType = methodType;
             this.partitionKeyIndex = partitionKeyIndex;
             this.partitionKeyProperty = partitionKeyProperty;
+            this.timeoutMs = timeoutMs;
 
             Class[] parameterTypes = method.getParameterTypes();
             argTypes = new String[parameterTypes.length];
