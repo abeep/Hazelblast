@@ -52,7 +52,7 @@ For a full example check out the Hazelblast-examples module
 
 Maven
 -------------------------
-First a repo needs to be added like this:
+First a repo needs to be added:
 
      <distributionManagement>
         <!-- use this if you want to work against a final-->
