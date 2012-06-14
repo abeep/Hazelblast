@@ -61,7 +61,7 @@ Hazelblast can be used from Maven like this:
         <!-- use this if you want to work against a final-->
         <repository>
             <id>hazelblast-repository</id>
-            <url>http://pveentjer.github.com/Hazelblast/repository//</url>
+            <url>http://pveentjer.github.com/Hazelblast/repository/</url>
         </repository>
 
         <!-- use this if you want to use a snapshot of multiverse -->
