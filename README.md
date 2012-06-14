@@ -1,6 +1,5 @@
 Hazelblast
 -------------------------
-
 A layer on top of Hazelcast to provide transparent remote interfaces.
 
 News
@@ -9,7 +8,6 @@ News
 
 Example
 -------------------------
-
 This interface can be shared between the client (that calls this service) and the server (that implements
 this service). The fire method is routed on the employeeId.
 
@@ -54,8 +52,7 @@ For a full example check out the Hazelblast-examples module
 
 Maven
 -------------------------
-
-Hazelblast can be used from Maven like this:
+First a repo needs to be added like this:
 
      <distributionManagement>
         <!-- use this if you want to work against a final-->
@@ -81,3 +78,5 @@ And add the following dependency:
                 <version>0.1</version>
             </dependency>
         </dependencies>
+
+And you should be good to go.
