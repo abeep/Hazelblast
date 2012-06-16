@@ -66,7 +66,7 @@ public class LoadBalanced_DefaultProxyProviderTest {
     }
 
     static class LoadBalancerWithBadConstructor implements LoadBalancer {
-        public Member findTargetMember() {
+        public Member getNext() {
             return null;
         }
     }

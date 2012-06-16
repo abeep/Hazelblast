@@ -21,8 +21,8 @@ public class RoundRobinLoadBalancerTest {
     public void singleMember() {
         HazelcastInstance instance = Hazelcast.newHazelcastInstance(null);
         LoadBalancer loadBalancer = new RoundRobinLoadBalancer(instance);
-        Member member1 = loadBalancer.findTargetMember();
-        Member member2 = loadBalancer.findTargetMember();
+        Member member1 = loadBalancer.getNext();
+        Member member2 = loadBalancer.getNext();
         Member self = instance.getCluster().getLocalMember();
         assertEquals(self, member1);
         assertEquals(self, member2);
@@ -68,7 +68,7 @@ public class RoundRobinLoadBalancerTest {
 
         LoadBalancer loadBalancer = new RoundRobinLoadBalancer(instance1);
         for(int k=0;k<10;k++){
-            Member member = loadBalancer.findTargetMember();
+            Member member = loadBalancer.getNext();
             System.out.println(member);
         }
     }

@@ -1,6 +1,7 @@
 package com.hazelblast.loadbalancers;
 
 import com.hazelblast.api.LoadBalancer;
+import com.hazelblast.api.exceptions.NoMemberAvailableException;
 import com.hazelcast.core.*;
 
 import java.util.ArrayList;
@@ -24,10 +25,10 @@ public class RoundRobinLoadBalancer implements LoadBalancer {
         reset();
     }
 
-    public Member findTargetMember() {
+    public Member getNext() {
         List<Member> memberList = members.get();
         if(memberList.isEmpty()){
-            throw new IllegalStateException("RoundRobinLoadBalancer: There are no members in the cluster");
+            throw new NoMemberAvailableException("RoundRobinLoadBalancer: There are no members in the cluster");
         }
 
         int count = counter.getAndIncrement();

@@ -24,6 +24,8 @@ import static java.lang.String.format;
  * By default the DefaultProxyProvider is configured with the {@link SerializableRemoteMethodInvocationFactory}, so
  * it relies on the standard java serialization mechanism. If you want to use a different serialization mechanism, a
  * different factory can be injected.
+ * <p/>
+ * Proxy instances are cached; so requests for the same interface will return the same instance.
  *
  * @author Peter Veentjer.
  */
@@ -31,12 +33,13 @@ public final class DefaultProxyProvider implements ProxyProvider {
 
     private final static ILogger logger = Logger.getLogger(DefaultProxyProvider.class.getName());
 
+
+    private final HazelcastInstance hazelcastInstance;
     private final ExecutorService executorService;
+    private final Cluster cluster;
     private final ConcurrentMap<Class, Object> proxies = new ConcurrentHashMap<Class, Object>();
     private final String serviceContextName;
     private volatile RemoteMethodInvocationFactory remoteMethodInvocationFactory = SerializableRemoteMethodInvocationFactory.INSTANCE;
-
-    private final HazelcastInstance hazelcastInstance;
 
     /**
      * Creates a new ProxyProvider that connects to the 'default' ServiceContext.
@@ -49,7 +52,7 @@ public final class DefaultProxyProvider implements ProxyProvider {
      * Creates a ProxyProvider that connects to a ServiceContext with the given name
      *
      * @param serviceContextName the ServiceContext to connect to.
-     * @param hazelcastInstance
+     * @param hazelcastInstance the HazelcastInstance
      * @throws NullPointerException if serviceContextName or executorService is null.
      */
     public DefaultProxyProvider(String serviceContextName, HazelcastInstance hazelcastInstance) {
@@ -70,8 +73,8 @@ public final class DefaultProxyProvider implements ProxyProvider {
         this.serviceContextName = notNull("serviceContextName", serviceContextName);
         this.hazelcastInstance = notNull("hazelcastInstance", hazelcastInstance);
         this.executorService = notNull("executorService", executorService);
+        this.cluster = hazelcastInstance.getCluster();
     }
-
 
     /**
      * Returns the name of the ServiceContext this ProxyProvider is going to call.
@@ -377,7 +380,7 @@ public final class DefaultProxyProvider implements ProxyProvider {
                     serviceContextName, remoteInterfaceInfo.targetInterface.getSimpleName(), remoteMethodInfo.method.getName(),
                     args, remoteMethodInfo.argTypes, null);
 
-            MultiTask task = new MultiTask(callable, getPuMembers());
+            MultiTask task = new MultiTask(callable, getClusterMembers());
             executorService.execute(task);
             try {
                 task.get(remoteMethodInfo.timeoutMs, TimeUnit.MILLISECONDS);
@@ -392,7 +395,7 @@ public final class DefaultProxyProvider implements ProxyProvider {
                     serviceContextName, remoteInterfaceInfo.targetInterface.getSimpleName(), remoteMethodInfo.method.getName(),
                     args, remoteMethodInfo.argTypes, null);
 
-            Member targetMember = remoteMethodInfo.loadBalancer.findTargetMember();
+            Member targetMember = remoteMethodInfo.loadBalancer.getNext();
 
             DistributedTask<String> task = new DistributedTask<String>(callable, targetMember);
 
@@ -470,10 +473,10 @@ public final class DefaultProxyProvider implements ProxyProvider {
         }
     }
 
-    private Set<Member> getPuMembers() {
+    private Set<Member> getClusterMembers() {
         Set<Member> result = new HashSet<Member>();
 
-        for (Member member : Hazelcast.getCluster().getMembers()) {
+        for (Member member : cluster.getMembers()) {
             if (!member.isLiteMember()) {
                 result.add(member);
             }
