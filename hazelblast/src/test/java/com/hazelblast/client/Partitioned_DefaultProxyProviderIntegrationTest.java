@@ -20,7 +20,7 @@ import static org.junit.Assert.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class DefaultProxyProviderIntegrationTest {
+public class Partitioned_DefaultProxyProviderIntegrationTest {
 
     private DefaultProxyProvider proxyProvider;
     private ServiceContextServer server;
@@ -53,7 +53,7 @@ public class DefaultProxyProviderIntegrationTest {
     }
 
     @Test
-    public void exceptionUnwrappingPartitionedMethod() {
+    public void exceptionUnwrapping() {
         TestService proxy = proxyProvider.getProxy(TestService.class);
         String arg = "foo";
         when(testServiceMock.singleArg(arg)).thenThrow(new MyRuntimeException());
@@ -63,25 +63,6 @@ public class DefaultProxyProviderIntegrationTest {
             fail();
         } catch (MyRuntimeException expected) {
         }
-    }
-
-    @Test
-    public void exceptionUnwrappingLoadBalancedMethod() {
-        TestService proxy = proxyProvider.getProxy(TestService.class);
-        String arg = "foo";
-        when(testServiceMock.loadBalanced(arg)).thenThrow(new MyRuntimeException());
-
-
-        try {
-            proxy.loadBalanced(arg);
-            fail();
-        } catch (MyRuntimeException expected) {
-        }
-    }
-
-    @Test
-    @Ignore
-    public void exceptionUnwrappingForkJoinMethod() {
     }
 
     @Test
@@ -122,9 +103,5 @@ public class DefaultProxyProviderIntegrationTest {
 
         @Partitioned
         String multipleArgs(@PartitionKey String arg, String arg2);
-
-        @LoadBalanced
-        String loadBalanced(String arg);
-
-    }
+  }
 }
