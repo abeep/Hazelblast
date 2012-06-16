@@ -11,7 +11,6 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import static com.hazelblast.utils.Arguments.notNull;
 
-//todo: deal with situation where no member is in the cluster.
 //todo: logging
 public class RoundRobinLoadBalancer implements LoadBalancer {
     private final AtomicInteger counter = new AtomicInteger();
@@ -20,8 +19,8 @@ public class RoundRobinLoadBalancer implements LoadBalancer {
 
     public RoundRobinLoadBalancer(HazelcastInstance hazelcastInstance) {
         notNull("hazelcastInstance", hazelcastInstance);
-        this.cluster = hazelcastInstance.getCluster();
-        this.cluster.addMembershipListener(new MembershipListenerImpl());
+        cluster = hazelcastInstance.getCluster();
+        cluster.addMembershipListener(new MembershipListenerImpl());
         reset();
     }
 

@@ -6,6 +6,7 @@ package com.hazelblast.api.exceptions;
  * @author Peter Veentjer.
  */
 public class NoMemberAvailableException extends RemotingException{
+    static final long serialVersionUID = 1;
 
     public NoMemberAvailableException(String message) {
         super(message);

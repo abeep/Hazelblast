@@ -8,6 +8,8 @@ package com.hazelblast.api.exceptions;
  */
 public class RemotingException extends RuntimeException{
 
+    static final long serialVersionUID = 1;
+
     public RemotingException(String message) {
         super(message);
     }

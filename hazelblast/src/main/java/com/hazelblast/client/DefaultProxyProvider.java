@@ -2,7 +2,7 @@ package com.hazelblast.client;
 
 import com.hazelblast.api.*;
 import com.hazelblast.api.exceptions.RemoteMethodTimeoutException;
-import com.hazelblast.server.PartitionMovedException;
+import com.hazelblast.api.exceptions.PartitionMovedException;
 import com.hazelblast.server.ServiceContextServer;
 import com.hazelcast.core.*;
 import com.hazelcast.core.Member;

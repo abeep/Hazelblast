@@ -6,6 +6,7 @@ package com.hazelblast.api.exceptions;
  * @author Peter Veentjer.
  */
 public class RemoteMethodTimeoutException extends RemotingException {
+    static final long serialVersionUID = 1;
 
     /**
      * Constructs a RemoteMethodTimeoutException.
