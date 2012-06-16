@@ -11,7 +11,6 @@ import static org.junit.Assert.*;
 
 public class Partitioned_DefaultProxyProviderTest {
 
-
     @Test(expected = IllegalArgumentException.class)
     public void badProxy_partitionedMethodWithoutArguments() {
         DefaultProxyProvider proxyProvider = new DefaultProxyProvider();

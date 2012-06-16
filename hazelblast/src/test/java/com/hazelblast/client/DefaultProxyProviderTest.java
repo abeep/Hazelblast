@@ -97,57 +97,15 @@ public class DefaultProxyProviderTest {
         void method();
     }
 
-    @Test(expected = IllegalArgumentException.class)
-    public void badProxy_partitionedMethodWithoutArguments() {
-        DefaultProxyProvider proxyProvider = new DefaultProxyProvider();
-        proxyProvider.getProxy(PartitionedMethodWithoutArguments.class);
-    }
-
-    @RemoteInterface
-    interface PartitionedMethodWithoutArguments {
-        @Partitioned
-        void method();
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void badProxy_partitionedMethodWithoutPartitionKeyArgument() {
-        DefaultProxyProvider proxyProvider = new DefaultProxyProvider();
-        proxyProvider.getProxy(PartitionedMethodWithoutPartitionKeyArgument.class);
-
-    }
-
-    @RemoteInterface
-    interface PartitionedMethodWithoutPartitionKeyArgument {
-        @Partitioned
-        void method(int arg1);
-    }
-
-    @Test
-    @Ignore
-    public void badProxy_partitionedMethodWithMultiplePartitionKeyArguments() {
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void badProxy_partitionedMethodWithoutExistingProperty() {
-        DefaultProxyProvider proxyProvider = new DefaultProxyProvider();
-        proxyProvider.getProxy(PartitionedMethodWithoutExistingProperty.class);
-    }
-
-    @RemoteInterface
-    interface PartitionedMethodWithoutExistingProperty {
-        @Partitioned
-        void method(@PartitionKey(property = "nonexising") String s);
-    }
 
     @RemoteInterface
     interface DummyRemoteService {
     }
 
-    /*
     @Test
     public void test_toString() {
         DefaultProxyProvider proxyProvider = new DefaultProxyProvider();
-        PartitionedService service = proxyProvider.getProxy(PartitionedService.class);
+        DummyRemoteService service = proxyProvider.getProxy(DummyRemoteService.class);
         String s = service.toString();
         System.out.println(s);
         assertNotNull(s);
@@ -156,7 +114,7 @@ public class DefaultProxyProviderTest {
     @Test
     public void test_hashCode() {
         DefaultProxyProvider proxyProvider = new DefaultProxyProvider();
-        PartitionedService service = proxyProvider.getProxy(PartitionedService.class);
+        DummyRemoteService service = proxyProvider.getProxy(DummyRemoteService.class);
         int s = service.hashCode();
 
     }
@@ -164,9 +122,9 @@ public class DefaultProxyProviderTest {
     @Test
     public void test_equals() {
         DefaultProxyProvider proxyProvider = new DefaultProxyProvider();
-        PartitionedService service = proxyProvider.getProxy(PartitionedService.class);
+        DummyRemoteService service = proxyProvider.getProxy(DummyRemoteService.class);
 
         assertTrue(service.equals(service));
         assertFalse(service.equals("foo"));
-    } */
+    }
 }
