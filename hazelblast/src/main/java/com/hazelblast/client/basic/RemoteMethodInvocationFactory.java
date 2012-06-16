@@ -1,4 +1,4 @@
-package com.hazelblast.client;
+package com.hazelblast.client.basic;
 
 import java.util.concurrent.Callable;
 

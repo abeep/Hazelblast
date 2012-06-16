@@ -1,7 +1,7 @@
 package com.shop;
 
 import com.shop.api.*;
-import com.hazelblast.client.DefaultProxyProvider;
+import com.hazelblast.client.basic.DefaultProxyProvider;
 import com.hazelblast.client.ProxyProvider;
 
 import java.util.UUID;

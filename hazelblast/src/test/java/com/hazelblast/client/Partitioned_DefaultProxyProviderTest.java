@@ -3,6 +3,8 @@ package com.hazelblast.client;
 import com.hazelblast.api.PartitionKey;
 import com.hazelblast.api.Partitioned;
 import com.hazelblast.api.RemoteInterface;
+import com.hazelblast.client.basic.DefaultProxyProvider;
+import com.hazelblast.client.basic.SerializableRemoteMethodInvocationFactory;
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.PartitionAware;

@@ -3,8 +3,8 @@ package com.hazelblast.client;
 
 import com.hazelblast.api.LoadBalanced;
 import com.hazelblast.api.PartitionKey;
-import com.hazelblast.api.Partitioned;
 import com.hazelblast.api.RemoteInterface;
+import com.hazelblast.client.basic.DefaultProxyProvider;
 import com.hazelblast.server.ServiceContextServer;
 import com.hazelblast.server.pojo.PojoServiceContext;
 import com.hazelcast.core.Hazelcast;

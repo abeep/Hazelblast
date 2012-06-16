@@ -1,11 +1,9 @@
-package com.hazelblast.client;
+package com.hazelblast.client.basic;
 
 import com.hazelblast.server.ServiceContextServer;
-import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.PartitionAware;
 import com.hazelcast.logging.ILogger;
 import com.hazelcast.logging.Logger;
-import com.hazelcast.partition.Partition;
 
 import java.io.Serializable;
 import java.util.concurrent.Callable;
