@@ -1,24 +1,16 @@
 package com.hazelblast.client;
 
-import com.hazelblast.api.LoadBalanced;
-import com.hazelblast.api.PartitionKey;
-import com.hazelblast.api.Partitioned;
-import com.hazelblast.api.RemoteInterface;
+import com.hazelblast.api.*;
 import com.hazelblast.api.exceptions.RemoteMethodTimeoutException;
 import com.hazelblast.server.PartitionMovedException;
 import com.hazelblast.server.ServiceContextServer;
-import com.hazelcast.core.Hazelcast;
+import com.hazelcast.core.*;
 import com.hazelcast.core.Member;
-import com.hazelcast.core.MultiTask;
-import com.hazelcast.core.PartitionAware;
 import com.hazelcast.logging.ILogger;
 import com.hazelcast.logging.Logger;
 
 import java.lang.annotation.Annotation;
-import java.lang.reflect.InvocationHandler;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.lang.reflect.Proxy;
+import java.lang.reflect.*;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.logging.Level;
@@ -44,22 +36,39 @@ public final class DefaultProxyProvider implements ProxyProvider {
     private final String serviceContextName;
     private volatile RemoteMethodInvocationFactory remoteMethodInvocationFactory = SerializableRemoteMethodInvocationFactory.INSTANCE;
 
+    private final HazelcastInstance hazelcastInstance;
+
     /**
      * Creates a new ProxyProvider that connects to the 'default' ServiceContext.
      */
     public DefaultProxyProvider() {
-        this(ServiceContextServer.DEFAULT_PU_NAME, Hazelcast.getExecutorService());
+        this(ServiceContextServer.DEFAULT_PU_NAME, Hazelcast.getDefaultInstance());
     }
 
     /**
      * Creates a ProxyProvider that connects to a ServiceContext with the given name
      *
      * @param serviceContextName the ServiceContext to connect to.
-     * @param executorService    the (Hazelcast) ExecutorService used to execute the remote calls on.
+     * @param hazelcastInstance
      * @throws NullPointerException if serviceContextName or executorService is null.
      */
-    public DefaultProxyProvider(String serviceContextName, ExecutorService executorService) {
+    public DefaultProxyProvider(String serviceContextName, HazelcastInstance hazelcastInstance) {
+        this(notNull("serviceContextName", serviceContextName),
+                notNull("hazelcastInstance", hazelcastInstance),
+                hazelcastInstance.getExecutorService());
+    }
+
+    /**
+     * Creates a ProxyProvider that connects to a ServiceContext with the given name
+     *
+     * @param serviceContextName the ServiceContext to connect to.
+     * @param hazelcastInstance the HazelcastInstance
+     * @param executorService the executor service used. Make sure it belongs to the hazelcastInstance.
+     * @throws NullPointerException if serviceContextName, hazelcastInstance or executorService is null.
+     */
+    public DefaultProxyProvider(String serviceContextName, HazelcastInstance hazelcastInstance, ExecutorService executorService) {
         this.serviceContextName = notNull("serviceContextName", serviceContextName);
+        this.hazelcastInstance = notNull("hazelcastInstance", hazelcastInstance);
         this.executorService = notNull("executorService", executorService);
     }
 
@@ -178,10 +187,25 @@ public final class DefaultProxyProvider implements ProxyProvider {
         int partitionKeyIndex = -1;
         Method partitionKeyProperty = null;
         MethodType methodType;
+        LoadBalancer loadBalancer = null;
         if (annotation instanceof LoadBalanced) {
             LoadBalanced loadBalancedAnnotation = (LoadBalanced) annotation;
             timeoutMs = loadBalancedAnnotation.timeoutMs();
             methodType = MethodType.LOAD_BALANCED;
+
+            Class<? extends LoadBalancer> loadBalancerClass = loadBalancedAnnotation.loadBalancer();
+            try {
+                Constructor<? extends LoadBalancer> constructor = loadBalancerClass.getConstructor(HazelcastInstance.class);
+                loadBalancer = constructor.newInstance(hazelcastInstance);
+            } catch (InstantiationException e) {
+                throw new IllegalArgumentException(format("Failed to instantiate LoadBalancer class '%s'", loadBalancerClass.getName()), e);
+            } catch (IllegalAccessException e) {
+                throw new IllegalArgumentException(format("Failed to instantiate LoadBalancer class '%s'", loadBalancerClass.getName()), e);
+            } catch (NoSuchMethodException e) {
+                throw new IllegalArgumentException(format("Failed to instantiate LoadBalancer class '%s'", loadBalancerClass.getName()), e);
+            } catch (InvocationTargetException e) {
+                throw new IllegalArgumentException(format("Failed to instantiate LoadBalancer class '%s'", loadBalancerClass.getName()), e);
+            }
         } else if (annotation instanceof Partitioned) {
             Partitioned partitionedAnnotation = (Partitioned) annotation;
             timeoutMs = partitionedAnnotation.timeoutMs();
@@ -210,7 +234,7 @@ public final class DefaultProxyProvider implements ProxyProvider {
             throw new IllegalStateException("Unrecognized method annotation: " + annotation);
         }
 
-        return new RemoteMethodInfo(method, methodType, partitionKeyIndex, partitionKeyProperty, timeoutMs);
+        return new RemoteMethodInfo(method, methodType, partitionKeyIndex, partitionKeyProperty, timeoutMs, loadBalancer);
     }
 
     private PartitionKeyInfo getPartitionKeyInfo(Method method) {
@@ -316,7 +340,7 @@ public final class DefaultProxyProvider implements ProxyProvider {
                             result = invokePartitioned(methodInfo, args);
                             break;
                         case LOAD_BALANCED:
-                            result = invokeLoadBalancer(methodInfo, args);
+                            result = invokeLoadBalanced(methodInfo, args);
                             break;
                         default:
                             throw new RuntimeException("unhandled method type: " + methodInfo.methodType);
@@ -349,7 +373,6 @@ public final class DefaultProxyProvider implements ProxyProvider {
         }
 
         private Object invokeForkJoin(RemoteMethodInfo remoteMethodInfo, Object[] args) throws Throwable {
-
             Callable callable = remoteMethodInvocationFactory.create(
                     serviceContextName, remoteInterfaceInfo.targetInterface.getSimpleName(), remoteMethodInfo.method.getName(),
                     args, remoteMethodInfo.argTypes, null);
@@ -364,16 +387,20 @@ public final class DefaultProxyProvider implements ProxyProvider {
             return null;
         }
 
-        private Object invokeLoadBalancer(RemoteMethodInfo remoteMethodInfo, Object[] args) throws Throwable {
+        private Object invokeLoadBalanced(RemoteMethodInfo remoteMethodInfo, Object[] args) throws Throwable {
             Callable callable = remoteMethodInvocationFactory.create(
                     serviceContextName, remoteInterfaceInfo.targetInterface.getSimpleName(), remoteMethodInfo.method.getName(),
                     args, remoteMethodInfo.argTypes, null);
 
-            Future future = executorService.submit(callable);
+            Member targetMember = remoteMethodInfo.loadBalancer.findTargetMember();
+
+            DistributedTask<String> task = new DistributedTask<String>(callable, targetMember);
+
+            Future future = executorService.submit(task);
             try {
                 return future.get(remoteMethodInfo.timeoutMs, TimeUnit.MILLISECONDS);
             } catch (ExecutionException e) {
-                throw e.getCause();
+                  throw e.getCause();
             } catch (TimeoutException e) {
                 throw new RemoteMethodTimeoutException(
                         format("method '%s' failed to complete in the %s ms",
@@ -462,14 +489,16 @@ public final class DefaultProxyProvider implements ProxyProvider {
         final Method partitionKeyProperty;
         final String[] argTypes;
         final long timeoutMs;
+        final LoadBalancer loadBalancer;
 
         private RemoteMethodInfo(Method method, MethodType methodType, int partitionKeyIndex,
-                                 Method partitionKeyProperty, long timeoutMs) {
+                                 Method partitionKeyProperty, long timeoutMs, LoadBalancer loadBalancer) {
             this.method = method;
             this.methodType = methodType;
             this.partitionKeyIndex = partitionKeyIndex;
             this.partitionKeyProperty = partitionKeyProperty;
             this.timeoutMs = timeoutMs;
+            this.loadBalancer = loadBalancer;
 
             Class[] parameterTypes = method.getParameterTypes();
             argTypes = new String[parameterTypes.length];

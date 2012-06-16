@@ -31,7 +31,7 @@ public class Partitioned_Timeout_ProxyProviderIntegrationTest {
 
         Thread.sleep(1000);
 
-        proxyProvider = new DefaultProxyProvider("default", hazelcastInstance.getExecutorService());
+        proxyProvider = new DefaultProxyProvider("default", hazelcastInstance);
     }
 
     @After

@@ -2,15 +2,15 @@ package com.hazelblast.client;
 
 import com.hazelblast.api.LoadBalanced;
 import com.hazelblast.api.PartitionKey;
-import com.hazelblast.api.Partitioned;
 import com.hazelblast.api.RemoteInterface;
+import com.hazelblast.api.LoadBalancer;
 import com.hazelblast.server.ServiceContextServer;
 import com.hazelblast.server.pojo.PojoServiceContext;
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
+import com.hazelcast.core.Member;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.concurrent.TimeUnit;
@@ -38,60 +38,64 @@ public class LoadBalanced_DefaultProxyProviderTest {
 
         Thread.sleep(1000);
 
-        proxyProvider = new DefaultProxyProvider("default", hazelcastInstance.getExecutorService());
+        proxyProvider = new DefaultProxyProvider("default", hazelcastInstance);
     }
 
     @After
     public void tearDown() throws InterruptedException {
-        if (server == null) return;
-        server.shutdown();
-        boolean terminated = server.awaitTermination(10, TimeUnit.SECONDS);
-        assertTrue("Could not terminate the service within the given timeout", terminated);
-        Hazelcast.shutdownAll();
+        try {
+            if (server == null) return;
+            server.shutdown();
+            boolean terminated = server.awaitTermination(10, TimeUnit.SECONDS);
+            assertTrue("Could not terminate the service within the given timeout", terminated);
+        } finally {
+            Hazelcast.shutdownAll();
+        }
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void badProxy_partitionedMethodWithoutArguments() {
+    public void notUsableLoadBalancer() {
         DefaultProxyProvider proxyProvider = new DefaultProxyProvider();
-        proxyProvider.getProxy(PartitionedMethodWithoutArguments.class);
+        proxyProvider.getProxy(LoadBalancedMethodWithInvalidLoadBalancer.class);
     }
 
     @RemoteInterface
-    interface PartitionedMethodWithoutArguments {
-        @Partitioned
+    interface LoadBalancedMethodWithInvalidLoadBalancer {
+        @LoadBalanced(loadBalancer = LoadBalancerWithBadConstructor.class)
         void method();
     }
 
-    @Test(expected = IllegalArgumentException.class)
-    public void badProxy_partitionedMethodWithoutPartitionKeyArgument() {
-        DefaultProxyProvider proxyProvider = new DefaultProxyProvider();
-        proxyProvider.getProxy(PartitionedMethodWithoutPartitionKeyArgument.class);
-
-    }
-
-    @RemoteInterface
-    interface PartitionedMethodWithoutPartitionKeyArgument {
-        @Partitioned
-        void method(int arg1);
+    static class LoadBalancerWithBadConstructor implements LoadBalancer {
+        public Member findTargetMember() {
+            return null;
+        }
     }
 
     @Test
-    @Ignore
-    public void badProxy_partitionedMethodWithMultiplePartitionKeyArguments() {
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void badProxy_partitionedMethodWithoutExistingProperty() {
+    public void methodWithoutArguments() {
         DefaultProxyProvider proxyProvider = new DefaultProxyProvider();
-        proxyProvider.getProxy(PartitionedMethodWithoutExistingProperty.class);
+        LoadBalancedMethodWithoutArguments p = proxyProvider.getProxy(LoadBalancedMethodWithoutArguments.class);
+        assertNotNull(p);
     }
 
     @RemoteInterface
-    interface PartitionedMethodWithoutExistingProperty {
-        @Partitioned
-        void method(@PartitionKey(property = "nonexising") String s);
+    interface LoadBalancedMethodWithoutArguments {
+        @LoadBalanced
+        void method();
     }
 
+    @Test
+    public void methodWithPartitionKeyArgument() {
+        DefaultProxyProvider proxyProvider = new DefaultProxyProvider();
+        LoadBalancedMethodWithoutPartitionKeyArgument p = proxyProvider.getProxy(LoadBalancedMethodWithoutPartitionKeyArgument.class);
+        assertNotNull(p);
+    }
+
+    @RemoteInterface
+    interface LoadBalancedMethodWithoutPartitionKeyArgument {
+        @LoadBalanced
+        void method(int arg1);
+    }
 
     @Test
     public void exceptionUnwrapping() {
