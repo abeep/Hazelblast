@@ -168,7 +168,6 @@ public final class ServiceContextServer {
         notNull("serviceContextName", serviceContextName);
         notNull("serviceName", serviceName);
         notNull("methodName", methodName);
-        notNull("args", args);
 
         //The first thing that needs to be checked, is if the partition that was expected to be here when the call
         //was send to this machine, is still there. If it isn't, some kind of exception should be thrown, this exception

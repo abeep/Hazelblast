@@ -2,8 +2,6 @@ package com.hazelblast.client;
 
 
 import com.hazelblast.api.LoadBalanced;
-import com.hazelblast.api.PartitionKey;
-import com.hazelblast.api.Partitioned;
 import com.hazelblast.api.RemoteInterface;
 import com.hazelblast.server.ServiceContextServer;
 import com.hazelblast.server.pojo.PojoServiceContext;
@@ -88,6 +86,17 @@ public class LoadBalanced_DefaultProxyProviderIntegrationTest {
         assertEquals(result, found);
     }
 
+    @Test
+    public void whenNoArguments() {
+        TestService proxy = proxyProvider.getProxy(TestService.class);
+        String result = "result";
+        when(testServiceMock.noArgs()).thenReturn(result);
+
+        String found = proxy.noArgs();
+
+        assertEquals(result, found);
+    }
+
     static public class Pojo {
         public TestService testService;
     }
@@ -98,9 +107,12 @@ public class LoadBalanced_DefaultProxyProviderIntegrationTest {
     @RemoteInterface
     interface TestService {
         @LoadBalanced
-        String singleArg(@PartitionKey String arg);
+        String noArgs();
 
         @LoadBalanced
-        String multipleArgs(@PartitionKey String arg, String arg2);
-  }
+        String singleArg(String arg);
+
+        @LoadBalanced
+        String multipleArgs(String arg, String arg2);
+    }
 }

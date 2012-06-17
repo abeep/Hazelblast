@@ -53,7 +53,7 @@ public class LoadBalancedClusterTest {
         SomeService someService = proxyProvider.getProxy(SomeService.class);
 
         for(int k=0;k<3*5;k++){
-            someService.someMethod(0);
+            someService.someMethod();
         }
 
         assertEquals(5, service1.count);
@@ -83,14 +83,14 @@ public class LoadBalancedClusterTest {
     @RemoteInterface
     public static interface SomeService {
         @LoadBalanced
-        void someMethod(int x);
+        void someMethod();
     }
 
     public static class SomeServiceImpl implements SomeService{
         public int count;
 
 
-        public void someMethod(int x) {
+        public void someMethod() {
             count++;
         }
     }
