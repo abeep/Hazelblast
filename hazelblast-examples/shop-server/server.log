@@ -6192,3 +6192,316 @@ java.lang.IllegalStateException: Hazelcast Instance is not active!
 	at java.lang.Thread.run(Thread.java:680)
 2012-05-14 12:49:33,685  INFO  /10.37.129.2:5701 [dev] Destroying node initializer.
 2012-05-14 12:49:33,685  INFO  /10.37.129.2:5701 [dev] Hazelcast Shutdown is completed in 863 ms.
+2012-06-17 13:37:57,574  INFO  Looking for hazelcast.xml config file in classpath.
+2012-06-17 13:37:57,719  WARN  Could not find hazelcast.xml in classpath.
+Hazelcast will use hazelcast-default.xml config file in jar.
+2012-06-17 13:37:57,719  INFO  Using configuration file file:/Users/alarmnummer/Java/Projects/Hazelcast/hazelblast/hazelblast-examples/shop-server/target/dependency/hazelcast-2.1.2.jar!/hazelcast-default.xml in the classpath.
+2012-06-17 13:37:58,012  INFO  [10.37.129.2]:5701 [dev] Hazelcast Community Edition 2.1.2 (20120530) starting at Address[10.37.129.2]:5701
+2012-06-17 13:37:58,012  INFO  [10.37.129.2]:5701 [dev] Copyright (C) 2008-2012 Hazelcast.com
+2012-06-17 13:37:58,031  INFO  [10.37.129.2]:5701 [dev] Address[10.37.129.2]:5701 is STARTING
+2012-06-17 13:38:00,294  INFO  [10.37.129.2]:5701 [dev] 
+
+
+Members [1] {
+	Member [10.37.129.2]:5701 this
+}
+
+2012-06-17 13:38:00,308  INFO  [10.37.129.2]:5701 [dev] Address[10.37.129.2]:5701 is STARTED
+2012-06-17 13:38:00,310  INFO  Creating ServiceContext using puFactory [com.hazelblast.server.spring.SpringServiceContextFactory]
+2012-06-17 13:38:00,401  INFO  Refreshing org.springframework.context.support.ClassPathXmlApplicationContext@786c1a82: startup date [Sun Jun 17 13:38:00 EEST 2012]; root of context hierarchy
+2012-06-17 13:38:00,480  INFO  Loading XML bean definitions from class path resource [servicecontext.xml]
+2012-06-17 13:41:33,115  INFO  Looking for hazelcast.xml config file in classpath.
+2012-06-17 13:41:33,119  WARN  Could not find hazelcast.xml in classpath.
+Hazelcast will use hazelcast-default.xml config file in jar.
+2012-06-17 13:41:33,119  INFO  Using configuration file file:/Users/alarmnummer/Java/Projects/Hazelcast/hazelblast/hazelblast-examples/shop-server/target/dependency/hazelcast-2.1.2.jar!/hazelcast-default.xml in the classpath.
+2012-06-17 13:41:33,417  INFO  [10.37.129.2]:5702 [dev] Hazelcast Community Edition 2.1.2 (20120530) starting at Address[10.37.129.2]:5702
+2012-06-17 13:41:33,418  INFO  [10.37.129.2]:5702 [dev] Copyright (C) 2008-2012 Hazelcast.com
+2012-06-17 13:41:33,436  INFO  [10.37.129.2]:5702 [dev] Address[10.37.129.2]:5702 is STARTING
+2012-06-17 13:41:35,759  INFO  [10.37.129.2]:5702 [dev] 
+
+
+Members [1] {
+	Member [10.37.129.2]:5702 this
+}
+
+2012-06-17 13:41:35,760  WARN  [10.37.129.2]:5702 [dev] Config seed port is 5701 and cluster size is 1. Some of the ports seem occupied!
+2012-06-17 13:41:35,774  INFO  [10.37.129.2]:5702 [dev] Address[10.37.129.2]:5702 is STARTED
+2012-06-17 13:41:35,776  INFO  Creating ServiceContext using puFactory [com.hazelblast.server.spring.SpringServiceContextFactory]
+2012-06-17 13:41:35,868  INFO  Refreshing org.springframework.context.support.ClassPathXmlApplicationContext@344977e2: startup date [Sun Jun 17 13:41:35 EEST 2012]; root of context hierarchy
+2012-06-17 13:41:35,917  INFO  Loading XML bean definitions from class path resource [servicecontext.xml]
+2012-06-17 13:41:36,255  INFO  Pre-instantiating singletons in org.springframework.beans.factory.support.DefaultListableBeanFactory@67cee792: defining beans [customerService,orderService,exposedBeans]; root of factory hierarchy
+2012-06-17 13:41:36,274  INFO  [10.37.129.2]:5702 [dev] Initializing cluster partition table first arrangement...
+2012-06-17 13:41:36,333  INFO  Created ServiceContextContainer containing ServiceContext [com.hazelblast.server.spring.SpringServiceContextFactory$SpringServiceContext@54aa2db]
+2012-06-17 13:41:36,339  INFO  [default] Start
+2012-06-17 13:41:36,340  INFO  starting
+2012-06-17 13:41:36,340  INFO  [default] ServiceContext.onStart() finished in [0] ms
+2012-06-17 13:41:36,341  INFO  [default] Started
+2012-06-17 13:41:36,353  INFO  [default] ServiceContext.onPartitionAdded(0) finished in [0] ms
+2012-06-17 13:41:36,354  INFO  [default] ServiceContext.onPartitionAdded(1) finished in [0] ms
+2012-06-17 13:41:36,355  INFO  [default] ServiceContext.onPartitionAdded(2) finished in [0] ms
+2012-06-17 13:41:36,355  INFO  [default] ServiceContext.onPartitionAdded(3) finished in [0] ms
+2012-06-17 13:41:36,355  INFO  [default] ServiceContext.onPartitionAdded(4) finished in [0] ms
+2012-06-17 13:41:36,356  INFO  [default] ServiceContext.onPartitionAdded(5) finished in [0] ms
+2012-06-17 13:41:36,356  INFO  [default] ServiceContext.onPartitionAdded(6) finished in [0] ms
+2012-06-17 13:41:36,357  INFO  [default] ServiceContext.onPartitionAdded(7) finished in [0] ms
+2012-06-17 13:41:36,357  INFO  [default] ServiceContext.onPartitionAdded(8) finished in [0] ms
+2012-06-17 13:41:36,358  INFO  [default] ServiceContext.onPartitionAdded(9) finished in [0] ms
+2012-06-17 13:41:36,358  INFO  [default] ServiceContext.onPartitionAdded(10) finished in [0] ms
+2012-06-17 13:41:36,359  INFO  [default] ServiceContext.onPartitionAdded(11) finished in [1] ms
+2012-06-17 13:41:36,359  INFO  [default] ServiceContext.onPartitionAdded(12) finished in [0] ms
+2012-06-17 13:41:36,359  INFO  [default] ServiceContext.onPartitionAdded(13) finished in [0] ms
+2012-06-17 13:41:36,360  INFO  [default] ServiceContext.onPartitionAdded(14) finished in [0] ms
+2012-06-17 13:41:36,361  INFO  [default] ServiceContext.onPartitionAdded(15) finished in [0] ms
+2012-06-17 13:41:36,362  INFO  [default] ServiceContext.onPartitionAdded(16) finished in [1] ms
+2012-06-17 13:41:36,362  INFO  [default] ServiceContext.onPartitionAdded(17) finished in [0] ms
+2012-06-17 13:41:36,363  INFO  [default] ServiceContext.onPartitionAdded(18) finished in [0] ms
+2012-06-17 13:41:36,363  INFO  [default] ServiceContext.onPartitionAdded(19) finished in [0] ms
+2012-06-17 13:41:36,364  INFO  [default] ServiceContext.onPartitionAdded(20) finished in [0] ms
+2012-06-17 13:41:36,364  INFO  [default] ServiceContext.onPartitionAdded(21) finished in [0] ms
+2012-06-17 13:41:36,364  INFO  [default] ServiceContext.onPartitionAdded(22) finished in [0] ms
+2012-06-17 13:41:36,365  INFO  [default] ServiceContext.onPartitionAdded(23) finished in [0] ms
+2012-06-17 13:41:36,365  INFO  [default] ServiceContext.onPartitionAdded(24) finished in [0] ms
+2012-06-17 13:41:36,366  INFO  [default] Scan complete, managed partitions [25], total time [24] ms
+2012-06-17 13:44:13,454  INFO  Looking for hazelcast.xml config file in classpath.
+2012-06-17 13:44:13,458  WARN  Could not find hazelcast.xml in classpath.
+Hazelcast will use hazelcast-default.xml config file in jar.
+2012-06-17 13:44:13,458  INFO  Using configuration file file:/Users/alarmnummer/Java/Projects/Hazelcast/hazelblast/hazelblast-examples/shop-server/target/dependency/hazelcast-2.1.2.jar!/hazelcast-default.xml in the classpath.
+2012-06-17 13:44:13,755  INFO  [10.37.129.2]:5701 [dev] Hazelcast Community Edition 2.1.2 (20120530) starting at Address[10.37.129.2]:5701
+2012-06-17 13:44:13,755  INFO  [10.37.129.2]:5701 [dev] Copyright (C) 2008-2012 Hazelcast.com
+2012-06-17 13:44:13,775  INFO  [10.37.129.2]:5701 [dev] Address[10.37.129.2]:5701 is STARTING
+2012-06-17 13:44:16,032  INFO  [10.37.129.2]:5701 [dev] 
+
+
+Members [1] {
+	Member [10.37.129.2]:5701 this
+}
+
+2012-06-17 13:44:16,046  INFO  [10.37.129.2]:5701 [dev] Address[10.37.129.2]:5701 is STARTED
+2012-06-17 13:44:16,049  INFO  Creating ServiceContext using puFactory [com.hazelblast.server.spring.SpringServiceContextFactory]
+2012-06-17 13:44:16,130  INFO  Refreshing org.springframework.context.support.ClassPathXmlApplicationContext@4a57ea52: startup date [Sun Jun 17 13:44:16 EEST 2012]; root of context hierarchy
+2012-06-17 13:44:16,178  INFO  Loading XML bean definitions from class path resource [servicecontext.xml]
+2012-06-17 13:44:16,310  INFO  Pre-instantiating singletons in org.springframework.beans.factory.support.DefaultListableBeanFactory@35ad0839: defining beans [customerService,orderService,exposedBeans]; root of factory hierarchy
+2012-06-17 13:44:16,327  INFO  [10.37.129.2]:5701 [dev] Initializing cluster partition table first arrangement...
+2012-06-17 13:44:16,379  INFO  Created ServiceContextContainer containing ServiceContext [com.hazelblast.server.spring.SpringServiceContextFactory$SpringServiceContext@6e72d873]
+2012-06-17 13:44:16,385  INFO  [default] Start
+2012-06-17 13:44:16,385  INFO  starting
+2012-06-17 13:44:16,386  INFO  [default] ServiceContext.onStart() finished in [1] ms
+2012-06-17 13:44:16,387  INFO  [default] Started
+2012-06-17 13:44:16,398  INFO  [default] ServiceContext.onPartitionAdded(0) finished in [1] ms
+2012-06-17 13:44:16,400  INFO  [default] ServiceContext.onPartitionAdded(1) finished in [1] ms
+2012-06-17 13:44:16,400  INFO  [default] ServiceContext.onPartitionAdded(2) finished in [0] ms
+2012-06-17 13:44:16,401  INFO  [default] ServiceContext.onPartitionAdded(3) finished in [1] ms
+2012-06-17 13:44:16,401  INFO  [default] ServiceContext.onPartitionAdded(4) finished in [0] ms
+2012-06-17 13:44:16,402  INFO  [default] ServiceContext.onPartitionAdded(5) finished in [0] ms
+2012-06-17 13:44:16,402  INFO  [default] ServiceContext.onPartitionAdded(6) finished in [0] ms
+2012-06-17 13:44:16,402  INFO  [default] ServiceContext.onPartitionAdded(7) finished in [0] ms
+2012-06-17 13:44:16,403  INFO  [default] ServiceContext.onPartitionAdded(8) finished in [0] ms
+2012-06-17 13:44:16,403  INFO  [default] ServiceContext.onPartitionAdded(9) finished in [0] ms
+2012-06-17 13:44:16,404  INFO  [default] ServiceContext.onPartitionAdded(10) finished in [0] ms
+2012-06-17 13:44:16,404  INFO  [default] ServiceContext.onPartitionAdded(11) finished in [0] ms
+2012-06-17 13:44:16,405  INFO  [default] ServiceContext.onPartitionAdded(12) finished in [1] ms
+2012-06-17 13:44:16,405  INFO  [default] ServiceContext.onPartitionAdded(13) finished in [0] ms
+2012-06-17 13:44:16,405  INFO  [default] ServiceContext.onPartitionAdded(14) finished in [0] ms
+2012-06-17 13:44:16,406  INFO  [default] ServiceContext.onPartitionAdded(15) finished in [0] ms
+2012-06-17 13:44:16,407  INFO  [default] ServiceContext.onPartitionAdded(16) finished in [0] ms
+2012-06-17 13:44:16,408  INFO  [default] ServiceContext.onPartitionAdded(17) finished in [0] ms
+2012-06-17 13:44:16,408  INFO  [default] ServiceContext.onPartitionAdded(18) finished in [0] ms
+2012-06-17 13:44:16,409  INFO  [default] ServiceContext.onPartitionAdded(19) finished in [0] ms
+2012-06-17 13:44:16,409  INFO  [default] ServiceContext.onPartitionAdded(20) finished in [0] ms
+2012-06-17 13:44:16,409  INFO  [default] ServiceContext.onPartitionAdded(21) finished in [0] ms
+2012-06-17 13:44:16,410  INFO  [default] ServiceContext.onPartitionAdded(22) finished in [0] ms
+2012-06-17 13:44:16,410  INFO  [default] ServiceContext.onPartitionAdded(23) finished in [0] ms
+2012-06-17 13:44:16,411  INFO  [default] ServiceContext.onPartitionAdded(24) finished in [1] ms
+2012-06-17 13:44:16,411  INFO  [default] Scan complete, managed partitions [25], total time [24] ms
+2012-06-17 13:47:34,702  INFO  Looking for hazelcast.xml config file in classpath.
+2012-06-17 13:47:34,706  WARN  Could not find hazelcast.xml in classpath.
+Hazelcast will use hazelcast-default.xml config file in jar.
+2012-06-17 13:47:34,706  INFO  Using configuration file file:/Users/alarmnummer/Java/Projects/Hazelcast/hazelblast/hazelblast-examples/shop-server/target/dependency/hazelcast-2.1.2.jar!/hazelcast-default.xml in the classpath.
+2012-06-17 13:47:35,032  INFO  [10.37.129.2]:5701 [dev] Hazelcast Community Edition 2.1.2 (20120530) starting at Address[10.37.129.2]:5701
+2012-06-17 13:47:35,033  INFO  [10.37.129.2]:5701 [dev] Copyright (C) 2008-2012 Hazelcast.com
+2012-06-17 13:47:35,050  INFO  [10.37.129.2]:5701 [dev] Address[10.37.129.2]:5701 is STARTING
+2012-06-17 13:47:37,314  INFO  [10.37.129.2]:5701 [dev] 
+
+
+Members [1] {
+	Member [10.37.129.2]:5701 this
+}
+
+2012-06-17 13:47:37,328  INFO  [10.37.129.2]:5701 [dev] Address[10.37.129.2]:5701 is STARTED
+2012-06-17 13:47:37,330  INFO  Creating ServiceContext using puFactory [com.hazelblast.server.spring.SpringServiceContextFactory]
+2012-06-17 13:47:37,421  INFO  Refreshing org.springframework.context.support.ClassPathXmlApplicationContext@5bf0aecc: startup date [Sun Jun 17 13:47:37 EEST 2012]; root of context hierarchy
+2012-06-17 13:47:37,471  INFO  Loading XML bean definitions from class path resource [servicecontext.xml]
+2012-06-17 13:47:37,581  INFO  Pre-instantiating singletons in org.springframework.beans.factory.support.DefaultListableBeanFactory@1ad5cabc: defining beans [customerService,orderService,exposedBeans]; root of factory hierarchy
+2012-06-17 13:47:37,599  INFO  [10.37.129.2]:5701 [dev] Initializing cluster partition table first arrangement...
+2012-06-17 13:47:37,652  INFO  Created ServiceContextContainer containing ServiceContext [com.hazelblast.server.spring.SpringServiceContextFactory$SpringServiceContext@1f3c53a8]
+2012-06-17 13:47:37,658  INFO  [default] Start
+2012-06-17 13:47:37,658  INFO  starting
+2012-06-17 13:47:37,659  INFO  [default] ServiceContext.onStart() finished in [1] ms
+2012-06-17 13:47:37,660  INFO  [default] Started
+2012-06-17 13:47:37,672  INFO  [default] ServiceContext.onPartitionAdded(0) finished in [1] ms
+2012-06-17 13:47:37,674  INFO  [default] ServiceContext.onPartitionAdded(1) finished in [0] ms
+2012-06-17 13:47:37,674  INFO  [default] ServiceContext.onPartitionAdded(2) finished in [0] ms
+2012-06-17 13:47:37,675  INFO  [default] ServiceContext.onPartitionAdded(3) finished in [1] ms
+2012-06-17 13:47:37,675  INFO  [default] ServiceContext.onPartitionAdded(4) finished in [0] ms
+2012-06-17 13:47:37,676  INFO  [default] ServiceContext.onPartitionAdded(5) finished in [1] ms
+2012-06-17 13:47:37,676  INFO  [default] ServiceContext.onPartitionAdded(6) finished in [0] ms
+2012-06-17 13:47:37,677  INFO  [default] ServiceContext.onPartitionAdded(7) finished in [0] ms
+2012-06-17 13:47:37,677  INFO  [default] ServiceContext.onPartitionAdded(8) finished in [0] ms
+2012-06-17 13:47:37,678  INFO  [default] ServiceContext.onPartitionAdded(9) finished in [1] ms
+2012-06-17 13:47:37,678  INFO  [default] ServiceContext.onPartitionAdded(10) finished in [0] ms
+2012-06-17 13:47:37,679  INFO  [default] ServiceContext.onPartitionAdded(11) finished in [0] ms
+2012-06-17 13:47:37,679  INFO  [default] ServiceContext.onPartitionAdded(12) finished in [0] ms
+2012-06-17 13:47:37,680  INFO  [default] ServiceContext.onPartitionAdded(13) finished in [0] ms
+2012-06-17 13:47:37,681  INFO  [default] ServiceContext.onPartitionAdded(14) finished in [0] ms
+2012-06-17 13:47:37,682  INFO  [default] ServiceContext.onPartitionAdded(15) finished in [0] ms
+2012-06-17 13:47:37,682  INFO  [default] ServiceContext.onPartitionAdded(16) finished in [0] ms
+2012-06-17 13:47:37,683  INFO  [default] ServiceContext.onPartitionAdded(17) finished in [1] ms
+2012-06-17 13:47:37,683  INFO  [default] ServiceContext.onPartitionAdded(18) finished in [0] ms
+2012-06-17 13:47:37,684  INFO  [default] ServiceContext.onPartitionAdded(19) finished in [0] ms
+2012-06-17 13:47:37,684  INFO  [default] ServiceContext.onPartitionAdded(20) finished in [0] ms
+2012-06-17 13:47:37,685  INFO  [default] ServiceContext.onPartitionAdded(21) finished in [0] ms
+2012-06-17 13:47:37,685  INFO  [default] ServiceContext.onPartitionAdded(22) finished in [0] ms
+2012-06-17 13:47:37,686  INFO  [default] ServiceContext.onPartitionAdded(23) finished in [0] ms
+2012-06-17 13:47:37,686  INFO  [default] ServiceContext.onPartitionAdded(24) finished in [0] ms
+2012-06-17 13:47:37,687  INFO  [default] Scan complete, managed partitions [25], total time [27] ms
+2012-06-17 13:47:42,085  INFO  [10.37.129.2]:5701 [dev] 5701 is accepting socket connection from /10.37.129.2:61154
+2012-06-17 13:47:42,090  INFO  [10.37.129.2]:5701 [dev] 5701 accepted socket connection from /10.37.129.2:61154
+2012-06-17 13:47:47,597  INFO  [10.37.129.2]:5701 [dev] 
+
+Members [2] {
+	Member [10.37.129.2]:5701 this
+	Member [10.37.129.2]:5702 lite
+}
+
+2012-06-17 13:47:47,608  INFO  [10.37.129.2]:5701 [dev] Re-partitioning cluster data... Immediate-Tasks: 0, Scheduled-Tasks: 0
+2012-06-17 13:47:49,184  INFO  started CustomerService.create in serviceContext CustomerService
+2012-06-17 13:47:49,195  INFO  Hire called with id 43aae23f-a939-497b-b8f5-78c21831808f
+2012-06-17 13:47:49,195  INFO  finished CustomerService.create in serviceContext CustomerService
+2012-06-17 13:47:49,199  INFO  started CustomerService.get in serviceContext CustomerService
+2012-06-17 13:47:49,200  INFO  finished CustomerService.get in serviceContext CustomerService
+2012-06-17 13:47:49,204  INFO  started OrderService.createOrder in serviceContext OrderService
+2012-06-17 13:47:49,208  INFO  finished OrderService.createOrder in serviceContext OrderService
+2012-06-17 13:47:49,214  INFO  started OrderService.addOrderLine in serviceContext OrderService
+2012-06-17 13:47:49,217  INFO  finished OrderService.addOrderLine in serviceContext OrderService
+2012-06-17 13:47:49,219  INFO  started OrderService.addOrderLine in serviceContext OrderService
+2012-06-17 13:47:49,220  INFO  finished OrderService.addOrderLine in serviceContext OrderService
+2012-06-17 13:47:49,222  INFO  started OrderService.addOrderLine in serviceContext OrderService
+2012-06-17 13:47:49,223  INFO  finished OrderService.addOrderLine in serviceContext OrderService
+2012-06-17 13:47:49,225  INFO  started OrderService.addOrderLine in serviceContext OrderService
+2012-06-17 13:47:49,227  INFO  finished OrderService.addOrderLine in serviceContext OrderService
+2012-06-17 13:47:49,229  INFO  started OrderService.addOrderLine in serviceContext OrderService
+2012-06-17 13:47:49,231  INFO  finished OrderService.addOrderLine in serviceContext OrderService
+2012-06-17 13:47:49,233  INFO  started OrderService.addOrderLine in serviceContext OrderService
+2012-06-17 13:47:49,234  INFO  finished OrderService.addOrderLine in serviceContext OrderService
+2012-06-17 13:47:49,236  INFO  started OrderService.addOrderLine in serviceContext OrderService
+2012-06-17 13:47:49,238  INFO  finished OrderService.addOrderLine in serviceContext OrderService
+2012-06-17 13:47:49,240  INFO  started OrderService.addOrderLine in serviceContext OrderService
+2012-06-17 13:47:49,242  INFO  finished OrderService.addOrderLine in serviceContext OrderService
+2012-06-17 13:47:49,243  INFO  started OrderService.addOrderLine in serviceContext OrderService
+2012-06-17 13:47:49,245  INFO  finished OrderService.addOrderLine in serviceContext OrderService
+2012-06-17 13:47:49,248  INFO  started OrderService.addOrderLine in serviceContext OrderService
+2012-06-17 13:47:49,250  INFO  finished OrderService.addOrderLine in serviceContext OrderService
+2012-06-17 13:47:49,252  INFO  started OrderService.get in serviceContext OrderService
+2012-06-17 13:47:49,252  INFO  finished OrderService.get in serviceContext OrderService
+2012-06-17 13:55:46,862  INFO  Looking for hazelcast.xml config file in classpath.
+2012-06-17 13:55:46,866  WARN  Could not find hazelcast.xml in classpath.
+Hazelcast will use hazelcast-default.xml config file in jar.
+2012-06-17 13:55:46,866  INFO  Using configuration file file:/Users/alarmnummer/Java/Projects/Hazelcast/hazelblast/hazelblast-examples/shop-server/target/dependency/hazelcast-2.1.2.jar!/hazelcast-default.xml in the classpath.
+2012-06-17 13:55:47,160  INFO  [10.37.129.2]:5701 [dev] Hazelcast Community Edition 2.1.2 (20120530) starting at Address[10.37.129.2]:5701
+2012-06-17 13:55:47,161  INFO  [10.37.129.2]:5701 [dev] Copyright (C) 2008-2012 Hazelcast.com
+2012-06-17 13:55:47,179  INFO  [10.37.129.2]:5701 [dev] Address[10.37.129.2]:5701 is STARTING
+2012-06-17 13:55:49,444  INFO  [10.37.129.2]:5701 [dev] 
+
+
+Members [1] {
+	Member [10.37.129.2]:5701 this
+}
+
+2012-06-17 13:55:49,458  INFO  [10.37.129.2]:5701 [dev] Address[10.37.129.2]:5701 is STARTED
+2012-06-17 13:55:49,460  INFO  Creating ServiceContext using puFactory [com.hazelblast.server.spring.SpringServiceContextFactory]
+2012-06-17 13:55:49,552  INFO  Refreshing org.springframework.context.support.ClassPathXmlApplicationContext@47f08ed8: startup date [Sun Jun 17 13:55:49 EEST 2012]; root of context hierarchy
+2012-06-17 13:55:49,601  INFO  Loading XML bean definitions from class path resource [servicecontext.xml]
+2012-06-17 13:55:49,712  INFO  Pre-instantiating singletons in org.springframework.beans.factory.support.DefaultListableBeanFactory@d694eca: defining beans [customerService,orderService,exposedBeans]; root of factory hierarchy
+2012-06-17 13:55:49,729  INFO  [10.37.129.2]:5701 [dev] Initializing cluster partition table first arrangement...
+2012-06-17 13:55:49,778  INFO  Created ServiceContextContainer containing ServiceContext [com.hazelblast.server.spring.SpringServiceContextFactory$SpringServiceContext@1ac7057c]
+2012-06-17 13:55:49,784  INFO  [default] Start
+2012-06-17 13:55:49,784  INFO  starting
+2012-06-17 13:55:49,786  INFO  [default] ServiceContext.onStart() finished in [2] ms
+2012-06-17 13:55:49,787  INFO  [default] Started
+2012-06-17 13:55:49,798  INFO  [default] ServiceContext.onPartitionAdded(0) finished in [0] ms
+2012-06-17 13:55:49,800  INFO  [default] ServiceContext.onPartitionAdded(1) finished in [0] ms
+2012-06-17 13:55:49,801  INFO  [default] ServiceContext.onPartitionAdded(2) finished in [0] ms
+2012-06-17 13:55:49,801  INFO  [default] ServiceContext.onPartitionAdded(3) finished in [0] ms
+2012-06-17 13:55:49,802  INFO  [default] ServiceContext.onPartitionAdded(4) finished in [1] ms
+2012-06-17 13:55:49,802  INFO  [default] ServiceContext.onPartitionAdded(5) finished in [0] ms
+2012-06-17 13:55:49,803  INFO  [default] ServiceContext.onPartitionAdded(6) finished in [0] ms
+2012-06-17 13:55:49,803  INFO  [default] ServiceContext.onPartitionAdded(7) finished in [0] ms
+2012-06-17 13:55:49,804  INFO  [default] ServiceContext.onPartitionAdded(8) finished in [0] ms
+2012-06-17 13:55:49,804  INFO  [default] ServiceContext.onPartitionAdded(9) finished in [0] ms
+2012-06-17 13:55:49,804  INFO  [default] ServiceContext.onPartitionAdded(10) finished in [0] ms
+2012-06-17 13:55:49,805  INFO  [default] ServiceContext.onPartitionAdded(11) finished in [0] ms
+2012-06-17 13:55:49,806  INFO  [default] ServiceContext.onPartitionAdded(12) finished in [0] ms
+2012-06-17 13:55:49,806  INFO  [default] ServiceContext.onPartitionAdded(13) finished in [0] ms
+2012-06-17 13:55:49,806  INFO  [default] ServiceContext.onPartitionAdded(14) finished in [0] ms
+2012-06-17 13:55:49,807  INFO  [default] ServiceContext.onPartitionAdded(15) finished in [0] ms
+2012-06-17 13:55:49,808  INFO  [default] ServiceContext.onPartitionAdded(16) finished in [0] ms
+2012-06-17 13:55:49,808  INFO  [default] ServiceContext.onPartitionAdded(17) finished in [0] ms
+2012-06-17 13:55:49,809  INFO  [default] ServiceContext.onPartitionAdded(18) finished in [0] ms
+2012-06-17 13:55:49,809  INFO  [default] ServiceContext.onPartitionAdded(19) finished in [0] ms
+2012-06-17 13:55:49,810  INFO  [default] ServiceContext.onPartitionAdded(20) finished in [0] ms
+2012-06-17 13:55:49,810  INFO  [default] ServiceContext.onPartitionAdded(21) finished in [0] ms
+2012-06-17 13:55:49,811  INFO  [default] ServiceContext.onPartitionAdded(22) finished in [0] ms
+2012-06-17 13:55:49,811  INFO  [default] ServiceContext.onPartitionAdded(23) finished in [0] ms
+2012-06-17 13:55:49,812  INFO  [default] ServiceContext.onPartitionAdded(24) finished in [0] ms
+2012-06-17 13:55:49,813  INFO  [default] Scan complete, managed partitions [25], total time [25] ms
+2012-06-17 13:55:54,582  INFO  [10.37.129.2]:5701 [dev] 5701 is accepting socket connection from /10.37.129.2:62147
+2012-06-17 13:55:54,587  INFO  [10.37.129.2]:5701 [dev] 5701 accepted socket connection from /10.37.129.2:62147
+2012-06-17 13:56:00,092  INFO  [10.37.129.2]:5701 [dev] 
+
+Members [2] {
+	Member [10.37.129.2]:5701 this
+	Member [10.37.129.2]:5702 lite
+}
+
+2012-06-17 13:56:00,101  INFO  [10.37.129.2]:5701 [dev] Re-partitioning cluster data... Immediate-Tasks: 0, Scheduled-Tasks: 0
+2012-06-17 13:56:01,680  INFO  started CustomerService.create in serviceContext CustomerService
+2012-06-17 13:56:01,688  INFO  Hire called with id aca55547-846c-435f-9e5b-5b3ae128683c
+2012-06-17 13:56:01,688  INFO  finished CustomerService.create in serviceContext CustomerService
+2012-06-17 13:56:01,691  INFO  started CustomerService.get in serviceContext CustomerService
+2012-06-17 13:56:01,692  INFO  finished CustomerService.get in serviceContext CustomerService
+2012-06-17 13:56:01,695  INFO  started OrderService.createOrder in serviceContext OrderService
+2012-06-17 13:56:01,699  INFO  finished OrderService.createOrder in serviceContext OrderService
+2012-06-17 13:56:01,705  INFO  started OrderService.addOrderLine in serviceContext OrderService
+2012-06-17 13:56:01,708  INFO  finished OrderService.addOrderLine in serviceContext OrderService
+2012-06-17 13:56:01,710  INFO  started OrderService.addOrderLine in serviceContext OrderService
+2012-06-17 13:56:01,711  INFO  finished OrderService.addOrderLine in serviceContext OrderService
+2012-06-17 13:56:01,713  INFO  started OrderService.addOrderLine in serviceContext OrderService
+2012-06-17 13:56:01,715  INFO  finished OrderService.addOrderLine in serviceContext OrderService
+2012-06-17 13:56:01,717  INFO  started OrderService.addOrderLine in serviceContext OrderService
+2012-06-17 13:56:01,719  INFO  finished OrderService.addOrderLine in serviceContext OrderService
+2012-06-17 13:56:01,721  INFO  started OrderService.addOrderLine in serviceContext OrderService
+2012-06-17 13:56:01,723  INFO  finished OrderService.addOrderLine in serviceContext OrderService
+2012-06-17 13:56:01,725  INFO  started OrderService.addOrderLine in serviceContext OrderService
+2012-06-17 13:56:01,727  INFO  finished OrderService.addOrderLine in serviceContext OrderService
+2012-06-17 13:56:01,729  INFO  started OrderService.addOrderLine in serviceContext OrderService
+2012-06-17 13:56:01,730  INFO  finished OrderService.addOrderLine in serviceContext OrderService
+2012-06-17 13:56:01,732  INFO  started OrderService.addOrderLine in serviceContext OrderService
+2012-06-17 13:56:01,734  INFO  finished OrderService.addOrderLine in serviceContext OrderService
+2012-06-17 13:56:01,736  INFO  started OrderService.addOrderLine in serviceContext OrderService
+2012-06-17 13:56:01,738  INFO  finished OrderService.addOrderLine in serviceContext OrderService
+2012-06-17 13:56:01,741  INFO  started OrderService.addOrderLine in serviceContext OrderService
+2012-06-17 13:56:01,743  INFO  finished OrderService.addOrderLine in serviceContext OrderService
+2012-06-17 13:56:01,744  INFO  started OrderService.get in serviceContext OrderService
+2012-06-17 13:56:01,745  INFO  finished OrderService.get in serviceContext OrderService
+2012-06-17 13:56:02,357  INFO  [10.37.129.2]:5701 [dev] Connection [Address[10.37.129.2]:5702] lost. Reason: java.io.EOFException[null]
+2012-06-17 13:56:02,358  WARN  [10.37.129.2]:5701 [dev] hz._hzInstance_1_dev.IO.thread-1 Closing socket to endpoint Address[10.37.129.2]:5702, Cause:java.io.EOFException
+2012-06-17 13:56:03,048  INFO  [10.37.129.2]:5701 [dev] Could not connect to: /10.37.129.2:5702. Reason: ConnectException[Connection refused]
+2012-06-17 13:56:04,046  INFO  [10.37.129.2]:5701 [dev] Could not connect to: /10.37.129.2:5702. Reason: ConnectException[Connection refused]
+2012-06-17 13:56:04,047  WARN  [10.37.129.2]:5701 [dev] Removing connection to endpoint Address[10.37.129.2]:5702 Cause => java.net.ConnectException {Connection refused}, Error-Count: 3
+2012-06-17 13:56:04,047  INFO  [10.37.129.2]:5701 [dev] Removing Address Address[10.37.129.2]:5702
+2012-06-17 13:56:04,050  INFO  [10.37.129.2]:5701 [dev] 
+
+Members [1] {
+	Member [10.37.129.2]:5701 this
+}
+

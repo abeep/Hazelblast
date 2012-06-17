@@ -7,6 +7,7 @@ import com.hazelblast.api.RemoteInterface;
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.PartitionAware;
 import com.hazelcast.core.Transaction;
+import org.junit.After;
 import org.junit.Ignore;
 import org.junit.Test;
 
@@ -16,6 +17,11 @@ import java.util.Map;
 import static org.junit.Assert.*;
 
 public class DefaultProxyProviderTest {
+
+    @After
+    public void tearDown(){
+        Hazelcast.shutdownAll();
+    }
 
     @Test(expected = NullPointerException.class)
     public void constructor_whenNullPuName() {

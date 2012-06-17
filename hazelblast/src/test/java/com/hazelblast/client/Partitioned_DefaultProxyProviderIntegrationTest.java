@@ -49,7 +49,6 @@ public class Partitioned_DefaultProxyProviderIntegrationTest {
         boolean terminated = server.awaitTermination(10, TimeUnit.SECONDS);
         assertTrue("Could not terminate the servce within the given timeout", terminated);
         Hazelcast.shutdownAll();
-
     }
 
     @Test

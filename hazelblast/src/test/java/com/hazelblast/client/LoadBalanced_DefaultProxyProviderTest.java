@@ -98,19 +98,6 @@ public class LoadBalanced_DefaultProxyProviderTest {
     }
 
     @Test
-    public void exceptionUnwrapping() {
-        TestService proxy = proxyProvider.getProxy(TestService.class);
-        String arg = "foo";
-        when(testServiceMock.singleArg(arg)).thenThrow(new MyRuntimeException());
-
-        try {
-            proxy.singleArg(arg);
-            fail();
-        } catch (MyRuntimeException expected) {
-        }
-    }
-
-    @Test
     public void whenCalledWithNonNullArgument() {
         TestService proxy = proxyProvider.getProxy(TestService.class);
         String arg = "foo";
