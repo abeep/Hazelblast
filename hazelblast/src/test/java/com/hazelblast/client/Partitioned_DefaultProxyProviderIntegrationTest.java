@@ -39,7 +39,7 @@ public class Partitioned_DefaultProxyProviderIntegrationTest {
 
         Thread.sleep(1000);
 
-        proxyProvider = new DefaultProxyProvider("default", hazelcastInstance.getExecutorService());
+        proxyProvider = new DefaultProxyProvider("default", hazelcastInstance);
     }
 
     @After

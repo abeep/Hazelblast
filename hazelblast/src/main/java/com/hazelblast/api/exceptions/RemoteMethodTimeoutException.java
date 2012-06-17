@@ -1,11 +1,12 @@
 package com.hazelblast.api.exceptions;
 
 /**
- * A {@link RuntimeException} thrown when a timeout happens when calling a remote method.
+ * A {@link RemotingException} thrown when a timeout happens when calling a remote method.
  *
  * @author Peter Veentjer.
  */
-public class RemoteMethodTimeoutException extends RuntimeException {
+public class RemoteMethodTimeoutException extends RemotingException {
+    static final long serialVersionUID = 1;
 
     /**
      * Constructs a RemoteMethodTimeoutException.

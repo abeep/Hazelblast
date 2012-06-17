@@ -3,13 +3,29 @@ package com.hazelblast.client;
 import com.hazelblast.api.PartitionKey;
 import com.hazelblast.api.Partitioned;
 import com.hazelblast.api.RemoteInterface;
+import com.hazelcast.core.Hazelcast;
+import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.PartitionAware;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
 
 public class Partitioned_DefaultProxyProviderTest {
+
+    private HazelcastInstance hazelcastInstance;
+
+    @Before
+    public void setUp() {
+        hazelcastInstance = Hazelcast.newHazelcastInstance(null);
+    }
+
+    @After
+    public void tearDown() {
+        Hazelcast.shutdownAll();
+    }
 
     @Test(expected = IllegalArgumentException.class)
     public void badProxy_partitionedMethodWithoutArguments() {
@@ -109,7 +125,7 @@ public class Partitioned_DefaultProxyProviderTest {
     public void partitioned_normalPartitionKey() {
         StubExecutorService executorService = new StubExecutorService();
         executorService.result = "";
-        DefaultProxyProvider proxyProvider = new DefaultProxyProvider("default", executorService);
+        DefaultProxyProvider proxyProvider = new DefaultProxyProvider("default", hazelcastInstance, executorService);
 
         PartitionedService service = proxyProvider.getProxy(PartitionedService.class);
 
@@ -124,7 +140,7 @@ public class Partitioned_DefaultProxyProviderTest {
     public void partitioned_partitionKeyWithProperty() {
         StubExecutorService executorService = new StubExecutorService();
         executorService.result = "";
-        DefaultProxyProvider proxyProvider = new DefaultProxyProvider("default", executorService);
+        DefaultProxyProvider proxyProvider = new DefaultProxyProvider("default", hazelcastInstance, executorService);
 
         PartitionedService service = proxyProvider.getProxy(PartitionedService.class);
 
@@ -140,7 +156,7 @@ public class Partitioned_DefaultProxyProviderTest {
     public void partitioned_partitionKeyWithPartitionAware() {
         StubExecutorService executorService = new StubExecutorService();
         executorService.result = "";
-        DefaultProxyProvider proxyProvider = new DefaultProxyProvider("default", executorService);
+        DefaultProxyProvider proxyProvider = new DefaultProxyProvider("default", hazelcastInstance, executorService);
 
         PartitionedService service = proxyProvider.getProxy(PartitionedService.class);
 

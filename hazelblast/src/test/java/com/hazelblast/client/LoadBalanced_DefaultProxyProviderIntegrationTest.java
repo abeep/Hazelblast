@@ -38,7 +38,7 @@ public class LoadBalanced_DefaultProxyProviderIntegrationTest {
 
         Thread.sleep(1000);
 
-        proxyProvider = new DefaultProxyProvider("default", hazelcastInstance.getExecutorService());
+        proxyProvider = new DefaultProxyProvider("default", hazelcastInstance);
     }
 
     @After
@@ -61,6 +61,7 @@ public class LoadBalanced_DefaultProxyProviderIntegrationTest {
             proxy.singleArg(arg);
             fail();
         } catch (MyRuntimeException expected) {
+            expected.printStackTrace();
         }
     }
 

@@ -1,5 +1,7 @@
 package com.hazelblast.api;
 
+import com.hazelblast.loadbalancers.RoundRobinLoadBalancer;
+
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -13,6 +15,9 @@ import java.lang.annotation.Target;
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
-public @interface LoadBalanced {
+public @interface LoadBalanced{
+
     long timeoutMs() default 60 * 1000;
+
+    Class<? extends LoadBalancer> loadBalancer() default RoundRobinLoadBalancer.class;
 }

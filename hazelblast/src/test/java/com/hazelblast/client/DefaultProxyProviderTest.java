@@ -19,7 +19,7 @@ public class DefaultProxyProviderTest {
 
     @Test(expected = NullPointerException.class)
     public void constructor_whenNullPuName() {
-        new DefaultProxyProvider(null, Hazelcast.getExecutorService());
+        new DefaultProxyProvider(null, Hazelcast.getDefaultInstance());
     }
 
     @Test(expected = NullPointerException.class)
