@@ -222,7 +222,6 @@ final class ServiceContextContainer {
         notNull("serviceContextName", serviceContextName);
         notNull("serviceName", serviceName);
         notNull("methodName", methodName);
-        notNull("args", args);
 
         //todo: logging of method under finest
 
