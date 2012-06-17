@@ -24,6 +24,10 @@ public class RoundRobinLoadBalancer implements LoadBalancer {
         reset();
     }
 
+    public int getMemberCount(){
+        return members.get().size();
+    }
+
     public Member getNext() {
         List<Member> memberList = members.get();
         if(memberList.isEmpty()){
