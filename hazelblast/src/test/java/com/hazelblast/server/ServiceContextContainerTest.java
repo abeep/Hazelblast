@@ -2,6 +2,8 @@ package com.hazelblast.server;
 
 import com.hazelblast.server.pojo.PojoServiceContext;
 import com.hazelblast.server.pojo.PojoServiceContextFactory;
+import com.hazelcast.core.Hazelcast;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -16,6 +18,12 @@ public class ServiceContextContainerTest {
     }
 
     // ================= partitions ================
+
+
+    @After
+    public void tearDown(){
+        Hazelcast.shutdownAll();
+    }
 
     /*
     @Test

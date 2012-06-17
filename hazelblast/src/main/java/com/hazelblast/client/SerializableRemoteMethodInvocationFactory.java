@@ -1,7 +1,10 @@
 package com.hazelblast.client;
 
+import com.hazelblast.api.exceptions.RemotingException;
 import com.hazelblast.server.ServiceContextServer;
 import com.hazelcast.core.Hazelcast;
+import com.hazelcast.core.HazelcastInstance;
+import com.hazelcast.core.HazelcastInstanceAware;
 import com.hazelcast.core.PartitionAware;
 import com.hazelcast.logging.ILogger;
 import com.hazelcast.logging.Logger;
@@ -29,7 +32,7 @@ public final class SerializableRemoteMethodInvocationFactory implements RemoteMe
         return new RemoteMethodInvocation(serviceContext, serviceName, methodName, args, argTypes, partitionKey);
     }
 
-    protected static class RemoteMethodInvocation implements Callable, PartitionAware, Serializable {
+    protected static class RemoteMethodInvocation implements Callable, PartitionAware, Serializable ,HazelcastInstanceAware {
         static final long serialVersionUID = 1;
 
         private final String serviceContext;
@@ -38,6 +41,7 @@ public final class SerializableRemoteMethodInvocationFactory implements RemoteMe
         private final Object[] args;
         private final Object partitionKey;
         private final String[] argTypes;
+        private volatile transient HazelcastInstance hazelcastInstance;
 
         RemoteMethodInvocation(String serviceContext, String serviceName, String methodName, Object[] args, String[] argTypes, Object partitionKey) {
             this.serviceContext = serviceContext;
@@ -48,14 +52,18 @@ public final class SerializableRemoteMethodInvocationFactory implements RemoteMe
             this.argTypes = argTypes;
         }
 
+        public void setHazelcastInstance(HazelcastInstance hazelcastInstance) {
+            this.hazelcastInstance = hazelcastInstance;
+        }
+
         public Object call() throws Exception {
-            if (logger.isLoggable(Level.FINE)) {
+           if (logger.isLoggable(Level.FINE)) {
                 //todo: better message.
                 logger.log(Level.FINE, format("started %s.%s in serviceContext %s", serviceName, methodName, serviceName));
             }
 
             try {
-                Object result = ServiceContextServer.executeMethod(serviceContext, serviceName, methodName, argTypes, args, partitionKey);
+                Object result = ServiceContextServer.executeMethod(hazelcastInstance, serviceContext, serviceName, methodName, argTypes, args, partitionKey);
                 if (logger.isLoggable(Level.FINE)) {
                     //todo: better message
                     logger.log(Level.FINE, format("finished %s.%s in serviceContext %s", serviceName, methodName, serviceName));

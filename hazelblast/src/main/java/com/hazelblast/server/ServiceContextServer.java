@@ -34,7 +34,7 @@ public final class ServiceContextServer {
     public static final String DEFAULT_PU_NAME = "default";
 
     private static final ILogger logger = Logger.getLogger(ServiceContextServer.class.getName());
-    private static final ConcurrentMap<String, ServiceContextServer> serverMap = new ConcurrentHashMap<String, ServiceContextServer>();
+    private static final ConcurrentMap<Key, ServiceContextServer> serverMap = new ConcurrentHashMap<Key, ServiceContextServer>();
 
     public static void main(String[] args) {
         Options options = buildOptions();
@@ -112,12 +112,16 @@ public final class ServiceContextServer {
      * @throws NullPointerException  if name is null.
      * @throws IllegalStateException if no ServiceContext with the given name is found.
      */
-    public static ServiceContextContainer getContainer(String name) {
+    public static ServiceContextContainer getContainer(HazelcastInstance hazelcastInstance, String name) {
+        notNull("hazelcastInstance",hazelcastInstance);
         notNull("name", name);
 
-        ServiceContextServer server = serverMap.get(name);
+        Key key = new Key(hazelcastInstance,name);
+        ServiceContextServer server = serverMap.get(key);
+
+        //TODO: Improve exception, also the hazelcastInstance should be part of exception
         if (server == null) {
-            throw new IllegalStateException(format("No container found with service context with name [%s] on member [%s], available serviceContext's %s",
+            throw new IllegalStateException(format("No container found for service context with serviceContextName [%s] on member [%s], available serviceContext's %s",
                     name, Hazelcast.getCluster().getLocalMember(), serverMap.keySet()));
         }
 
@@ -157,8 +161,10 @@ public final class ServiceContextServer {
      * @throws IllegalArgumentException if serviceContextName is not pointing to a an existing ServiceContext.
      * @throws NullPointerException     if serviceContextName
      */
-    public static Object executeMethod(String serviceContextName, String serviceName, String methodName,
+    public static Object executeMethod(HazelcastInstance hazelcastInstance,
+                                       String serviceContextName, String serviceName, String methodName,
                                        String[] argTypes, Object[] args, Object partitionKey) throws Throwable {
+        notNull("hazelcastInstance",hazelcastInstance);
         notNull("serviceContextName", serviceContextName);
         notNull("serviceName", serviceName);
         notNull("methodName", methodName);
@@ -168,13 +174,14 @@ public final class ServiceContextServer {
         //was send to this machine, is still there. If it isn't, some kind of exception should be thrown, this exception
         //should be caught by the proxy and the method call should be retried, now hoping that
 
-        ServiceContextContainer container = getContainer(serviceContextName);
+        ServiceContextContainer container = getContainer(hazelcastInstance, serviceContextName);
         return container.executeMethod(serviceName, methodName, argTypes, args, partitionKey);
     }
 
     protected enum Status {Unstarted, Running, Terminating, Terminated}
 
     private final String serviceContextName;
+    private final HazelcastInstance hazelcastInstance;
     private final ServiceContextContainer container;
     private final ScheduledThreadPoolExecutor scheduler = new ScheduledThreadPoolExecutor(1);
     private final Lock stateLock = new ReentrantLock();
@@ -203,14 +210,13 @@ public final class ServiceContextServer {
      */
     public ServiceContextServer(ServiceContext serviceContext, final String serviceContextName, long scanDelayMs, HazelcastInstance hazelcastInstance) {
         notNull("serviceContext", serviceContext);
-        notNull("serviceContextName", serviceContextName);
-        notNull("hazelcastInstance", hazelcastInstance);
+        this.serviceContextName = notNull("serviceContextName", serviceContextName);
+        this.hazelcastInstance = notNull("hazelcastInstance", hazelcastInstance);
 
         if (scanDelayMs < 0) {
             throw new IllegalArgumentException(format("scanDelayMs can't be smaller or equal than zero, scanDelayMs was [%s]", scanDelayMs));
         }
 
-        this.serviceContextName = serviceContextName;
         this.scanDelayMs = scanDelayMs;
         this.scheduler.setContinueExistingPeriodicTasksAfterShutdownPolicy(true);
         this.container = new ServiceContextContainer(serviceContext, serviceContextName, hazelcastInstance);
@@ -222,7 +228,7 @@ public final class ServiceContextServer {
 
             public void run() {
                 if (logger.isLoggable(Level.INFO)) {
-                    logger.log(Level.INFO, format("[%s] Shutdown hook is shutting down ServiceContextServer'", serviceContextName));
+                    logger.log(Level.INFO, format("[%s] Shutdown hook is shutting down ServiceContextServer", serviceContextName));
                 }
                 shutdown();
 
@@ -263,7 +269,7 @@ public final class ServiceContextServer {
                     status = Status.Running;
                     container.start();
 
-                    if (serverMap.putIfAbsent(serviceContextName, this) != null) {
+                    if (serverMap.putIfAbsent(new Key(hazelcastInstance,serviceContextName), this) != null) {
                         shutdown();
                         throw new IllegalStateException(
                                 format("ServiceContextServer with name [%s] can't be started, there already is another " +
@@ -319,7 +325,7 @@ public final class ServiceContextServer {
                     status = Status.Terminated;
                     break;
                 case Running:
-                    serverMap.remove(serviceContextName, this);
+                    serverMap.remove(new Key(hazelcastInstance, serviceContextName), this);
                     if (logger.isLoggable(Level.FINE)) {
                         logger.log(Level.FINE, format("[%s] ServiceContextServer is running, and will now be terminating", serviceContextName));
                     }
@@ -422,6 +428,44 @@ public final class ServiceContextServer {
                     logger.log(Level.SEVERE, "Failed to run PartitionMonitor.scanForPartitionChanges", e);
                 }
             }
+        }
+    }
+
+    private static class Key{
+        private final HazelcastInstance hazelcastInstance;
+        private final String name;
+
+        private Key(HazelcastInstance hazelcastInstance, String name) {
+            this.hazelcastInstance = hazelcastInstance;
+            this.name = name;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+
+            Key key = (Key) o;
+
+            if(!hazelcastInstance.getName().equals(key.hazelcastInstance.getName()))return false;
+            if (!name.equals(key.name)) return false;
+
+            return true;
+        }
+
+        @Override
+        public int hashCode() {
+            int result = hazelcastInstance.hashCode();
+            result = 31 * result + name.hashCode();
+            return result;
+        }
+
+        @Override
+        public String toString() {
+            return "Key{" +
+                    "hazelcastInstance=" + hazelcastInstance.getName() +
+                    ", serviceContextName='" + name + '\'' +
+                    '}';
         }
     }
 }

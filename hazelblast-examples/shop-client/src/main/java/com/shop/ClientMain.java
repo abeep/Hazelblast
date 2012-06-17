@@ -23,5 +23,8 @@ public class ClientMain {
         }
 
         Order order = orderService.get(orderId);
+
+        System.out.println("Finished");
+        System.exit(0);
     }
 }

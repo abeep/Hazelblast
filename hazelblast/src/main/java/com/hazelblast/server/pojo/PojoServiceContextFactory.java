@@ -41,7 +41,7 @@ public final class PojoServiceContextFactory implements ServiceContextFactory {
         try {
             constructor = pojoClazz.getConstructor();
         } catch (NoSuchMethodException e) {
-            throw new IllegalArgumentException("Can't find no argument constructor on class " + pojoClazz);
+            throw new IllegalArgumentException(format("Can't find no-argument constructor on class '%s'",pojoClazz.getName()));
         }
     }
 
@@ -69,7 +69,7 @@ public final class PojoServiceContextFactory implements ServiceContextFactory {
         }
     }
 
-    public ServiceContext create() {
+    public PojoServiceContext create() {
         if (logger.isLoggable(Level.FINE)) {
             logger.log(Level.FINE, "creating PojoServiceContext using Pojo-constructor " + constructor);
         }

@@ -1,25 +1,36 @@
 package com.hazelblast.client;
 
 import com.hazelblast.api.LoadBalanced;
-import com.hazelblast.api.PartitionKey;
 import com.hazelblast.api.Partitioned;
 import com.hazelblast.api.RemoteInterface;
 import com.hazelcast.core.Hazelcast;
-import com.hazelcast.core.PartitionAware;
-import com.hazelcast.core.Transaction;
-import org.junit.Ignore;
+import com.hazelcast.core.HazelcastInstance;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.util.List;
-import java.util.Map;
 
 import static org.junit.Assert.*;
 
 public class DefaultProxyProviderTest {
 
+    private static HazelcastInstance hazelcastInstance;
+
+    @BeforeClass
+    public static void beforeClass() {
+        hazelcastInstance = Hazelcast.newHazelcastInstance(null);
+    }
+
+    @AfterClass
+    public static void afterClass() {
+        hazelcastInstance.getLifecycleService().shutdown();
+    }
+
     @Test(expected = NullPointerException.class)
     public void constructor_whenNullPuName() {
-        new DefaultProxyProvider(null, Hazelcast.getDefaultInstance());
+        new DefaultProxyProvider(null, hazelcastInstance);
     }
 
     @Test(expected = NullPointerException.class)

@@ -8,11 +8,11 @@ import com.hazelblast.api.RemoteInterface;
 public interface OrderService {
 
     @Partitioned
-    Order get(CustomerOrderId customerOrderId);
+    Order get(@PartitionKey CustomerOrderId customerOrderId);
 
     @Partitioned
     CustomerOrderId createOrder(@PartitionKey String customerId);
 
     @Partitioned
-    void addOrderLine(CustomerOrderId customerOrderId, String articleId, int quantity);
+    void addOrderLine(@PartitionKey CustomerOrderId customerOrderId, String articleId, int quantity);
 }
