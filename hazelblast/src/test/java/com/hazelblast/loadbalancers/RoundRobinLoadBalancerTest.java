@@ -35,8 +35,9 @@ public class RoundRobinLoadBalancerTest {
         for (HazelcastInstance instance : members) {
             cluster.add(instance.getCluster().getLocalMember());
         }
-        List<Member> pattern = new LinkedList<Member>();
 
+        //read out the pattern.
+        List<Member> pattern = new LinkedList<Member>();
         for (int k = 0; k < members.length; k++) {
             Member member = loadBalancer.getNext();
             assertTrue(String.format("member %s is not found in cluster %s", member, cluster), cluster.contains(member));
@@ -44,6 +45,7 @@ public class RoundRobinLoadBalancerTest {
             pattern.add(member);
         }
 
+        //verify that the pattern is followed.
         for (int k = 0; k < 100; k++) {
             for (int l = 0; l < members.length; l++) {
                 assertEquals(pattern.get(l), loadBalancer.getNext());
