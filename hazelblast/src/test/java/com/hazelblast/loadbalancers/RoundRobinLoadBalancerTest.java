@@ -1,9 +1,9 @@
 package com.hazelblast.loadbalancers;
 
+import com.hazelblast.TestUtils;
 import com.hazelblast.api.LoadBalancer;
 import com.hazelblast.api.exceptions.NoMemberAvailableException;
 import com.hazelcast.config.Config;
-import com.hazelcast.config.XmlConfigBuilder;
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.Member;
@@ -24,7 +24,7 @@ public class RoundRobinLoadBalancerTest {
 
     @Test(expected = NoMemberAvailableException.class)
     public void noMembersInTheCluster() {
-        HazelcastInstance hazelcastInstance = newLiteInstance();
+        HazelcastInstance hazelcastInstance = TestUtils.newLiteInstance();
 
         LoadBalancer lb = new RoundRobinLoadBalancer(hazelcastInstance);
         lb.getNext();
@@ -66,13 +66,7 @@ public class RoundRobinLoadBalancerTest {
             }
         }
 
-        fail(String.format("Timeout: The lb failed to upscale/downscale to size %s, current size %s",expected,lb.getMemberCount()));
-    }
-
-    private HazelcastInstance newLiteInstance() {
-        Config config = new XmlConfigBuilder().build();
-        config.setLiteMember(true);
-        return Hazelcast.newHazelcastInstance(config);
+        fail(String.format("Timeout: The lb failed to upscale/downscale to size %s, current size %s", expected, lb.getMemberCount()));
     }
 
     private HazelcastInstance newNormalInstance() {
@@ -114,7 +108,7 @@ public class RoundRobinLoadBalancerTest {
 
 
         //lets create an additional member
-        newLiteInstance();
+        TestUtils.newLiteInstance();
 
         assertRoundRobin(loadBalancer, instance1);
     }
