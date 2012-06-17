@@ -121,7 +121,7 @@ public final class ServiceContextServer {
 
         //TODO: Improve exception, also the hazelcastInstance should be part of exception
         if (server == null) {
-            throw new IllegalStateException(format("No container found for service context with name [%s] on member [%s], available serviceContext's %s",
+            throw new IllegalStateException(format("No container found for service context with serviceContextName [%s] on member [%s], available serviceContext's %s",
                     name, Hazelcast.getCluster().getLocalMember(), serverMap.keySet()));
         }
 
