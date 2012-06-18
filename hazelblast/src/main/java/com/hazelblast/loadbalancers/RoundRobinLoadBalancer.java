@@ -3,16 +3,26 @@ package com.hazelblast.loadbalancers;
 import com.hazelblast.api.LoadBalancer;
 import com.hazelblast.api.exceptions.NoMemberAvailableException;
 import com.hazelcast.core.*;
+import com.hazelcast.logging.ILogger;
+import com.hazelcast.logging.Logger;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.logging.Level;
 
 import static com.hazelblast.utils.Arguments.notNull;
+import static java.lang.String.format;
 
-//todo: logging
+/**
+ * A {@link LoadBalancer} that uses round robin to iterate over the members of the cluster.
+ *
+ * @author Peter Veentjer.
+ */
 public class RoundRobinLoadBalancer implements LoadBalancer {
+    private static final ILogger logger = Logger.getLogger(RoundRobinLoadBalancer.class.getName());
+
     private final AtomicInteger counter = new AtomicInteger();
     private final Cluster cluster;
     private final AtomicReference<List<Member>> members = new AtomicReference<List<Member>>();
@@ -38,15 +48,24 @@ public class RoundRobinLoadBalancer implements LoadBalancer {
         if (count < 0) {
             count = -count;
         }
-        return memberList.get(count % memberList.size());
+
+        Member member = memberList.get(count % memberList.size());
+        if(logger.isLoggable(Level.FINE)){
+            logger.log(Level.INFO,format("Next request is send to member '%s'",member));
+        }
+        return member;
     }
 
     private void reset() {
-        List<Member> memberList = new ArrayList<Member>();
+       List<Member> memberList = new ArrayList<Member>();
         for(Member member: cluster.getMembers()){
             if(!member.isLiteMember()){
                 memberList.add(member);
             }
+        }
+
+        if(logger.isLoggable(Level.INFO)){
+            logger.log(Level.INFO, format("The following members are part of the cluster %s",memberList));
         }
 
         members.set(memberList);
