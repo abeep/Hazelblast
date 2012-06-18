@@ -3,7 +3,6 @@ package com.hazelblast.server;
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.logging.ILogger;
-import com.hazelcast.logging.Logger;
 import org.apache.commons.cli.*;
 
 import java.util.concurrent.ConcurrentHashMap;
@@ -33,7 +32,7 @@ public final class ServiceContextServer {
     public static final int DEFAULT_SCAN_DELAY_MS = 1000;
     public static final String DEFAULT_PU_NAME = "default";
 
-    private static final ILogger logger = Logger.getLogger(ServiceContextServer.class.getName());
+    private final ILogger logger;
     private static final ConcurrentMap<Key, ServiceContextServer> serverMap = new ConcurrentHashMap<Key, ServiceContextServer>();
 
     public static void main(String[] args) {
@@ -42,7 +41,7 @@ public final class ServiceContextServer {
         CommandLine commandLine = buildCommandLine(args, options, parser);
 
         if (commandLine.hasOption("version")) {
-            logger.log(Level.INFO, "ServiceContextServer version is 0.1-SNAPSHOT");
+            System.out.println("ServiceContextServer version is 0.1-SNAPSHOT");
             System.exit(0);
         }
 
@@ -65,7 +64,7 @@ public final class ServiceContextServer {
         try {
             return parser.parse(options, args);
         } catch (ParseException e) {
-            logger.log(Level.SEVERE, "Parsing failed.  Reason: " + e.getMessage());
+            System.err.println("Parsing failed.  Reason: " + e.getMessage());
             System.exit(1);
             //will never be called.
             return null;
@@ -113,10 +112,10 @@ public final class ServiceContextServer {
      * @throws IllegalStateException if no ServiceContext with the given name is found.
      */
     public static ServiceContextContainer getContainer(HazelcastInstance hazelcastInstance, String name) {
-        notNull("hazelcastInstance",hazelcastInstance);
+        notNull("hazelcastInstance", hazelcastInstance);
         notNull("name", name);
 
-        Key key = new Key(hazelcastInstance,name);
+        Key key = new Key(hazelcastInstance, name);
         ServiceContextServer server = serverMap.get(key);
 
         //TODO: Improve exception, also the hazelcastInstance should be part of exception
@@ -129,9 +128,7 @@ public final class ServiceContextServer {
     }
 
     private static ServiceContext buildServiceContext(String factoryName) {
-        if (logger.isLoggable(Level.FINE)) {
-            logger.log(Level.FINE, format("Creating ServiceContext using puFactory [%s]", factoryName));
-        }
+        System.out.printf("Creating ServiceContext using puFactory [%s]\n", factoryName);
 
         ClassLoader classLoader = ServiceContextServer.class.getClassLoader();
         try {
@@ -164,7 +161,7 @@ public final class ServiceContextServer {
     public static Object executeMethod(HazelcastInstance hazelcastInstance,
                                        String serviceContextName, String serviceName, String methodName,
                                        String[] argTypes, Object[] args, Object partitionKey) throws Throwable {
-        notNull("hazelcastInstance",hazelcastInstance);
+        notNull("hazelcastInstance", hazelcastInstance);
         notNull("serviceContextName", serviceContextName);
         notNull("serviceName", serviceName);
         notNull("methodName", methodName);
@@ -211,6 +208,7 @@ public final class ServiceContextServer {
         notNull("serviceContext", serviceContext);
         this.serviceContextName = notNull("serviceContextName", serviceContextName);
         this.hazelcastInstance = notNull("hazelcastInstance", hazelcastInstance);
+        this.logger = hazelcastInstance.getLoggingService().getLogger(ServiceContextServer.class.getName());
 
         if (scanDelayMs < 0) {
             throw new IllegalArgumentException(format("scanDelayMs can't be smaller or equal than zero, scanDelayMs was [%s]", scanDelayMs));
@@ -268,7 +266,7 @@ public final class ServiceContextServer {
                     status = Status.Running;
                     container.start();
 
-                    if (serverMap.putIfAbsent(new Key(hazelcastInstance,serviceContextName), this) != null) {
+                    if (serverMap.putIfAbsent(new Key(hazelcastInstance, serviceContextName), this) != null) {
                         shutdown();
                         throw new IllegalStateException(
                                 format("ServiceContextServer with name [%s] can't be started, there already is another " +
@@ -430,7 +428,7 @@ public final class ServiceContextServer {
         }
     }
 
-    private static class Key{
+    private static class Key {
         private final HazelcastInstance hazelcastInstance;
         private final String name;
 
@@ -446,7 +444,7 @@ public final class ServiceContextServer {
 
             Key key = (Key) o;
 
-            if(!hazelcastInstance.getName().equals(key.hazelcastInstance.getName()))return false;
+            if (!hazelcastInstance.getName().equals(key.hazelcastInstance.getName())) return false;
             if (!name.equals(key.name)) return false;
 
             return true;

@@ -26,7 +26,7 @@ public final class PojoServiceContextFactory implements ServiceContextFactory {
     public static final String POJO_SERVICE_CONTEXT_CLASS = "pojoServiceContext.class";
 
     private final static ILogger logger = Logger.getLogger(PojoServiceContextFactory.class.getName());
-    private final Constructor constructor;
+    private final Constructor pojoConstructor;
 
     /**
      * Creates a new PojoServiceContextFactory with the given pojoClazz. A no arg constructor will be used from this pojoClazz
@@ -39,7 +39,7 @@ public final class PojoServiceContextFactory implements ServiceContextFactory {
         notNull("pojoClazz", pojoClazz);
 
         try {
-            constructor = pojoClazz.getConstructor();
+            pojoConstructor = pojoClazz.getConstructor();
         } catch (NoSuchMethodException e) {
             throw new IllegalArgumentException(format("Can't find no-argument constructor on class '%s'",pojoClazz.getName()));
         }
@@ -61,7 +61,7 @@ public final class PojoServiceContextFactory implements ServiceContextFactory {
 
         try {
             Class pojoClazz = PojoServiceContextFactory.class.getClassLoader().loadClass(pojoClassName);
-            constructor = pojoClazz.getConstructor();
+            pojoConstructor = pojoClazz.getConstructor();
         } catch (ClassNotFoundException e) {
             throw new IllegalStateException("pojoClass " + pojoClassName + " is not found", e);
         } catch (NoSuchMethodException e) {
@@ -70,19 +70,15 @@ public final class PojoServiceContextFactory implements ServiceContextFactory {
     }
 
     public PojoServiceContext create() {
-        if (logger.isLoggable(Level.FINE)) {
-            logger.log(Level.FINE, "creating PojoServiceContext using Pojo-constructor " + constructor);
-        }
-
-        try {
-            Object target = constructor.newInstance();
-            return new PojoServiceContext(target);
+         try {
+            Object pojo = pojoConstructor.newInstance();
+            return new PojoServiceContext(pojo);
         } catch (InstantiationException e) {
-            throw new RuntimeException("Failed to create a PojoProcessingUnit because the Pojo constructor " + constructor + " failed", e);
+            throw new RuntimeException("Failed to create a PojoServiceContext because the Pojo constructor " + pojoConstructor + " failed", e);
         } catch (IllegalAccessException e) {
-            throw new RuntimeException("Failed to create a PojoProcessingUnit because the Pojo constructor " + constructor + " failed", e);
+            throw new RuntimeException("Failed to create a PojoServiceContext because the Pojo constructor " + pojoConstructor + " failed", e);
         } catch (InvocationTargetException e) {
-            throw new RuntimeException("Failed to create a PojoProcessingUnit because the Pojo constructor " + constructor + " failed", e);
+            throw new RuntimeException("Failed to create a PojoServiceContext because the Pojo constructor " + pojoConstructor + " failed", e);
         }
     }
 }

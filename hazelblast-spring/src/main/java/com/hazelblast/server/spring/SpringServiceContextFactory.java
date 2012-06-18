@@ -40,8 +40,6 @@ import static java.lang.String.format;
  */
 public class SpringServiceContextFactory implements ServiceContextFactory {
 
-    private static final ILogger logger = Logger.getLogger(SpringServiceContextFactory.class.getName());
-
     public ServiceContext create() {
         return new SpringServiceContext();
     }
@@ -72,12 +70,10 @@ public class SpringServiceContextFactory implements ServiceContextFactory {
         }
 
         public void onStart() {
-           logger.log(Level.INFO, "starting");
            appContext.start();
         }
 
         public void onStop() {
-            logger.log(Level.INFO,"onStop");
             appContext.close();
         }
 

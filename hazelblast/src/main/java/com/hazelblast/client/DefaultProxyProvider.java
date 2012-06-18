@@ -31,9 +31,7 @@ import static java.lang.String.format;
  */
 public final class DefaultProxyProvider implements ProxyProvider {
 
-    private final static ILogger logger = Logger.getLogger(DefaultProxyProvider.class.getName());
-
-
+    private final ILogger logger;
     private final HazelcastInstance hazelcastInstance;
     private final ExecutorService executorService;
     private final Cluster cluster;
@@ -74,6 +72,7 @@ public final class DefaultProxyProvider implements ProxyProvider {
         this.hazelcastInstance = notNull("hazelcastInstance", hazelcastInstance);
         this.executorService = notNull("executorService", executorService);
         this.cluster = hazelcastInstance.getCluster();
+        this.logger = hazelcastInstance.getLoggingService().getLogger(DefaultProxyProvider.class.getName());
     }
 
     /**
@@ -109,12 +108,9 @@ public final class DefaultProxyProvider implements ProxyProvider {
     public <T> T getProxy(Class<T> targetInterface) {
         notNull("targetInterface", targetInterface);
 
-        //TODO: Improved logging
-
         Object proxy = proxies.get(targetInterface);
         if (proxy == null) {
             RemoteInterfaceInfo remoteInterfaceInfo = analyzeInterface(targetInterface);
-
 
             proxy = Proxy.newProxyInstance(
                     targetInterface.getClassLoader(),

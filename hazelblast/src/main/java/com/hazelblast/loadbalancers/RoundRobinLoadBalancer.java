@@ -21,7 +21,7 @@ import static java.lang.String.format;
  * @author Peter Veentjer.
  */
 public class RoundRobinLoadBalancer implements LoadBalancer {
-    private static final ILogger logger = Logger.getLogger(RoundRobinLoadBalancer.class.getName());
+    private  final ILogger logger;
 
     private final AtomicInteger counter = new AtomicInteger();
     private final Cluster cluster;
@@ -29,6 +29,7 @@ public class RoundRobinLoadBalancer implements LoadBalancer {
 
     public RoundRobinLoadBalancer(HazelcastInstance hazelcastInstance) {
         notNull("hazelcastInstance", hazelcastInstance);
+        logger = hazelcastInstance.getLoggingService().getLogger(RoundRobinLoadBalancer.class.getName());
         cluster = hazelcastInstance.getCluster();
         cluster.addMembershipListener(new MembershipListenerImpl());
         reset();

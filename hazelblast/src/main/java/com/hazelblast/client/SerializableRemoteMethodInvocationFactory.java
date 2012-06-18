@@ -1,14 +1,11 @@
 package com.hazelblast.client;
 
-import com.hazelblast.api.exceptions.RemotingException;
 import com.hazelblast.server.ServiceContextServer;
-import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.HazelcastInstanceAware;
 import com.hazelcast.core.PartitionAware;
 import com.hazelcast.logging.ILogger;
 import com.hazelcast.logging.Logger;
-import com.hazelcast.partition.Partition;
 
 import java.io.Serializable;
 import java.util.concurrent.Callable;
@@ -24,7 +21,6 @@ import static java.lang.String.format;
  */
 public final class SerializableRemoteMethodInvocationFactory implements RemoteMethodInvocationFactory {
 
-    private final static ILogger logger = Logger.getLogger(SerializableRemoteMethodInvocationFactory.class.getName());
 
     public final static SerializableRemoteMethodInvocationFactory INSTANCE = new SerializableRemoteMethodInvocationFactory();
 
@@ -32,7 +28,10 @@ public final class SerializableRemoteMethodInvocationFactory implements RemoteMe
         return new RemoteMethodInvocation(serviceContext, serviceName, methodName, args, argTypes, partitionKey);
     }
 
-    protected static class RemoteMethodInvocation implements Callable, PartitionAware, Serializable ,HazelcastInstanceAware {
+    protected static class RemoteMethodInvocation implements Callable, PartitionAware, Serializable, HazelcastInstanceAware {
+
+        private transient ILogger logger;
+
         static final long serialVersionUID = 1;
 
         private final String serviceContext;
@@ -54,10 +53,11 @@ public final class SerializableRemoteMethodInvocationFactory implements RemoteMe
 
         public void setHazelcastInstance(HazelcastInstance hazelcastInstance) {
             this.hazelcastInstance = hazelcastInstance;
+            this.logger = hazelcastInstance.getLoggingService().getLogger(RemoteMethodInvocation.class.getName());
         }
 
         public Object call() throws Exception {
-           if (logger.isLoggable(Level.FINE)) {
+            if (logger.isLoggable(Level.FINE)) {
                 //todo: better message.
                 logger.log(Level.FINE, format("started %s.%s in serviceContext %s", serviceName, methodName, serviceName));
             }

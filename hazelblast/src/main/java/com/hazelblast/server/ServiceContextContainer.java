@@ -25,7 +25,7 @@ import static java.lang.String.format;
  */
 final class ServiceContextContainer {
 
-    private final ILogger logger = Logger.getLogger(getClass().getName());
+    private final ILogger logger;
 
     private final ServiceContext serviceContext;
     private final Set<Integer> managedPartitions = Collections.synchronizedSet(new HashSet<Integer>());
@@ -47,6 +47,7 @@ final class ServiceContextContainer {
         this.serviceContext = notNull("serviceContext", serviceContext);
         this.serviceContextName = notNull("serviceContextName", serviceContextName);
         notNull("hazelcastInstance", hazelcastInstance);
+        this.logger = hazelcastInstance.getLoggingService().getLogger(ServiceContextContainer.class.getName());
 
         if (logger.isLoggable(Level.INFO)) {
             logger.log(Level.INFO, format("Created ServiceContextContainer containing ServiceContext [%s]", serviceContext));
