@@ -188,6 +188,7 @@ public final class DefaultProxyProvider implements ProxyProvider {
         Annotation annotation = getRemotingAnnotation(method);
 
         long timeoutMs;
+        boolean interruptOnTimeout;
         int partitionKeyIndex = -1;
         Method partitionKeyProperty = null;
         MethodType methodType;
@@ -195,6 +196,7 @@ public final class DefaultProxyProvider implements ProxyProvider {
         if (annotation instanceof LoadBalanced) {
             LoadBalanced loadBalancedAnnotation = (LoadBalanced) annotation;
             timeoutMs = loadBalancedAnnotation.timeoutMs();
+            interruptOnTimeout = loadBalancedAnnotation.interruptOnTimeout();
             methodType = MethodType.LOAD_BALANCED;
 
             Class<? extends LoadBalancer> loadBalancerClass = loadBalancedAnnotation.loadBalancer();
@@ -212,6 +214,7 @@ public final class DefaultProxyProvider implements ProxyProvider {
             }
         } else if (annotation instanceof Partitioned) {
             Partitioned partitionedAnnotation = (Partitioned) annotation;
+            interruptOnTimeout = partitionedAnnotation.interruptOnTimeout();
             timeoutMs = partitionedAnnotation.timeoutMs();
             methodType = MethodType.PARTITIONED;
             PartitionKeyInfo partitionKeyInfo = getPartitionKeyInfo(method);
@@ -238,7 +241,7 @@ public final class DefaultProxyProvider implements ProxyProvider {
             throw new IllegalStateException("Unrecognized method annotation: " + annotation);
         }
 
-        return new RemoteMethodInfo(method, methodType, partitionKeyIndex, partitionKeyProperty, timeoutMs, loadBalancer);
+        return new RemoteMethodInfo(method, methodType, partitionKeyIndex, partitionKeyProperty, timeoutMs, interruptOnTimeout, loadBalancer);
     }
 
     private PartitionKeyInfo getPartitionKeyInfo(Method method) {
@@ -413,10 +416,13 @@ public final class DefaultProxyProvider implements ProxyProvider {
                     cause = new MemberLeftException();
                 } else {
                     StackTraceElement[] clientSideStackTrace = Thread.currentThread().getStackTrace();
-                    fixStrackTrace(cause, clientSideStackTrace);
+                    fixStackTrace(cause, clientSideStackTrace);
                 }
                 throw cause;
             } catch (TimeoutException e) {
+                if (remoteMethodInfo.interruptOnTimeout) {
+                    future.cancel(true);
+                }
                 throw new RemoteMethodTimeoutException(
                         format("method '%s' failed to complete in the %s ms",
                                 remoteMethodInfo.method.toString(), remoteMethodInfo.timeoutMs), e);
@@ -441,17 +447,21 @@ public final class DefaultProxyProvider implements ProxyProvider {
                     cause = new MemberLeftException();
                 } else {
                     StackTraceElement[] clientSideStackTrace = Thread.currentThread().getStackTrace();
-                    fixStrackTrace(cause, clientSideStackTrace);
+                    fixStackTrace(cause, clientSideStackTrace);
                 }
                 throw cause;
             } catch (TimeoutException e) {
+                if (remoteMethodInfo.interruptOnTimeout) {
+                    future.cancel(true);
+                }
+
                 throw new RemoteMethodTimeoutException(
                         format("method '%s' failed to complete in the %s ms",
                                 remoteMethodInfo.method.toString(), remoteMethodInfo.timeoutMs), e);
             }
         }
 
-        private void fixStrackTrace(Throwable cause, StackTraceElement[] clientSideStackTrace) {
+        private void fixStackTrace(Throwable cause, StackTraceElement[] clientSideStackTrace) {
             StackTraceElement[] serverSideStackTrace = cause.getStackTrace();
             StackTraceElement[] newStackTrace = new StackTraceElement[clientSideStackTrace.length + serverSideStackTrace.length];
             System.arraycopy(serverSideStackTrace, 0, newStackTrace, 0, serverSideStackTrace.length);
@@ -523,15 +533,17 @@ public final class DefaultProxyProvider implements ProxyProvider {
         final String[] argTypes;
         final long timeoutMs;
         final LoadBalancer loadBalancer;
+        final boolean interruptOnTimeout;
 
         private RemoteMethodInfo(Method method, MethodType methodType, int partitionKeyIndex,
-                                 Method partitionKeyProperty, long timeoutMs, LoadBalancer loadBalancer) {
+                                 Method partitionKeyProperty, long timeoutMs, boolean interruptOnTimeout, LoadBalancer loadBalancer) {
             this.method = method;
             this.methodType = methodType;
             this.partitionKeyIndex = partitionKeyIndex;
             this.partitionKeyProperty = partitionKeyProperty;
             this.timeoutMs = timeoutMs;
             this.loadBalancer = loadBalancer;
+            this.interruptOnTimeout = interruptOnTimeout;
 
             Class[] parameterTypes = method.getParameterTypes();
             argTypes = new String[parameterTypes.length];

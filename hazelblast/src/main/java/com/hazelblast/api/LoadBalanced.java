@@ -19,5 +19,7 @@ public @interface LoadBalanced{
 
     long timeoutMs() default 60 * 1000;
 
+    boolean interruptOnTimeout() default true;
+
     Class<? extends LoadBalancer> loadBalancer() default RoundRobinLoadBalancer.class;
 }
