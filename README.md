@@ -4,12 +4,12 @@ A layer on top of Hazelcast to provide transparent remote interfaces.
 
 News
 -------------------------
-* 10 June 2012: Hazelblast 0.1 released
 * 19 June 2012: Hazelblast 0.2 released
     - custom loadbalancer policies for the LoadBalanced methods
     - support for timeout on LoadBalanced/Partitioned methods
     - lots of usability improvements and bugfixes
     - support for a cluster of ServiceContextServers (testing)
+* 10 June 2012: Hazelblast 0.1 released
 
 Example
 -------------------------
