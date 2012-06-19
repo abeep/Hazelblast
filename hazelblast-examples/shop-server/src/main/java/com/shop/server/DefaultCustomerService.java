@@ -29,8 +29,4 @@ public class DefaultCustomerService implements CustomerService {
         logger.info("Hire called with id " + id);
         return customer.getId();
     }
-
-    public void printStatisticsOnOneNode() {
-        logger.info("Statistics on one node, partition count: " + customers.size());
-    }
 }

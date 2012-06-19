@@ -10,7 +10,4 @@ public interface CustomerService {
 
     @Partitioned
     Customer get(@PartitionKey String id);
-
-    @LoadBalanced
-    void printStatisticsOnOneNode();
 }
