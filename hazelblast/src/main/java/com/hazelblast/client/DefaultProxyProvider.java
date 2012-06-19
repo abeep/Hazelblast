@@ -1,13 +1,12 @@
 package com.hazelblast.client;
 
 import com.hazelblast.api.*;
-import com.hazelblast.api.exceptions.RemoteMethodTimeoutException;
 import com.hazelblast.api.exceptions.PartitionMovedException;
+import com.hazelblast.api.exceptions.RemoteMethodTimeoutException;
 import com.hazelblast.server.ServiceContextServer;
 import com.hazelcast.core.*;
 import com.hazelcast.core.Member;
 import com.hazelcast.logging.ILogger;
-import com.hazelcast.logging.Logger;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.*;
@@ -50,7 +49,7 @@ public final class DefaultProxyProvider implements ProxyProvider {
      * Creates a ProxyProvider that connects to a ServiceContext with the given name
      *
      * @param serviceContextName the ServiceContext to connect to.
-     * @param hazelcastInstance the HazelcastInstance
+     * @param hazelcastInstance  the HazelcastInstance
      * @throws NullPointerException if serviceContextName or executorService is null.
      */
     public DefaultProxyProvider(String serviceContextName, HazelcastInstance hazelcastInstance) {
@@ -63,8 +62,8 @@ public final class DefaultProxyProvider implements ProxyProvider {
      * Creates a ProxyProvider that connects to a ServiceContext with the given name
      *
      * @param serviceContextName the ServiceContext to connect to.
-     * @param hazelcastInstance the HazelcastInstance
-     * @param executorService the executor service used. Make sure it belongs to the hazelcastInstance.
+     * @param hazelcastInstance  the HazelcastInstance
+     * @param executorService    the executor service used. Make sure it belongs to the hazelcastInstance.
      * @throws NullPointerException if serviceContextName, hazelcastInstance or executorService is null.
      */
     public DefaultProxyProvider(String serviceContextName, HazelcastInstance hazelcastInstance, ExecutorService executorService) {
@@ -332,9 +331,6 @@ public final class DefaultProxyProvider implements ProxyProvider {
                 try {
                     Object result;
                     switch (methodInfo.methodType) {
-                        case FORK_JOIN:
-                            result = invokeForkJoin(methodInfo, args);
-                            break;
                         case PARTITIONED:
                             result = invokePartitioned(methodInfo, args);
                             break;
@@ -353,7 +349,11 @@ public final class DefaultProxyProvider implements ProxyProvider {
                     return result;
                 } catch (PartitionMovedException e) {
                     logger.log(Level.INFO, "Method invocation was send to bad partition, retrying");
+                    //we wait some, since it will take some time for this partition to be started on another node.
+                    //there is no need to pound the system with useless requests.
                     Thread.sleep(100);
+                } catch (MemberLeftException e) {
+                    logger.log(Level.INFO, "Method invocation was send to a member that left, retrying");
                 }
             }
         }
@@ -399,7 +399,11 @@ public final class DefaultProxyProvider implements ProxyProvider {
             try {
                 return future.get(remoteMethodInfo.timeoutMs, TimeUnit.MILLISECONDS);
             } catch (ExecutionException e) {
-                  throw e.getCause();
+                Throwable cause = e.getCause();
+                if (cause == null) {
+                    cause = new MemberLeftException();
+                }
+                throw cause;
             } catch (TimeoutException e) {
                 throw new RemoteMethodTimeoutException(
                         format("method '%s' failed to complete in the %s ms",
