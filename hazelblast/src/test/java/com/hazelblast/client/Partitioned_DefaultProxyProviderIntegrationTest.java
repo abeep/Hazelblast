@@ -1,7 +1,6 @@
 package com.hazelblast.client;
 
 
-import com.hazelblast.api.LoadBalanced;
 import com.hazelblast.api.PartitionKey;
 import com.hazelblast.api.Partitioned;
 import com.hazelblast.api.RemoteInterface;
@@ -11,7 +10,6 @@ import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.concurrent.TimeUnit;
@@ -61,6 +59,9 @@ public class Partitioned_DefaultProxyProviderIntegrationTest {
             proxy.singleArg(arg);
             fail();
         } catch (MyRuntimeException expected) {
+            System.err.println("---------------------------------------------------");
+            expected.printStackTrace();
+            System.err.println("---------------------------------------------------");
         }
     }
 
@@ -102,5 +103,5 @@ public class Partitioned_DefaultProxyProviderIntegrationTest {
 
         @Partitioned
         String multipleArgs(@PartitionKey String arg, String arg2);
-  }
+    }
 }

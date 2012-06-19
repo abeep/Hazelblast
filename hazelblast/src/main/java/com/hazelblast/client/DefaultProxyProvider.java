@@ -24,7 +24,13 @@ import static java.lang.String.format;
  * it relies on the standard java serialization mechanism. If you want to use a different serialization mechanism, a
  * different factory can be injected.
  * <p/>
+ * <h2>Caching</h2>
  * Proxy instances are cached; so requests for the same interface will return the same instance.
+ * <p/>
+ * <h2>Exceptions</h2>
+ * When an exception is thrown on the server side, this exception is a bit difficult to use client side because
+ * it shows the stacktrace of the serverside and not the client side. That is why stacktrace of the exception is
+ * modified so that it first shows the serverside stacktrace, and then the clientside stacktrace is appended.
  *
  * @author Peter Veentjer.
  */
@@ -306,6 +312,7 @@ public final class DefaultProxyProvider implements ProxyProvider {
         return result;
     }
 
+
     private class InvocationHandlerImpl implements InvocationHandler {
 
         private final RemoteInterfaceInfo remoteInterfaceInfo;
@@ -398,10 +405,15 @@ public final class DefaultProxyProvider implements ProxyProvider {
             Future future = executorService.submit(task);
             try {
                 return future.get(remoteMethodInfo.timeoutMs, TimeUnit.MILLISECONDS);
+            } catch (MemberLeftException e) {
+                throw e;
             } catch (ExecutionException e) {
                 Throwable cause = e.getCause();
                 if (cause == null) {
                     cause = new MemberLeftException();
+                } else {
+                    StackTraceElement[] clientSideStackTrace = Thread.currentThread().getStackTrace();
+                    fixStrackTrace(cause, clientSideStackTrace);
                 }
                 throw cause;
             } catch (TimeoutException e) {
@@ -421,13 +433,31 @@ public final class DefaultProxyProvider implements ProxyProvider {
             Future future = executorService.submit(callable);
             try {
                 return future.get(remoteMethodInfo.timeoutMs, TimeUnit.MILLISECONDS);
+            } catch (MemberLeftException e) {
+                throw e;
             } catch (ExecutionException e) {
-                throw e.getCause();
+                Throwable cause = e.getCause();
+                if (cause == null) {
+                    cause = new MemberLeftException();
+                } else {
+                    StackTraceElement[] clientSideStackTrace = Thread.currentThread().getStackTrace();
+                    fixStrackTrace(cause, clientSideStackTrace);
+                }
+                throw cause;
             } catch (TimeoutException e) {
                 throw new RemoteMethodTimeoutException(
                         format("method '%s' failed to complete in the %s ms",
                                 remoteMethodInfo.method.toString(), remoteMethodInfo.timeoutMs), e);
             }
+        }
+
+        private void fixStrackTrace(Throwable cause, StackTraceElement[] clientSideStackTrace) {
+            StackTraceElement[] serverSideStackTrace = cause.getStackTrace();
+            StackTraceElement[] newStackTrace = new StackTraceElement[clientSideStackTrace.length + serverSideStackTrace.length];
+            System.arraycopy(serverSideStackTrace, 0, newStackTrace, 0, serverSideStackTrace.length);
+            newStackTrace[serverSideStackTrace.length] = new StackTraceElement("------End remote and begin local stracktrace ------", "", null, -1);
+            System.arraycopy(clientSideStackTrace, 1, newStackTrace, serverSideStackTrace.length + 1, clientSideStackTrace.length - 1);
+            cause.setStackTrace(newStackTrace);
         }
 
         private Object getPartitionKey(RemoteMethodInfo methodInfo, Object[] args) {
