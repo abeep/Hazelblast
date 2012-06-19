@@ -171,9 +171,9 @@ final class ServiceContextContainer {
         try {
             serviceContext.onPartitionRemoved(partitionId);
 
-            if (logger.isLoggable(Level.INFO)) {
+            if (logger.isLoggable(Level.FINEST)) {
                 long durationMs = System.currentTimeMillis() - startMs;
-                logger.log(Level.INFO, format("[%s] ServiceContext.onPartitionRemoved(%s) finished in [%s] ms", serviceContextName, partitionId, durationMs));
+                logger.log(Level.FINEST, format("[%s] ServiceContext.onPartitionRemoved(%s) finished in [%s] ms", serviceContextName, partitionId, durationMs));
             }
         } catch (Throwable e) {
             logger.log(Level.SEVERE, format("[%s] ServiceContext.onPartitionRemoved(%s) failed", serviceContextName, partitionId), e);
@@ -205,9 +205,9 @@ final class ServiceContextContainer {
             try {
                 serviceContext.onPartitionAdded(partitionId);
 
-                if (logger.isLoggable(Level.INFO)) {
+                if (logger.isLoggable(Level.FINEST)) {
                     long durationMs = System.currentTimeMillis() - startMs;
-                    logger.log(Level.INFO, format("[%s] ServiceContext.onPartitionAdded(%s) finished in [%s] ms", serviceContextName, partitionId, durationMs));
+                    logger.log(Level.FINEST, format("[%s] ServiceContext.onPartitionAdded(%s) finished in [%s] ms", serviceContextName, partitionId, durationMs));
                 }
             } catch (Throwable e) {
                 logger.log(Level.SEVERE, format("[%s] ServiceContext.OnPartitionAdded(%s) failed", serviceContextName, partitionId), e);

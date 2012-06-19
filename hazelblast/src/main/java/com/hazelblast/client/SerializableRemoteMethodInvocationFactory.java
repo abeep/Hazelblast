@@ -1,11 +1,11 @@
 package com.hazelblast.client;
 
+import com.hazelblast.api.exceptions.PartitionMovedException;
 import com.hazelblast.server.ServiceContextServer;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.HazelcastInstanceAware;
 import com.hazelcast.core.PartitionAware;
 import com.hazelcast.logging.ILogger;
-import com.hazelcast.logging.Logger;
 
 import java.io.Serializable;
 import java.util.concurrent.Callable;
@@ -31,6 +31,7 @@ public final class SerializableRemoteMethodInvocationFactory implements RemoteMe
     protected static class RemoteMethodInvocation implements Callable, PartitionAware, Serializable, HazelcastInstanceAware {
 
         private transient ILogger logger;
+
 
         static final long serialVersionUID = 1;
 
@@ -70,10 +71,16 @@ public final class SerializableRemoteMethodInvocationFactory implements RemoteMe
                 }
 
                 return result;
-            } catch (Exception e) {
-                //todo: improved exception, want to include args
+            } catch (PartitionMovedException e) {
                 if (logger.isLoggable(Level.FINE)) {
                     logger.log(Level.FINE, format("failed to call %s.%s in serviceContext %s", serviceName, methodName, serviceName), e);
+                }
+
+                throw e;
+            } catch (Exception e) {
+                //todo: improved exception, want to include args
+                if (logger.isLoggable(Level.SEVERE)) {
+                    logger.log(Level.SEVERE, format("failed to call %s.%s in serviceContext %s", serviceName, methodName, serviceName), e);
                 }
                 throw e;
             } catch (Throwable e) {

@@ -120,8 +120,8 @@ public final class ServiceContextServer {
 
         //TODO: Improve exception, also the hazelcastInstance should be part of exception
         if (server == null) {
-            throw new IllegalStateException(format("No container found for service context with serviceContextName [%s] on member [%s], available serviceContext's %s",
-                    name, Hazelcast.getCluster().getLocalMember(), serverMap.keySet()));
+            throw new IllegalStateException(format("No container found for service context %s@%s on member [%s], available serviceContext's %s",
+                    name,hazelcastInstance.getName(), Hazelcast.getCluster().getLocalMember(), serverMap.keySet()));
         }
 
         return server.container;
@@ -422,7 +422,7 @@ public final class ServiceContextServer {
                 try {
                     container.scanForPartitionChanges();
                 } catch (Throwable e) {
-                    logger.log(Level.SEVERE, "Failed to run PartitionMonitor.scanForPartitionChanges", e);
+                    logger.log(Level.SEVERE, "Failed to run ServiceContextContainer.scanForPartitionChanges", e);
                 }
             }
         }
@@ -459,10 +459,7 @@ public final class ServiceContextServer {
 
         @Override
         public String toString() {
-            return "Key{" +
-                    "hazelcastInstance=" + hazelcastInstance.getName() +
-                    ", serviceContextName='" + name + '\'' +
-                    '}';
+            return name+"@"+hazelcastInstance.getName();
         }
     }
 }
