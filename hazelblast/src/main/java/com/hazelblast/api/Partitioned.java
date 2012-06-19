@@ -15,4 +15,5 @@ import java.util.concurrent.TimeUnit;
 @Target(ElementType.METHOD)
 public @interface Partitioned {
     long timeoutMs() default 60 * 1000;
+    boolean interruptOnTimeout() default true;
 }
