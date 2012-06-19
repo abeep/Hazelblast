@@ -41,7 +41,7 @@ public final class ServiceContextServer {
         CommandLine commandLine = buildCommandLine(args, options, parser);
 
         if (commandLine.hasOption("version")) {
-            System.out.println("ServiceContextServer version is 0.2");
+            System.out.println("ServiceContextServer version is 0.3-SNAPSHOT");
             System.exit(0);
         }
 

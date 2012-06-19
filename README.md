@@ -4,7 +4,8 @@ A layer on top of Hazelcast to provide transparent remote interfaces.
 
 News
 -------------------------
-* 10 June 2012: Hazelblast 0.1 has been released
+* 10 June 2012: Hazelblast 0.1 released
+* 19 June 2012: Hazelblast 0.2 released
 
 Example
 -------------------------
@@ -45,7 +46,7 @@ There currently are 2 different types of calls
 on that machine, data is local.
 * LoadBalanced: the call gets forwarded to one of the machine; it doesn't matter which one.
 
-In the 0.2 release also the ForkJoin will be added:
+In the 0.3 release also the ForkJoin will be added:
 * ForkJoin: the call gets send to all machines, and the results are aggregated.
 
 For a full example check out the Hazelblast-examples module
@@ -75,7 +76,7 @@ And add the following dependency:
             <dependency>
                 <groupId>com.hazelblast</groupId>
                 <artifactId>hazelblast</artifactId>
-                <version>0.1</version>
+                <version>0.2</version>
             </dependency>
         </dependencies>
 
