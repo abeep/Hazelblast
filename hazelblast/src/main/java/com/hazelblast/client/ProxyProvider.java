@@ -3,9 +3,9 @@ package com.hazelblast.client;
 /**
  * Provides a 'client' side proxy to 'server' side implementations.
  * <p/>
- * A ServiceContext is registered in the ServiceContextServer with a given name (defaults to 'default'). So on a single
- * JVM multiple service contexts can run in parallel. By providing a serviceContextName in this ProxyProvider, you can
- * control which serviceContext on the server side is going to be called.
+ * A Slice is registered in the SliceServer with a given name (defaults to 'default'). So on a single
+ * JVM multiple service contexts can run in parallel. By providing a sliceName in this ProxyProvider, you can
+ * control which Slice on the server side is going to be called.
  * <p/>
  * It is best to create a single instance of the ProxyProvider and to reuse it. The ProxyProvider is thread-safe.
  * <p/>
@@ -16,11 +16,11 @@ package com.hazelblast.client;
 public interface ProxyProvider {
 
     /**
-     * Returns the name of the {@link com.hazelblast.server.ServiceContext} this ProxyProvider will send requests to.
+     * Returns the name of the {@link com.hazelblast.server.Slice} this ProxyProvider will send requests to.
      *
-     * @return the name of the ServiceContext.
+     * @return the name of the Slice.
      */
-    String getServiceContextName();
+    String getSliceName();
 
     /**
      * Gets a proxy to to given interface.

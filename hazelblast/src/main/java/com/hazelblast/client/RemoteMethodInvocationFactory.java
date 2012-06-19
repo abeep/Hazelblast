@@ -16,7 +16,7 @@ public interface RemoteMethodInvocationFactory {
     /**
      * Creates a Callable that created in the ProxyProvider and send to a remote machine where it is executed.
      *
-     * @param serviceContextName the name of the ServiceContext to connect to.
+     * @param sliceName the name of the Slice to connect to.
      * @param serviceName        the name of the service to use.
      * @param methodName         the name of the method
      * @param args               the arguments used to call the method
@@ -24,7 +24,7 @@ public interface RemoteMethodInvocationFactory {
      *                           any node will do.
      * @param <T>
      * @return the Callable.
-     * @throws NullPointerException if serviceContextName, serviceName, methodName or args is null.
+     * @throws NullPointerException if sliceName, serviceName, methodName or args is null.
      */
-    <T> Callable<T> create(String serviceContextName, String serviceName, String methodName, Object[] args, String[] argTypes, Object partitionKey);
+    <T> Callable<T> create(String sliceName, String serviceName, String methodName, Object[] args, String[] argTypes, Object partitionKey);
 }

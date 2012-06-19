@@ -1,11 +1,11 @@
 package com.hazelblast.client;
 
 import com.hazelblast.TestUtils;
-import com.hazelblast.api.LoadBalanced;
-import com.hazelblast.api.RemoteInterface;
-import com.hazelblast.api.exceptions.RemoteMethodTimeoutException;
-import com.hazelblast.server.ServiceContextServer;
-import com.hazelblast.server.pojo.PojoServiceContext;
+import com.hazelblast.client.annotations.LoadBalanced;
+import com.hazelblast.client.annotations.RemoteInterface;
+import com.hazelblast.client.exceptions.RemoteMethodTimeoutException;
+import com.hazelblast.server.SliceServer;
+import com.hazelblast.server.pojoslice.PojoSlice;
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
 import org.junit.After;
@@ -19,16 +19,16 @@ import static org.junit.Assert.*;
 
 public class LoadBalanced_Timeout_ProxyProviderIntegrationTest {
     private DefaultProxyProvider proxyProvider;
-    private ServiceContextServer server;
+    private SliceServer server;
     private Pojo pojo;
 
     @Before
     public void setUp() throws InterruptedException {
         pojo = new Pojo();
-        PojoServiceContext serviceContext = new PojoServiceContext(pojo);
+        PojoSlice slice = new PojoSlice(pojo);
         HazelcastInstance hazelcastInstance = Hazelcast.newHazelcastInstance(null);
 
-        server = new ServiceContextServer(serviceContext, "default", 100, hazelcastInstance);
+        server = new SliceServer(slice, "default", 100, hazelcastInstance);
         server.start();
 
         Thread.sleep(1000);

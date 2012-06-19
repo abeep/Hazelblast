@@ -1,12 +1,12 @@
 package com.hazelblast.client;
 
 import com.hazelblast.TestUtils;
-import com.hazelblast.api.LoadBalanced;
-import com.hazelblast.api.RemoteInterface;
-import com.hazelblast.server.ServiceContext;
-import com.hazelblast.server.ServiceContextServer;
-import com.hazelblast.server.pojo.PojoServiceContext;
-import com.hazelblast.server.pojo.PojoServiceContextFactory;
+import com.hazelblast.client.annotations.LoadBalanced;
+import com.hazelblast.client.annotations.RemoteInterface;
+import com.hazelblast.server.Slice;
+import com.hazelblast.server.SliceServer;
+import com.hazelblast.server.pojoslice.PojoSlice;
+import com.hazelblast.server.pojoslice.PojoSliceFactory;
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
 import org.junit.After;
@@ -33,19 +33,19 @@ public class LoadBalancedClusterTest {
         HazelcastInstance instance2 = Hazelcast.newHazelcastInstance(null);
         HazelcastInstance instance3 = Hazelcast.newHazelcastInstance(null);
 
-        PojoServiceContextFactory factory = new PojoServiceContextFactory(Pojo.class);
+        PojoSliceFactory factory = new PojoSliceFactory(Pojo.class);
 
-        PojoServiceContext context1 = factory.create();
-        PojoServiceContext context2 = factory.create();
-        PojoServiceContext context3 = factory.create();
+        PojoSlice slice1 = factory.create();
+        PojoSlice slice2 = factory.create();
+        PojoSlice slice3 = factory.create();
 
-        SomeServiceImpl service1 = (SomeServiceImpl) context1.getService("someService");
-        SomeServiceImpl service2 = (SomeServiceImpl) context2.getService("someService");
-        SomeServiceImpl service3 = (SomeServiceImpl) context3.getService("someService");
+        SomeServiceImpl service1 = (SomeServiceImpl) slice1.getService("someService");
+        SomeServiceImpl service2 = (SomeServiceImpl) slice2.getService("someService");
+        SomeServiceImpl service3 = (SomeServiceImpl) slice3.getService("someService");
 
-        ServiceContextServer server1 = build(context1, instance1, "foo");
-        ServiceContextServer server2 = build(context2, instance2, "foo");
-        ServiceContextServer server3 = build(context3, instance3, "foo");
+        SliceServer server1 = build(slice1, instance1, "foo");
+        SliceServer server2 = build(slice2, instance2, "foo");
+        SliceServer server3 = build(slice3, instance3, "foo");
 
         HazelcastInstance clientInstance = TestUtils.newLiteInstance();
 
@@ -65,10 +65,8 @@ public class LoadBalancedClusterTest {
         server3.shutdown();
     }
 
-    public ServiceContextServer build(ServiceContext context, HazelcastInstance hazelcastInstance, String name) {
-        System.setProperty("puFactory.class", PojoServiceContextFactory.class.getName());
-        System.setProperty("pojoPu.class", Pojo.class.getName());
-        ServiceContextServer server = new ServiceContextServer(context, name, 1000, hazelcastInstance);
+    public SliceServer build(Slice slice, HazelcastInstance hazelcastInstance, String name) {
+        SliceServer server = new SliceServer(slice, name, 1000, hazelcastInstance);
         server.start();
         return server;
     }

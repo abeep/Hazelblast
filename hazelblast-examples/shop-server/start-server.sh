@@ -1,6 +1,6 @@
 #!/bin/bash
 
-CLASS=com.hazelblast.server.ServiceContextServer
+CLASS=com.hazelblast.server.SliceServer
 
 ROOT=$(cd $(dirname $0) && pwd)
 cd $ROOT
@@ -13,4 +13,4 @@ echo running demo for $CLASS from $CP at $@
 
 pwd
 echo java $JAVA_OPTS -cp "$CP" $CLASS $@
-java $JAVA_OPTS -cp "$CP" $CLASS -serviceContextFactory com.hazelblast.server.spring.SpringServiceContextFactory
+java $JAVA_OPTS -cp "$CP" $CLASS -sliceFactory com.hazelblast.server.springslice.SpringSliceFactory

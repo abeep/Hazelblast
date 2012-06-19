@@ -10,7 +10,15 @@ import static java.lang.String.format;
  */
 public final class Arguments {
 
-
+    /**
+     * Verifies that an object reference is not null.
+     *
+     * @param name the name of the object reference.
+     * @param object  the object reference
+     * @param <T> the type of the object reference
+     * @return  the object reference (will never be null)
+     * @throws NullPointerException if object is null.
+     */
     public static <T> T notNull(String name, T object) {
         if (object == null) {
             throw new NullPointerException(format("'%s' can't be null", name));

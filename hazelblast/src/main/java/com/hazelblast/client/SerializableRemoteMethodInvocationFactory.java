@@ -1,7 +1,7 @@
 package com.hazelblast.client;
 
-import com.hazelblast.api.exceptions.PartitionMovedException;
-import com.hazelblast.server.ServiceContextServer;
+import com.hazelblast.server.exceptions.PartitionMovedException;
+import com.hazelblast.server.SliceServer;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.HazelcastInstanceAware;
 import com.hazelcast.core.PartitionAware;
@@ -24,8 +24,8 @@ public final class SerializableRemoteMethodInvocationFactory implements RemoteMe
 
     public final static SerializableRemoteMethodInvocationFactory INSTANCE = new SerializableRemoteMethodInvocationFactory();
 
-    public <T> Callable<T> create(String serviceContext, String serviceName, String methodName, Object[] args, String[] argTypes, Object partitionKey) {
-        return new RemoteMethodInvocation(serviceContext, serviceName, methodName, args, argTypes, partitionKey);
+    public <T> Callable<T> create(String sliceName, String serviceName, String methodName, Object[] args, String[] argTypes, Object partitionKey) {
+        return new RemoteMethodInvocation(sliceName, serviceName, methodName, args, argTypes, partitionKey);
     }
 
     protected static class RemoteMethodInvocation implements Callable, PartitionAware, Serializable, HazelcastInstanceAware {
@@ -35,7 +35,7 @@ public final class SerializableRemoteMethodInvocationFactory implements RemoteMe
 
         static final long serialVersionUID = 1;
 
-        private final String serviceContext;
+        private final String sliceName;
         private final String serviceName;
         private final String methodName;
         private final Object[] args;
@@ -43,8 +43,8 @@ public final class SerializableRemoteMethodInvocationFactory implements RemoteMe
         private final String[] argTypes;
         private volatile transient HazelcastInstance hazelcastInstance;
 
-        RemoteMethodInvocation(String serviceContext, String serviceName, String methodName, Object[] args, String[] argTypes, Object partitionKey) {
-            this.serviceContext = serviceContext;
+        RemoteMethodInvocation(String sliceName, String serviceName, String methodName, Object[] args, String[] argTypes, Object partitionKey) {
+            this.sliceName = sliceName;
             this.serviceName = serviceName;
             this.methodName = methodName;
             this.args = args;
@@ -60,33 +60,33 @@ public final class SerializableRemoteMethodInvocationFactory implements RemoteMe
         public Object call() throws Exception {
             if (logger.isLoggable(Level.FINE)) {
                 //todo: better message.
-                logger.log(Level.FINE, format("started %s.%s in serviceContext %s", serviceName, methodName, serviceName));
+                logger.log(Level.FINE, format("started %s.%s in Slice %s", serviceName, methodName, serviceName));
             }
 
             try {
-                Object result = ServiceContextServer.executeMethod(hazelcastInstance, serviceContext, serviceName, methodName, argTypes, args, partitionKey);
+                Object result = SliceServer.executeMethod(hazelcastInstance, sliceName, serviceName, methodName, argTypes, args, partitionKey);
                 if (logger.isLoggable(Level.FINE)) {
                     //todo: better message
-                    logger.log(Level.FINE, format("finished %s.%s in serviceContext %s", serviceName, methodName, serviceName));
+                    logger.log(Level.FINE, format("finished %s.%s in Slice %s", serviceName, methodName, serviceName));
                 }
 
                 return result;
             } catch (PartitionMovedException e) {
                 if (logger.isLoggable(Level.FINE)) {
-                    logger.log(Level.FINE, format("failed to call %s.%s in serviceContext %s", serviceName, methodName, serviceName), e);
+                    logger.log(Level.FINE, format("failed to call %s.%s in Slice %s", serviceName, methodName, serviceName), e);
                 }
 
                 throw e;
             } catch (Exception e) {
                 //todo: improved exception, want to include args
                 if (logger.isLoggable(Level.SEVERE)) {
-                    logger.log(Level.SEVERE, format("failed to call %s.%s in serviceContext %s", serviceName, methodName, serviceName), e);
+                    logger.log(Level.SEVERE, format("failed to call %s.%s in Slice %s", serviceName, methodName, serviceName), e);
                 }
                 throw e;
             } catch (Throwable e) {
                 //todo: improved exception, want to include args
                 if (logger.isLoggable(Level.SEVERE)) {
-                    logger.log(Level.SEVERE, format("failed to call %s.%s in serviceContext %s", serviceName, methodName, serviceName), e);
+                    logger.log(Level.SEVERE, format("failed to call %s.%s in Slice %s", serviceName, methodName, serviceName), e);
                 }
 
                 throw new RuntimeException(e);

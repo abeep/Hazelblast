@@ -1,11 +1,10 @@
 package com.hazelblast.client;
 
-import com.hazelblast.api.LoadBalanced;
-import com.hazelblast.api.Partitioned;
-import com.hazelblast.api.RemoteInterface;
+import com.hazelblast.client.annotations.LoadBalanced;
+import com.hazelblast.client.annotations.Partitioned;
+import com.hazelblast.client.annotations.RemoteInterface;
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
-import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;

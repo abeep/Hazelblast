@@ -1,8 +1,8 @@
 package com.hazelblast.client;
 
-import com.hazelblast.api.PartitionKey;
-import com.hazelblast.api.Partitioned;
-import com.hazelblast.api.RemoteInterface;
+import com.hazelblast.client.annotations.PartitionKey;
+import com.hazelblast.client.annotations.Partitioned;
+import com.hazelblast.client.annotations.RemoteInterface;
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.PartitionAware;

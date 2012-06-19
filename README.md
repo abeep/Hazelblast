@@ -8,7 +8,7 @@ News
     - custom loadbalancer policies for the LoadBalanced methods
     - support for timeout on LoadBalanced/Partitioned methods
     - lots of usability improvements and bugfixes
-    - support for a cluster of ServiceContextServers (testing)
+    - support for a cluster of SliceServers (testing)
 * 10 June 2012: Hazelblast 0.1 released
 
 Example

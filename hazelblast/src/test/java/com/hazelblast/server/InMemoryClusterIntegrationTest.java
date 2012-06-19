@@ -1,7 +1,7 @@
 package com.hazelblast.server;
 
-import com.hazelblast.server.pojo.PojoServiceContext;
-import com.hazelblast.server.pojo.PojoServiceContextFactory;
+import com.hazelblast.server.pojoslice.PojoSlice;
+import com.hazelblast.server.pojoslice.PojoSliceFactory;
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
 import org.junit.After;
@@ -28,23 +28,23 @@ public class InMemoryClusterIntegrationTest {
         HazelcastInstance instance2 = Hazelcast.newHazelcastInstance(null);
         HazelcastInstance instance3 = Hazelcast.newHazelcastInstance(null);
 
-        PojoServiceContextFactory factory = new PojoServiceContextFactory(Pojo.class);
+        PojoSliceFactory factory = new PojoSliceFactory(Pojo.class);
 
-        PojoServiceContext context1 = factory.create();
-        PojoServiceContext context2 = factory.create();
-        PojoServiceContext context3 = factory.create();
+        PojoSlice slice1 = factory.create();
+        PojoSlice slice2 = factory.create();
+        PojoSlice slice3 = factory.create();
 
-        SomeService service1 = (SomeService) context1.getService("someService");
-        SomeService service2 = (SomeService) context2.getService("someService");
-        SomeService service3 = (SomeService) context3.getService("someService");
+        SomeService service1 = (SomeService) slice1.getService("someService");
+        SomeService service2 = (SomeService) slice2.getService("someService");
+        SomeService service3 = (SomeService) slice3.getService("someService");
 
-        ServiceContextServer server1 = build(context1, instance1, "foo");
-        ServiceContextServer server2 = build(context2, instance2, "foo");
-        ServiceContextServer server3 = build(context3, instance3, "foo");
+        SliceServer server1 = build(slice1, instance1, "foo");
+        SliceServer server2 = build(slice2, instance2, "foo");
+        SliceServer server3 = build(slice3, instance3, "foo");
 
-        ServiceContextServer.executeMethod(instance1, "foo", "SomeService", "someMethod", new String[]{}, new Object[]{}, null);
-        ServiceContextServer.executeMethod(instance2, "foo", "SomeService", "someMethod", new String[]{}, new Object[]{}, null);
-        ServiceContextServer.executeMethod(instance2, "foo", "SomeService", "someMethod", new String[]{}, new Object[]{}, null);
+        SliceServer.executeMethod(instance1, "foo", "SomeService", "someMethod", new String[]{}, new Object[]{}, null);
+        SliceServer.executeMethod(instance2, "foo", "SomeService", "someMethod", new String[]{}, new Object[]{}, null);
+        SliceServer.executeMethod(instance2, "foo", "SomeService", "someMethod", new String[]{}, new Object[]{}, null);
 
         assertEquals(1, service1.count);
         assertEquals(2, service2.count);
@@ -55,10 +55,8 @@ public class InMemoryClusterIntegrationTest {
         server3.shutdown();
     }
 
-    public ServiceContextServer build(ServiceContext context, HazelcastInstance hazelcastInstance, String name) {
-        System.setProperty("puFactory.class", PojoServiceContextFactory.class.getName());
-        System.setProperty("pojoPu.class", Pojo.class.getName());
-        ServiceContextServer server = new ServiceContextServer(context, name, 1000, hazelcastInstance);
+    public SliceServer build(Slice slice, HazelcastInstance hazelcastInstance, String name) {
+        SliceServer server = new SliceServer(slice, name, 1000, hazelcastInstance);
         server.start();
         return server;
     }

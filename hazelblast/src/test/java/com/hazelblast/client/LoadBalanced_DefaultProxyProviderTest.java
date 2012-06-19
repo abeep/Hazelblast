@@ -1,11 +1,11 @@
 package com.hazelblast.client;
 
-import com.hazelblast.api.LoadBalanced;
-import com.hazelblast.api.PartitionKey;
-import com.hazelblast.api.RemoteInterface;
-import com.hazelblast.api.LoadBalancer;
-import com.hazelblast.server.ServiceContextServer;
-import com.hazelblast.server.pojo.PojoServiceContext;
+import com.hazelblast.client.annotations.LoadBalanced;
+import com.hazelblast.client.annotations.PartitionKey;
+import com.hazelblast.client.annotations.RemoteInterface;
+import com.hazelblast.client.loadbalancers.LoadBalancer;
+import com.hazelblast.server.SliceServer;
+import com.hazelblast.server.pojoslice.PojoSlice;
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.Member;
@@ -22,7 +22,7 @@ import static org.mockito.Mockito.when;
 public class LoadBalanced_DefaultProxyProviderTest {
 
     private DefaultProxyProvider proxyProvider;
-    private ServiceContextServer server;
+    private SliceServer server;
     private TestService testServiceMock;
 
     @Before
@@ -30,10 +30,10 @@ public class LoadBalanced_DefaultProxyProviderTest {
         testServiceMock = mock(TestService.class);
         Pojo pojo = new Pojo();
         pojo.testService = testServiceMock;
-        PojoServiceContext serviceContext = new PojoServiceContext(pojo);
+        PojoSlice slice = new PojoSlice(pojo);
         HazelcastInstance hazelcastInstance = Hazelcast.newHazelcastInstance(null);
 
-        server = new ServiceContextServer(serviceContext, "default", 100, hazelcastInstance);
+        server = new SliceServer(slice, "default", 100, hazelcastInstance);
         server.start();
 
         Thread.sleep(1000);

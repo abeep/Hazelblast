@@ -1,9 +1,13 @@
 package com.hazelblast.client;
 
-import com.hazelblast.api.*;
-import com.hazelblast.api.exceptions.PartitionMovedException;
-import com.hazelblast.api.exceptions.RemoteMethodTimeoutException;
-import com.hazelblast.server.ServiceContextServer;
+import com.hazelblast.client.annotations.LoadBalanced;
+import com.hazelblast.client.annotations.PartitionKey;
+import com.hazelblast.client.annotations.Partitioned;
+import com.hazelblast.client.annotations.RemoteInterface;
+import com.hazelblast.server.exceptions.PartitionMovedException;
+import com.hazelblast.client.exceptions.RemoteMethodTimeoutException;
+import com.hazelblast.client.loadbalancers.LoadBalancer;
+import com.hazelblast.server.SliceServer;
 import com.hazelcast.core.*;
 import com.hazelcast.core.Member;
 import com.hazelcast.logging.ILogger;
@@ -41,39 +45,39 @@ public final class DefaultProxyProvider implements ProxyProvider {
     private final ExecutorService executorService;
     private final Cluster cluster;
     private final ConcurrentMap<Class, Object> proxies = new ConcurrentHashMap<Class, Object>();
-    private final String serviceContextName;
+    private final String sliceName;
     private volatile RemoteMethodInvocationFactory remoteMethodInvocationFactory = SerializableRemoteMethodInvocationFactory.INSTANCE;
 
     /**
-     * Creates a new ProxyProvider that connects to the 'default' ServiceContext.
+     * Creates a new ProxyProvider that connects to the 'default' Slice.
      */
     public DefaultProxyProvider() {
-        this(ServiceContextServer.DEFAULT_PU_NAME, Hazelcast.getDefaultInstance());
+        this(SliceServer.DEFAULT_SLICE_NAME, Hazelcast.getDefaultInstance());
     }
 
     /**
-     * Creates a ProxyProvider that connects to a ServiceContext with the given name
+     * Creates a ProxyProvider that connects to a Slice with the given name
      *
-     * @param serviceContextName the ServiceContext to connect to.
+     * @param sliceName the Slice to connect to.
      * @param hazelcastInstance  the HazelcastInstance
-     * @throws NullPointerException if serviceContextName or executorService is null.
+     * @throws NullPointerException if sliceName or executorService is null.
      */
-    public DefaultProxyProvider(String serviceContextName, HazelcastInstance hazelcastInstance) {
-        this(notNull("serviceContextName", serviceContextName),
+    public DefaultProxyProvider(String sliceName, HazelcastInstance hazelcastInstance) {
+        this(notNull("sliceName", sliceName),
                 notNull("hazelcastInstance", hazelcastInstance),
                 hazelcastInstance.getExecutorService());
     }
 
     /**
-     * Creates a ProxyProvider that connects to a ServiceContext with the given name
+     * Creates a ProxyProvider that connects to a Slice with the given name
      *
-     * @param serviceContextName the ServiceContext to connect to.
+     * @param sliceName the Slice to connect to.
      * @param hazelcastInstance  the HazelcastInstance
      * @param executorService    the executor service used. Make sure it belongs to the hazelcastInstance.
-     * @throws NullPointerException if serviceContextName, hazelcastInstance or executorService is null.
+     * @throws NullPointerException if sliceName, hazelcastInstance or executorService is null.
      */
-    public DefaultProxyProvider(String serviceContextName, HazelcastInstance hazelcastInstance, ExecutorService executorService) {
-        this.serviceContextName = notNull("serviceContextName", serviceContextName);
+    public DefaultProxyProvider(String sliceName, HazelcastInstance hazelcastInstance, ExecutorService executorService) {
+        this.sliceName = notNull("sliceName", sliceName);
         this.hazelcastInstance = notNull("hazelcastInstance", hazelcastInstance);
         this.executorService = notNull("executorService", executorService);
         this.cluster = hazelcastInstance.getCluster();
@@ -81,12 +85,12 @@ public final class DefaultProxyProvider implements ProxyProvider {
     }
 
     /**
-     * Returns the name of the ServiceContext this ProxyProvider is going to call.
+     * Returns the name of the Slice this ProxyProvider is going to call.
      *
-     * @return the name of the ServiceContext.
+     * @return the name of the Slice.
      */
-    public String getServiceContextName() {
-        return serviceContextName;
+    public String getSliceName() {
+        return sliceName;
     }
 
     /**
@@ -383,7 +387,7 @@ public final class DefaultProxyProvider implements ProxyProvider {
 
         private Object invokeForkJoin(RemoteMethodInfo remoteMethodInfo, Object[] args) throws Throwable {
             Callable callable = remoteMethodInvocationFactory.create(
-                    serviceContextName, remoteInterfaceInfo.targetInterface.getSimpleName(), remoteMethodInfo.method.getName(),
+                    sliceName, remoteInterfaceInfo.targetInterface.getSimpleName(), remoteMethodInfo.method.getName(),
                     args, remoteMethodInfo.argTypes, null);
 
             MultiTask task = new MultiTask(callable, getClusterMembers());
@@ -398,7 +402,7 @@ public final class DefaultProxyProvider implements ProxyProvider {
 
         private Object invokeLoadBalanced(RemoteMethodInfo remoteMethodInfo, Object[] args) throws Throwable {
             Callable callable = remoteMethodInvocationFactory.create(
-                    serviceContextName, remoteInterfaceInfo.targetInterface.getSimpleName(), remoteMethodInfo.method.getName(),
+                    sliceName, remoteInterfaceInfo.targetInterface.getSimpleName(), remoteMethodInfo.method.getName(),
                     args, remoteMethodInfo.argTypes, null);
 
             Member targetMember = remoteMethodInfo.loadBalancer.getNext();
@@ -433,7 +437,7 @@ public final class DefaultProxyProvider implements ProxyProvider {
             Object partitionKey = getPartitionKey(remoteMethodInfo, args);
 
             Callable callable = remoteMethodInvocationFactory.create(
-                    serviceContextName, remoteInterfaceInfo.targetInterface.getSimpleName(), remoteMethodInfo.method.getName(),
+                    sliceName, remoteInterfaceInfo.targetInterface.getSimpleName(), remoteMethodInfo.method.getName(),
                     args, remoteMethodInfo.argTypes, partitionKey);
 
             Future future = executorService.submit(callable);
