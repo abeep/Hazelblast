@@ -58,7 +58,9 @@ public class LoadBalanced_DefaultProxyProviderIntegrationTest {
             proxy.singleArg(arg);
             fail();
         } catch (MyRuntimeException expected) {
+            System.err.println("---------------------------------------------------");
             expected.printStackTrace();
+            System.err.println("---------------------------------------------------");
         }
     }
 
@@ -102,6 +104,20 @@ public class LoadBalanced_DefaultProxyProviderIntegrationTest {
     }
 
     static class MyRuntimeException extends RuntimeException {
+        MyRuntimeException() {
+        }
+
+        MyRuntimeException(String message) {
+            super(message);
+        }
+
+        MyRuntimeException(String message, Throwable cause) {
+            super(message, cause);
+        }
+
+        MyRuntimeException(Throwable cause) {
+            super(cause);
+        }
     }
 
     @RemoteInterface
