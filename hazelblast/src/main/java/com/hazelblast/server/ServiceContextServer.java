@@ -128,7 +128,7 @@ public final class ServiceContextServer {
     }
 
     private static ServiceContext buildServiceContext(String factoryName) {
-        System.out.printf("Creating ServiceContext using puFactory [%s]\n", factoryName);
+        System.out.printf("Creating ServiceContext using factory [%s]\n", factoryName);
 
         ClassLoader classLoader = ServiceContextServer.class.getClassLoader();
         try {
