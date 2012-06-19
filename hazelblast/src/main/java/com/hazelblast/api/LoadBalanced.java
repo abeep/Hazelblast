@@ -17,9 +17,24 @@ import java.lang.annotation.Target;
 @Target(ElementType.METHOD)
 public @interface LoadBalanced{
 
+    /**
+     * The maximum time to wait for a call to complete.
+     *
+     * @return the maximum time to wait for a call to complete.
+     */
     long timeoutMs() default 60 * 1000;
 
+    /**
+     * Optionally interrupts the thread that executed the call on the serverside when a timeout happens.
+     *
+     * @return if the serverside thread should be interrupted on timeout.
+     */
     boolean interruptOnTimeout() default true;
 
+    /**
+     * The LoadBalancer class used to load balance calls.
+     *
+     * @return the LoadBalancer class.
+     */
     Class<? extends LoadBalancer> loadBalancer() default RoundRobinLoadBalancer.class;
 }

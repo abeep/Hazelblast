@@ -4,7 +4,6 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Annotation that can be placed on a method to indicate that the call should be send to a specific partition.
@@ -14,6 +13,18 @@ import java.util.concurrent.TimeUnit;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
 public @interface Partitioned {
+
+    /**
+     * The maximum time to wait for a call to complete.
+     *
+     * @return the maximum time to wait for a call to complete.
+     */
     long timeoutMs() default 60 * 1000;
+
+    /**
+     * Optionally interrupts the thread that executed the call on the serverside when a timeout happens.
+     *
+     * @return if the serverside thread should be interrupted on timeout.
+     */
     boolean interruptOnTimeout() default true;
 }

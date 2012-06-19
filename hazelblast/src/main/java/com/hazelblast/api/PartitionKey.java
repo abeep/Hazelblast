@@ -9,7 +9,7 @@ import java.lang.annotation.Target;
  * An parameter annotation that needs to be placed on a partition call. This parameter will be used to figure out
  * the correct partition.
  * <p/>
- * All partitioned methods, should have 1 PartitionKey.
+ * All partitioned methods, should have 1 PartitionKey annotated argument.
  *
  * @author Peter Veentjer.
  */
