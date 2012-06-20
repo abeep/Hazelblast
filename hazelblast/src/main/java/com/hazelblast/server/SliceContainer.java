@@ -28,7 +28,6 @@ final class SliceContainer {
 
     private final Slice slice;
     private final Set<Integer> managedPartitions = Collections.synchronizedSet(new HashSet<Integer>());
-    private final String sliceName;
 
     private final PartitionService partitionService;
     private final Member self;
@@ -39,13 +38,11 @@ final class SliceContainer {
      * Creates a new SliceContainer with the given Slice.
      *
      * @param slice     the Slice contained in this SliceContainer.
-     * @param sliceName the name of the Slice
      * @throws NullPointerException if slice or sliceName is null.
      */
-    public SliceContainer(Slice slice, String sliceName, HazelcastInstance hazelcastInstance) {
+    public SliceContainer(Slice slice) {
         this.slice = notNull("slice", slice);
-        this.sliceName = notNull("sliceName", sliceName);
-        notNull("hazelcastInstance", hazelcastInstance);
+        HazelcastInstance hazelcastInstance = slice.getHazelcastInstance();
         this.logger = hazelcastInstance.getLoggingService().getLogger(SliceContainer.class.getName());
 
         if (logger.isLoggable(Level.INFO)) {
@@ -72,7 +69,7 @@ final class SliceContainer {
         long startMs = System.currentTimeMillis();
 
         if (logger.isLoggable(Level.FINEST)) {
-            logger.log(Level.FINEST, format("[%s] Slice.onStart() begin", sliceName));
+            logger.log(Level.FINEST, format("[%s] Slice.onStart() begin", slice.getName()));
         }
 
         try {
@@ -80,10 +77,10 @@ final class SliceContainer {
 
             if (logger.isLoggable(Level.INFO)) {
                 long durationMs = System.currentTimeMillis() - startMs;
-                logger.log(Level.INFO, format("[%s] Slice.onStart() finished in [%s] ms", sliceName, durationMs));
+                logger.log(Level.INFO, format("[%s] Slice.onStart() finished in [%s] ms", slice.getName(), durationMs));
             }
         } catch (Throwable e) {
-            logger.log(Level.SEVERE, format("[%s] Slice.onStart() failed", sliceName), e);
+            logger.log(Level.SEVERE, format("[%s] Slice.onStart() failed", slice.getName()), e);
         }
     }
 
@@ -97,7 +94,7 @@ final class SliceContainer {
         long startMs = System.currentTimeMillis();
 
         if (logger.isLoggable(Level.FINEST)) {
-            logger.log(Level.FINEST, format("[%s] Slice.onStop() begin", sliceName));
+            logger.log(Level.FINEST, format("[%s] Slice.onStop() begin", slice.getName()));
         }
 
         try {
@@ -105,10 +102,10 @@ final class SliceContainer {
 
             if (logger.isLoggable(Level.INFO)) {
                 long durationMs = System.currentTimeMillis() - startMs;
-                logger.log(Level.INFO, format("[%s] Slice.onStop() finished in [%s] ms", sliceName, durationMs));
+                logger.log(Level.INFO, format("[%s] Slice.onStop() finished in [%s] ms", slice.getName(), durationMs));
             }
         } catch (Throwable e) {
-            logger.log(Level.SEVERE, format("[%s] Slice.onStop() failed", sliceName), e);
+            logger.log(Level.SEVERE, format("[%s] Slice.onStop() failed", slice.getName()), e);
         }
     }
 
@@ -124,7 +121,7 @@ final class SliceContainer {
         long startMs = System.currentTimeMillis();
 
         if (logger.isLoggable(Level.FINEST)) {
-            logger.log(Level.FINEST, format("[%s] Scan started", sliceName));
+            logger.log(Level.FINEST, format("[%s] Scan started", slice.getName()));
         }
 
         boolean changeDetected = false;
@@ -152,7 +149,7 @@ final class SliceContainer {
         if (changeDetected && logger.isLoggable(Level.INFO)) {
             long durationMs = System.currentTimeMillis() - startMs;
             logger.log(Level.INFO, format("[%s] Scan complete, managed partitions [%s], total time [%s] ms",
-                    sliceName, managedPartitions.size(), durationMs));
+                    slice.getName(), managedPartitions.size(), durationMs));
         }
     }
 
@@ -162,7 +159,7 @@ final class SliceContainer {
 
         long startMs = System.currentTimeMillis();
         if (logger.isLoggable(Level.FINEST)) {
-            logger.log(Level.FINEST, format("[%s] Slice.onPartitionRemoved(%s) begin", sliceName, partitionId));
+            logger.log(Level.FINEST, format("[%s] Slice.onPartitionRemoved(%s) begin", slice.getName(), partitionId));
         }
 
         //first we give the container the chance to terminate/persist all resources that were available
@@ -172,10 +169,10 @@ final class SliceContainer {
 
             if (logger.isLoggable(Level.FINEST)) {
                 long durationMs = System.currentTimeMillis() - startMs;
-                logger.log(Level.FINEST, format("[%s] Slice.onPartitionRemoved(%s) finished in [%s] ms", sliceName, partitionId, durationMs));
+                logger.log(Level.FINEST, format("[%s] Slice.onPartitionRemoved(%s) finished in [%s] ms", slice.getName(), partitionId, durationMs));
             }
         } catch (Throwable e) {
-            logger.log(Level.SEVERE, format("[%s] Slice.onPartitionRemoved(%s) failed", sliceName, partitionId), e);
+            logger.log(Level.SEVERE, format("[%s] Slice.onPartitionRemoved(%s) failed", slice.getName(), partitionId), e);
         }
 
         //we release the lock, so that a different node now is able to take over the partition.
@@ -191,14 +188,14 @@ final class SliceContainer {
         if (!lock.tryLock()) {
             if (logger.isLoggable(Level.FINEST)) {
                 logger.log(Level.FINEST, format("[%s] Could not obtain lock on partition [%s], maybe more luck next time.",
-                        sliceName, partitionId));
+                        slice.getName(), partitionId));
             }
         } else {
             changeDetected = true;
 
             long startMs = System.currentTimeMillis();
             if (logger.isLoggable(Level.FINEST)) {
-                logger.log(Level.FINEST, format("[%s] Slice.onPartitionAdded(%s) begin", sliceName, partitionId));
+                logger.log(Level.FINEST, format("[%s] Slice.onPartitionAdded(%s) begin", slice.getName(), partitionId));
             }
 
             try {
@@ -206,10 +203,10 @@ final class SliceContainer {
 
                 if (logger.isLoggable(Level.FINEST)) {
                     long durationMs = System.currentTimeMillis() - startMs;
-                    logger.log(Level.FINEST, format("[%s] Slice.onPartitionAdded(%s) finished in [%s] ms", sliceName, partitionId, durationMs));
+                    logger.log(Level.FINEST, format("[%s] Slice.onPartitionAdded(%s) finished in [%s] ms", slice.getName(), partitionId, durationMs));
                 }
             } catch (Throwable e) {
-                logger.log(Level.SEVERE, format("[%s] Slice.OnPartitionAdded(%s) failed", sliceName, partitionId), e);
+                logger.log(Level.SEVERE, format("[%s] Slice.OnPartitionAdded(%s) failed", slice.getName(), partitionId), e);
             }
 
             //by adding the partition to the managed partitions, external calls are allowed to be executed again.

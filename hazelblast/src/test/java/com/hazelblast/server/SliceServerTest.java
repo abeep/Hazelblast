@@ -24,11 +24,11 @@ public class SliceServerTest {
 
     @Before
     public void setUp() {
-        System.setProperty("puFactory.class", PojoSliceFactory.class.getName());
-        System.setProperty("pojoPu.class", TestPojo.class.getName());
-        sliceMock = mock(Slice.class);
         HazelcastInstance hazelcast = Hazelcast.newHazelcastInstance(null);
-        server = new SliceServer(sliceMock, "default", 1000, hazelcast);
+        sliceMock = mock(Slice.class);
+        when(sliceMock.getName()).thenReturn(Slice.DEFAULT_NAME);
+        when(sliceMock.getHazelcastInstance()).thenReturn(hazelcast);
+        server = new SliceServer(sliceMock,1000);
     }
 
     @After
@@ -49,7 +49,6 @@ public class SliceServerTest {
     public void unstartedServer() {
         assertEquals(server.getStatus(), SliceServer.Status.Unstarted);
 
-        Mockito.verifyZeroInteractions(sliceMock);
         assertFalse(server.isShutdown());
         assertFalse(server.isTerminated());
         assertFalse(server.isTerminating());
@@ -99,7 +98,6 @@ public class SliceServerTest {
         assertTrue(server.isShutdown());
         assertTrue(server.isTerminated());
         assertFalse(server.isTerminating());
-        verifyZeroInteractions(sliceMock);
     }
 
     // =========================== shutdown =================================
@@ -111,7 +109,6 @@ public class SliceServerTest {
         assertEquals(SliceServer.Status.Terminated, server.getStatus());
         assertTrue(server.isShutdown());
         assertTrue(server.isTerminated());
-        verifyZeroInteractions(sliceMock);
     }
 
     @Test
@@ -147,6 +144,5 @@ public class SliceServerTest {
         assertTrue(server.isShutdown());
         assertTrue(server.isTerminated());
         assertFalse(server.isTerminating());
-        verifyZeroInteractions(sliceMock);
     }
 }

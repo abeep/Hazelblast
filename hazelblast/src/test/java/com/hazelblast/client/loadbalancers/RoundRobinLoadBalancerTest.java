@@ -7,6 +7,7 @@ import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.Member;
 import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 
 import java.util.LinkedList;
@@ -15,6 +16,11 @@ import java.util.List;
 import static org.junit.Assert.*;
 
 public class RoundRobinLoadBalancerTest {
+
+    @Before
+    public void setUp(){
+        Hazelcast.shutdownAll();
+    }
 
     @After
     public void tearDown() {

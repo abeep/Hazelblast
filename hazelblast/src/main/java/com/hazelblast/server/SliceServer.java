@@ -30,10 +30,9 @@ import static java.lang.String.format;
  */
 public final class SliceServer {
     public static final int DEFAULT_SCAN_DELAY_MS = 1000;
-    public static final String DEFAULT_SLICE_NAME = "default";
 
-    private final ILogger logger;
     private static final ConcurrentMap<Key, SliceServer> serverMap = new ConcurrentHashMap<Key, SliceServer>();
+
 
     public static void main(String[] args) {
         Options options = buildOptions();
@@ -51,12 +50,14 @@ public final class SliceServer {
             System.exit(0);
         }
 
-        String sliceName = commandLine.getOptionValue("sliceName", DEFAULT_SLICE_NAME);
+        String sliceName = commandLine.getOptionValue("sliceName", Slice.DEFAULT_NAME);
         String sliceFactory = commandLine.getOptionValue("sliceFactory");
         long scanDelayMs = Long.parseLong(commandLine.getOptionValue("scanDelay", "" + DEFAULT_SCAN_DELAY_MS));
 
         HazelcastInstance hazelcastInstance = Hazelcast.getDefaultInstance();
-        SliceServer server = new SliceServer(buildSlice(sliceFactory), sliceName, scanDelayMs, hazelcastInstance);
+        SliceParameters sliceParameters = new SliceParameters(hazelcastInstance, sliceName);
+        Slice slice = buildSlice(sliceFactory, sliceParameters);
+        SliceServer server = new SliceServer(slice, scanDelayMs);
         server.start();
     }
 
@@ -121,20 +122,20 @@ public final class SliceServer {
         //TODO: Improve exception, also the hazelcastInstance should be part of exception
         if (server == null) {
             throw new IllegalStateException(format("No container found for service context %s@%s on member [%s], available slice's %s",
-                    name,hazelcastInstance.getName(), Hazelcast.getCluster().getLocalMember(), serverMap.keySet()));
+                    name, hazelcastInstance.getName(), Hazelcast.getCluster().getLocalMember(), serverMap.keySet()));
         }
 
         return server.container;
     }
 
-    private static Slice buildSlice(String factoryName) {
+    private static Slice buildSlice(String factoryName, SliceParameters sliceParameters) {
         System.out.printf("Creating Slice using factory [%s]\n", factoryName);
 
         ClassLoader classLoader = SliceServer.class.getClassLoader();
         try {
             Class<SliceFactory> factoryClazz = (Class<SliceFactory>) classLoader.loadClass(factoryName);
             SliceFactory sliceFactory = factoryClazz.newInstance();
-            return sliceFactory.create();
+            return sliceFactory.create(sliceParameters);
         } catch (ClassNotFoundException e) {
             throw new RuntimeException(format("Failed to create a Slice using sliceFactory [%s]", factoryName), e);
         } catch (InstantiationException e) {
@@ -176,8 +177,9 @@ public final class SliceServer {
 
     protected enum Status {Unstarted, Running, Terminating, Terminated}
 
-    private final String sliceName;
-    private final HazelcastInstance hazelcastInstance;
+
+    private final ILogger logger;
+    private final Slice slice;
     private final SliceContainer container;
     private final ScheduledThreadPoolExecutor scheduler = new ScheduledThreadPoolExecutor(1);
     private final Lock stateLock = new ReentrantLock();
@@ -187,28 +189,24 @@ public final class SliceServer {
     /**
      * Creates a new SliceServer.
      *
-     * @param slice     the slice this SliceServer 'contains'.
-     * @param sliceName the name of the slice.
+     * @param slice the slice this SliceServer 'contains'.
      * @throws NullPointerException if slice or sliceName is null.
      */
-    public SliceServer(Slice slice, String sliceName) {
-        this(slice, sliceName, DEFAULT_SCAN_DELAY_MS, Hazelcast.getDefaultInstance());
+    public SliceServer(Slice slice) {
+        this(slice, DEFAULT_SCAN_DELAY_MS);
     }
 
     /**
      * Creates a SliceServer.
      *
-     * @param slice     the Slice that is hosted by this SliceServer.
-     * @param sliceName the name of the slice.
-     * @param scanDelayMs        the delay between partition change checks.
+     * @param slice       the Slice that is hosted by this SliceServer.
+     * @param scanDelayMs the delay between partition change checks.
      * @throws NullPointerException     if slice or sliceName is null.
      * @throws IllegalArgumentException if scanDelayMs smaller than zero.
      */
-    public SliceServer(Slice slice, final String sliceName, long scanDelayMs, HazelcastInstance hazelcastInstance) {
-        notNull("slice", slice);
-        this.sliceName = notNull("sliceName", sliceName);
-        this.hazelcastInstance = notNull("hazelcastInstance", hazelcastInstance);
-        this.logger = hazelcastInstance.getLoggingService().getLogger(SliceServer.class.getName());
+    public SliceServer(final Slice slice, long scanDelayMs) {
+        this.slice = notNull("slice", slice);
+        this.logger = slice.getHazelcastInstance().getLoggingService().getLogger(SliceServer.class.getName());
 
         if (scanDelayMs < 0) {
             throw new IllegalArgumentException(format("scanDelayMs can't be smaller or equal than zero, scanDelayMs was [%s]", scanDelayMs));
@@ -216,21 +214,21 @@ public final class SliceServer {
 
         this.scanDelayMs = scanDelayMs;
         this.scheduler.setContinueExistingPeriodicTasksAfterShutdownPolicy(true);
-        this.container = new SliceContainer(slice, sliceName, hazelcastInstance);
+        this.container = new SliceContainer(slice);
 
         Runtime.getRuntime().addShutdownHook(new Thread() {
             {
-                setName("SliceServer-" + sliceName + "-shutdownHook-thread");
+                setName("SliceServer-" + slice.getName() + "-shutdownHook-thread");
             }
 
             public void run() {
                 if (logger.isLoggable(Level.INFO)) {
-                    logger.log(Level.INFO, format("[%s] Shutdown hook is shutting down SliceServer", sliceName));
+                    logger.log(Level.INFO, format("[%s] Shutdown hook is shutting down SliceServer", slice.getName()));
                 }
                 shutdown();
 
                 if (logger.isLoggable(Level.INFO)) {
-                    logger.log(Level.INFO, format("[%s] Shutdown hook is awaiting termination", sliceName));
+                    logger.log(Level.INFO, format("[%s] Shutdown hook is awaiting termination", slice.getName()));
                 }
                 try {
                     awaitTermination();
@@ -238,10 +236,14 @@ public final class SliceServer {
                 }
 
                 if (logger.isLoggable(Level.INFO)) {
-                    logger.log(Level.INFO, format("[%s] Shutdown hook is finished", sliceName));
+                    logger.log(Level.INFO, format("[%s] Shutdown hook is finished", slice.getName()));
                 }
             }
         });
+    }
+
+    public Slice getSlice() {
+        return slice;
     }
 
     /**
@@ -250,13 +252,14 @@ public final class SliceServer {
      * This call safely can be made if the SliceServer already has been started.
      * <p/>
      * This method is thread safe.
+     * @return this instance.
      *
      * @throws IllegalStateException if the SliceServer already is shutdown or terminated or if another processing unit with the same name
      *                               has been started.
      */
-    public void start() {
+    public SliceServer start() {
         if (logger.isLoggable(Level.INFO)) {
-            logger.log(Level.INFO, format("[%s] Start", sliceName));
+            logger.log(Level.INFO, format("[%s] Start", slice.getName()));
         }
 
         stateLock.lock();
@@ -266,22 +269,22 @@ public final class SliceServer {
                     status = Status.Running;
                     container.start();
 
-                    if (serverMap.putIfAbsent(new Key(hazelcastInstance, sliceName), this) != null) {
+                    if (serverMap.putIfAbsent(new Key(slice.getHazelcastInstance(), slice.getName()), this) != null) {
                         shutdown();
                         throw new IllegalStateException(
                                 format("SliceServer with name [%s] can't be started, there already is another " +
-                                        "SliceServer registered under the same name", sliceName));
+                                        "SliceServer registered under the same name", slice.getName()));
                     }
 
                     scheduler.scheduleAtFixedRate(new ScanTask(), 0, scanDelayMs, TimeUnit.MILLISECONDS);
                     if (logger.isLoggable(Level.FINE)) {
-                        logger.log(Level.FINE, format("[%s] Started", sliceName));
+                        logger.log(Level.FINE, format("[%s] Started", slice.getName()));
                     }
 
                     break;
                 case Running:
                     if (logger.isLoggable(Level.FINE)) {
-                        logger.log(Level.FINE, format("[%s] Start call is ignored, SliceServer is already running", sliceName));
+                        logger.log(Level.FINE, format("[%s] Start call is ignored, SliceServer is already running", slice.getName()));
                     }
                     break;
                 case Terminating:
@@ -294,6 +297,8 @@ public final class SliceServer {
         } finally {
             stateLock.unlock();
         }
+
+        return this;
     }
 
     /**
@@ -308,7 +313,7 @@ public final class SliceServer {
      */
     public void shutdown() {
         if (logger.isLoggable(Level.INFO)) {
-            logger.log(Level.INFO, format("[%s] Shutdown", sliceName));
+            logger.log(Level.INFO, format("[%s] Shutdown", slice.getName()));
         }
 
         stateLock.lock();
@@ -316,27 +321,27 @@ public final class SliceServer {
             switch (status) {
                 case Unstarted:
                     if (logger.isLoggable(Level.FINE)) {
-                        logger.log(Level.FINE, format("[%s] SliceServer not started yet, so will be immediately terminated", sliceName));
+                        logger.log(Level.FINE, format("[%s] SliceServer not started yet, so will be immediately terminated", slice.getName()));
                     }
                     scheduler.shutdown();
                     status = Status.Terminated;
                     break;
                 case Running:
-                    serverMap.remove(new Key(hazelcastInstance, sliceName), this);
+                    serverMap.remove(new Key(slice.getHazelcastInstance(), slice.getName()), this);
                     if (logger.isLoggable(Level.FINE)) {
-                        logger.log(Level.FINE, format("[%s] SliceServer is running, and will now be terminating", sliceName));
+                        logger.log(Level.FINE, format("[%s] SliceServer is running, and will now be terminating", slice.getName()));
                     }
                     status = Status.Terminating;
                     scheduler.shutdown();
                     break;
                 case Terminating:
                     if (logger.isLoggable(Level.FINE)) {
-                        logger.log(Level.FINE, format("[%s] Shutdown call ignored, SliceServer already terminating", sliceName));
+                        logger.log(Level.FINE, format("[%s] Shutdown call ignored, SliceServer already terminating", slice.getName()));
                     }
                     break;
                 case Terminated:
                     if (logger.isLoggable(Level.FINE)) {
-                        logger.log(Level.FINE, format("[%s] Shutdown call ignored, SliceServer already terminated", sliceName));
+                        logger.log(Level.FINE, format("[%s] Shutdown call ignored, SliceServer already terminated", slice.getName()));
                     }
                     break;
                 default:
@@ -459,7 +464,7 @@ public final class SliceServer {
 
         @Override
         public String toString() {
-            return name+"@"+hazelcastInstance.getName();
+            return name + "@" + hazelcastInstance.getName();
         }
     }
 }

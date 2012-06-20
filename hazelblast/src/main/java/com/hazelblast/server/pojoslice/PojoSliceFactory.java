@@ -1,6 +1,7 @@
 package com.hazelblast.server.pojoslice;
 
 import com.hazelblast.server.SliceFactory;
+import com.hazelblast.server.SliceParameters;
 import com.hazelcast.logging.ILogger;
 import com.hazelcast.logging.Logger;
 
@@ -49,7 +50,7 @@ public final class PojoSliceFactory implements SliceFactory {
      * is being used to create the  {@link com.hazelblast.server.Slice}.
      */
     public PojoSliceFactory() {
-        String pojoClassName = System.getProperty(POJO_SLICE_CLASS);
+         String pojoClassName = System.getProperty(POJO_SLICE_CLASS);
         if (logger.isLoggable(Level.FINE)) {
             logger.log(Level.FINE, format("Using pojoSlice.class = '%s' from System.getProperty(%s)", pojoClassName, POJO_SLICE_CLASS));
         }
@@ -68,10 +69,10 @@ public final class PojoSliceFactory implements SliceFactory {
         }
     }
 
-    public PojoSlice create() {
+    public PojoSlice create(SliceParameters sliceParameters) {
          try {
             Object pojo = pojoConstructor.newInstance();
-            return new PojoSlice(pojo);
+            return new PojoSlice(pojo,sliceParameters);
         } catch (InstantiationException e) {
             throw new RuntimeException("Failed to create a PojoSlice because the Pojo constructor " + pojoConstructor + " failed", e);
         } catch (IllegalAccessException e) {

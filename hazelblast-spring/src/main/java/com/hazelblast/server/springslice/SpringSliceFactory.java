@@ -1,9 +1,7 @@
 package com.hazelblast.server.springslice;
 
-import com.hazelblast.server.Slice;
-import com.hazelblast.server.SliceFactory;
-import com.hazelblast.server.SliceLifecycleAware;
-import com.hazelblast.server.SlicePartitionAware;
+import com.hazelblast.server.*;
+import com.hazelcast.core.HazelcastInstance;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
 import static com.hazelblast.utils.Arguments.notNull;
@@ -37,17 +35,27 @@ import static java.lang.String.format;
  */
 public class SpringSliceFactory implements SliceFactory {
 
-    public Slice create() {
-        return new SpringSlice();
+    public Slice create(SliceParameters sliceParameters) {
+        return new SpringSlice(sliceParameters);
     }
 
     private static class SpringSlice implements Slice {
         private final ClassPathXmlApplicationContext appContext;
         private final ExposedBeans exposedBeans;
+        private final SliceParameters sliceParameters;
 
-        private SpringSlice() {
-            appContext = new ClassPathXmlApplicationContext("slice.xml");
-            exposedBeans = appContext.getBean("exposedBeans", ExposedBeans.class);
+        private SpringSlice(SliceParameters sliceParameters) {
+            this.appContext = new ClassPathXmlApplicationContext("slice.xml");
+            this.exposedBeans = appContext.getBean("exposedBeans", ExposedBeans.class);
+            this.sliceParameters = sliceParameters;
+        }
+
+        public String getName() {
+            return sliceParameters.name;
+        }
+
+        public HazelcastInstance getHazelcastInstance() {
+            return sliceParameters.hazelcastInstance;
         }
 
         public Object getService(String name) {

@@ -28,15 +28,16 @@ public class LoadBalanced_DefaultProxyProviderIntegrationTest {
         testServiceMock = mock(TestService.class);
         Pojo pojo = new Pojo();
         pojo.testService = testServiceMock;
-        PojoSlice slice = new PojoSlice(pojo);
         HazelcastInstance hazelcastInstance = Hazelcast.newHazelcastInstance(null);
 
-        server = new SliceServer(slice, "default", 100, hazelcastInstance);
+        PojoSlice slice = new PojoSlice(pojo,"default",hazelcastInstance);
+
+        server = new SliceServer(slice, 100);
         server.start();
 
         Thread.sleep(1000);
 
-        proxyProvider = new DefaultProxyProvider("default", hazelcastInstance);
+        proxyProvider = new DefaultProxyProvider( hazelcastInstance);
     }
 
     @After

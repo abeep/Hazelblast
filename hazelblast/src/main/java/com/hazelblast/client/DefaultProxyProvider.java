@@ -4,10 +4,10 @@ import com.hazelblast.client.annotations.LoadBalanced;
 import com.hazelblast.client.annotations.PartitionKey;
 import com.hazelblast.client.annotations.Partitioned;
 import com.hazelblast.client.annotations.RemoteInterface;
+import com.hazelblast.server.Slice;
 import com.hazelblast.server.exceptions.PartitionMovedException;
 import com.hazelblast.client.exceptions.RemoteMethodTimeoutException;
 import com.hazelblast.client.loadbalancers.LoadBalancer;
-import com.hazelblast.server.SliceServer;
 import com.hazelcast.core.*;
 import com.hazelcast.core.Member;
 import com.hazelcast.logging.ILogger;
@@ -52,7 +52,11 @@ public final class DefaultProxyProvider implements ProxyProvider {
      * Creates a new ProxyProvider that connects to the 'default' Slice.
      */
     public DefaultProxyProvider() {
-        this(SliceServer.DEFAULT_SLICE_NAME, Hazelcast.getDefaultInstance());
+        this(Slice.DEFAULT_NAME, Hazelcast.getDefaultInstance());
+    }
+
+    public DefaultProxyProvider(HazelcastInstance hazelcastInstance){
+        this(Slice.DEFAULT_NAME,hazelcastInstance);
     }
 
     /**

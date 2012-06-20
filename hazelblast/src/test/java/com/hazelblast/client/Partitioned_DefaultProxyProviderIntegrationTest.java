@@ -29,10 +29,10 @@ public class Partitioned_DefaultProxyProviderIntegrationTest {
         testServiceMock = mock(TestService.class);
         Pojo pojo = new Pojo();
         pojo.testService = testServiceMock;
-        PojoSlice slice = new PojoSlice(pojo);
         HazelcastInstance hazelcastInstance = Hazelcast.newHazelcastInstance(null);
 
-        server = new SliceServer(slice, "default", 100, hazelcastInstance);
+        PojoSlice slice = new PojoSlice(pojo,hazelcastInstance);
+        server = new SliceServer(slice,  100);
         server.start();
 
         Thread.sleep(1000);
