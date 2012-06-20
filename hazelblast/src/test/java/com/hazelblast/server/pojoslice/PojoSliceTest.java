@@ -1,9 +1,10 @@
 package com.hazelblast.server.pojoslice;
 
 import com.hazelblast.server.SliceLifecycleAware;
-import com.hazelblast.server.SliceParameters;
 import com.hazelblast.server.SlicePartitionAware;
 import com.hazelcast.core.Hazelcast;
+import com.hazelcast.core.HazelcastInstance;
+import com.hazelcast.core.HazelcastInstanceAware;
 import org.junit.Test;
 
 import java.util.List;
@@ -11,7 +12,7 @@ import java.util.List;
 import static org.mockito.Mockito.*;
 
 public class PojoSliceTest {
-  @Test
+    @Test
     public void partition_whenTargetNotImplementsPartitionAware() {
         List pojo = mock(List.class);
 
@@ -53,7 +54,18 @@ public class PojoSliceTest {
         slice.onStop();
 
         verify(pojo).onStart();
-        verify(pojo,times(2)).onStop();
+        verify(pojo, times(2)).onStop();
+        verifyNoMoreInteractions(pojo);
+    }
+
+    @Test
+    public void instanceAware_whenTargetImplementsHazelcastInstanceAware() {
+        HazelcastInstanceAware pojo = mock(HazelcastInstanceAware.class);
+        HazelcastInstance hazelcastInstance = Hazelcast.getDefaultInstance();
+        PojoSlice slice = new PojoSlice(pojo,hazelcastInstance);
+        slice.onStart();
+
+        verify(pojo).setHazelcastInstance(hazelcastInstance);
         verifyNoMoreInteractions(pojo);
     }
 

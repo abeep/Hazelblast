@@ -6,6 +6,7 @@ import com.hazelblast.server.SliceParameters;
 import com.hazelblast.server.SlicePartitionAware;
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
+import com.hazelcast.core.HazelcastInstanceAware;
 
 import java.lang.reflect.Field;
 import java.util.Map;
@@ -18,19 +19,13 @@ import static java.lang.String.format;
  * The PojoSlice is a {@link com.hazelblast.server.Slice} that contains a single Pojo and all public
  * fields on this Pojo will be exposed as a service.
  * <p/>
- * <h2>start</h2>
- * If the pojo exposes a method 'public void start()' it will be called when this Slice it started.
+ * If the Pojo implements {@link SliceLifecycleAware} it will get callbacks for lifecycle events of the Slice.
  * <p/>
- * <h2>stop</h2>
- * If the pojo exposes a method 'public void stop()' it will be called when this Slice is stopped.
- * <p/>
- * <h2>onPartitionAdded</h2>
- * If the pojo exposes a method 'public void onPartitionAdded(int partitionId)' it will be called when a partition
- * is added.
- * <p/>
- * <h2>onPartitionRemoved</h2>
- * If the pojo exposes a method 'public void onPartitionRemoved(int partitionId)' it will be called when a partition
- * is removed,
+ * If the Pojo implements {@link HazelcastInstanceAware} it will get a callback when the {@link #onStart()} is called
+ * with the {@link HazelcastInstance} to be used.
+ *
+ * If the Pojo implements {@link SlicePartitionAware} it will get callbacks when partitions are added/removed
+ * from the {@link Slice}.
  *
  * @author Peter Veentjer.
  */
@@ -90,39 +85,35 @@ public final class PojoSlice implements Slice {
         try {
             return field.get(target);
         } catch (IllegalAccessException e) {
-            throw new IllegalArgumentException(format("Inaccessable field [%s]", serviceName), e);
+            throw new IllegalArgumentException(format("Inaccessible field [%s]", serviceName), e);
         }
     }
 
     public void onPartitionAdded(int partitionId) {
-        if (!(target instanceof SlicePartitionAware)) {
-            return;
+        if (target instanceof SlicePartitionAware) {
+            ((SlicePartitionAware) target).onPartitionAdded(partitionId);
         }
-
-        ((SlicePartitionAware) target).onPartitionAdded(partitionId);
     }
 
     public void onPartitionRemoved(int partitionId) {
-        if (!(target instanceof SlicePartitionAware)) {
-            return;
+        if (target instanceof SlicePartitionAware) {
+            ((SlicePartitionAware) target).onPartitionRemoved(partitionId);
         }
-
-        ((SlicePartitionAware) target).onPartitionRemoved(partitionId);
     }
 
     public void onStart() {
-        if (!(target instanceof SliceLifecycleAware)) {
-            return;
+        if (target instanceof SliceLifecycleAware) {
+            ((SliceLifecycleAware) target).onStart();
         }
 
-        ((SliceLifecycleAware) target).onStart();
+        if (target instanceof HazelcastInstanceAware) {
+            ((HazelcastInstanceAware) target).setHazelcastInstance(sliceParameters.hazelcastInstance);
+        }
     }
 
     public void onStop() {
-        if (!(target instanceof SliceLifecycleAware)) {
-            return;
+        if (target instanceof SliceLifecycleAware) {
+            ((SliceLifecycleAware) target).onStop();
         }
-
-        ((SliceLifecycleAware) target).onStop();
     }
 }

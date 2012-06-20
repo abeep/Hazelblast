@@ -1,13 +1,11 @@
 package com.hazelblast.server;
 
-import com.hazelblast.server.pojoslice.PojoSliceFactory;
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
-import org.mockito.Mockito;
 
 import java.util.concurrent.TimeUnit;
 
@@ -28,7 +26,7 @@ public class SliceServerTest {
         sliceMock = mock(Slice.class);
         when(sliceMock.getName()).thenReturn(Slice.DEFAULT_NAME);
         when(sliceMock.getHazelcastInstance()).thenReturn(hazelcast);
-        server = new SliceServer(sliceMock,1000);
+        server = new SliceServer(sliceMock, 1000);
     }
 
     @After
