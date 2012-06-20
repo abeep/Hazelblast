@@ -1,14 +1,15 @@
 package com.hazelblast.client;
 
 import com.hazelblast.TestUtils;
+import com.hazelblast.client.annotations.DistributedService;
 import com.hazelblast.client.annotations.PartitionKey;
 import com.hazelblast.client.annotations.Partitioned;
-import com.hazelblast.client.annotations.RemoteInterface;
 import com.hazelblast.server.Slice;
 import com.hazelblast.server.SliceParameters;
 import com.hazelblast.server.SliceServer;
 import com.hazelblast.server.pojoslice.PojoSlice;
 import com.hazelblast.server.pojoslice.PojoSliceFactory;
+import com.hazelblast.server.pojoslice.ExposeService;
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
 import org.junit.After;
@@ -72,13 +73,14 @@ public class PartitionedClusterTest {
     }
 
     public static class Pojo {
+        @ExposeService
         public SomeService someService = new SomeServiceImpl();
 
         public Pojo() {
         }
     }
 
-    @RemoteInterface
+    @DistributedService
     public static interface SomeService {
         @Partitioned
         void someMethod(@PartitionKey int x);

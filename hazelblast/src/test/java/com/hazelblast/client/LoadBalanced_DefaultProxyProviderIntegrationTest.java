@@ -1,10 +1,11 @@
 package com.hazelblast.client;
 
 
+import com.hazelblast.client.annotations.DistributedService;
 import com.hazelblast.client.annotations.LoadBalanced;
-import com.hazelblast.client.annotations.RemoteInterface;
 import com.hazelblast.server.SliceServer;
 import com.hazelblast.server.pojoslice.PojoSlice;
+import com.hazelblast.server.pojoslice.ExposeService;
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
 import org.junit.After;
@@ -101,6 +102,7 @@ public class LoadBalanced_DefaultProxyProviderIntegrationTest {
     }
 
     static public class Pojo {
+        @ExposeService
         public TestService testService;
     }
 
@@ -121,7 +123,7 @@ public class LoadBalanced_DefaultProxyProviderIntegrationTest {
         }
     }
 
-    @RemoteInterface
+    @DistributedService
     interface TestService {
         @LoadBalanced
         String noArgs();

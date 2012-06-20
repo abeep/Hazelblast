@@ -1,9 +1,9 @@
 package com.hazelblast.client;
 
+import com.hazelblast.client.annotations.DistributedService;
 import com.hazelblast.client.annotations.LoadBalanced;
 import com.hazelblast.client.annotations.PartitionKey;
 import com.hazelblast.client.annotations.Partitioned;
-import com.hazelblast.client.annotations.RemoteInterface;
 import com.hazelblast.server.Slice;
 import com.hazelblast.server.exceptions.PartitionMovedException;
 import com.hazelblast.client.exceptions.RemoteMethodTimeoutException;
@@ -145,10 +145,10 @@ public final class DefaultProxyProvider implements ProxyProvider {
         Map<Method, RemoteMethodInfo> methodInfoMap = new HashMap<Method, RemoteMethodInfo>();
 
         for (Class interfaze : getAllInterfaces(targetInterface)) {
-            if (!interfaze.isAnnotationPresent(RemoteInterface.class)) {
+            if (!interfaze.isAnnotationPresent(DistributedService.class)) {
                 throw new IllegalArgumentException(
                         format("targetInterface [%s] is not implementing the [%s] annotation so is not allowed to be proxied",
-                                interfaze, RemoteInterface.class.getName()));
+                                interfaze, DistributedService.class.getName()));
             }
 
             for (Method method : interfaze.getMethods()) {

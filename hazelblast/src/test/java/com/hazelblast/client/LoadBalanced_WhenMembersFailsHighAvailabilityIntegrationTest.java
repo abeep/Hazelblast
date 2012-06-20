@@ -1,14 +1,14 @@
 package com.hazelblast.client;
 
 import com.hazelblast.TestUtils;
+import com.hazelblast.client.annotations.DistributedService;
 import com.hazelblast.client.annotations.LoadBalanced;
-import com.hazelblast.client.annotations.RemoteInterface;
 import com.hazelblast.client.loadbalancers.LoadBalancer;
-import com.hazelblast.server.Slice;
 import com.hazelblast.server.SliceParameters;
 import com.hazelblast.server.SliceServer;
 import com.hazelblast.server.pojoslice.PojoSlice;
 import com.hazelblast.server.pojoslice.PojoSliceFactory;
+import com.hazelblast.server.pojoslice.ExposeService;
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.Member;
@@ -86,13 +86,14 @@ public class LoadBalanced_WhenMembersFailsHighAvailabilityIntegrationTest {
     }
 
     public static class Pojo {
+        @ExposeService
         public SomeService someService = new SomeServiceImpl();
 
         public Pojo() {
         }
     }
 
-    @RemoteInterface
+    @DistributedService
     public static interface SomeService {
 
         @LoadBalanced(loadBalancer = TestLoadBalancer.class)

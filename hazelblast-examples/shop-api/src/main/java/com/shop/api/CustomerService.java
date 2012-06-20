@@ -1,10 +1,10 @@
 package com.shop.api;
 
+import com.hazelblast.client.annotations.DistributedService;
 import com.hazelblast.client.annotations.PartitionKey;
 import com.hazelblast.client.annotations.Partitioned;
-import com.hazelblast.client.annotations.RemoteInterface;
 
-@RemoteInterface
+@DistributedService
 public interface CustomerService {
 
     @Partitioned

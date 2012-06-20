@@ -1,11 +1,12 @@
 package com.hazelblast.client;
 
 import com.hazelblast.TestUtils;
+import com.hazelblast.client.annotations.DistributedService;
 import com.hazelblast.client.annotations.LoadBalanced;
-import com.hazelblast.client.annotations.RemoteInterface;
 import com.hazelblast.client.exceptions.RemoteMethodTimeoutException;
 import com.hazelblast.server.SliceServer;
 import com.hazelblast.server.pojoslice.PojoSlice;
+import com.hazelblast.server.pojoslice.ExposeService;
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
 import org.junit.After;
@@ -86,10 +87,11 @@ public class LoadBalanced_Timeout_ProxyProviderIntegrationTest {
 
 
     static public class Pojo {
+        @ExposeService
         public TestServiceImpl testService = new TestServiceImpl();
     }
 
-    @RemoteInterface
+    @DistributedService
     interface TestService {
         @LoadBalanced(timeoutMs = 5000, interruptOnTimeout = true)
         void fiveSecondTimeoutAndInterruptible(int timeoutMs);

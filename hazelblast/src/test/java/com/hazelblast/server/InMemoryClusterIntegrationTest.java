@@ -1,5 +1,6 @@
 package com.hazelblast.server;
 
+import com.hazelblast.server.pojoslice.ExposeService;
 import com.hazelblast.server.pojoslice.PojoSlice;
 import com.hazelblast.server.pojoslice.PojoSliceFactory;
 import com.hazelcast.core.Hazelcast;
@@ -38,9 +39,9 @@ public class InMemoryClusterIntegrationTest {
         SomeService service2 = (SomeService) slice2.getService("someService");
         SomeService service3 = (SomeService) slice3.getService("someService");
 
-        SliceServer server1 = new SliceServer(slice1,1000).start();
-        SliceServer server2 = new SliceServer(slice2,1000).start();
-        SliceServer server3 = new SliceServer(slice3,1000).start();
+        SliceServer server1 = new SliceServer(slice1, 1000).start();
+        SliceServer server2 = new SliceServer(slice2, 1000).start();
+        SliceServer server3 = new SliceServer(slice3, 1000).start();
 
         SliceServer.executeMethod(instance1, Slice.DEFAULT_NAME, "SomeService", "someMethod", new String[]{}, new Object[]{}, null);
         SliceServer.executeMethod(instance2, Slice.DEFAULT_NAME, "SomeService", "someMethod", new String[]{}, new Object[]{}, null);
@@ -55,7 +56,8 @@ public class InMemoryClusterIntegrationTest {
         server3.shutdown();
     }
 
-  public static class Pojo {
+    public static class Pojo {
+        @ExposeService
         public SomeService someService = new SomeService();
 
         public Pojo() {

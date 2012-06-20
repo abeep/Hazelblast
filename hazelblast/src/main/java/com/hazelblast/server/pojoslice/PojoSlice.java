@@ -11,7 +11,7 @@ import com.hazelcast.core.HazelcastInstanceAware;
 import java.lang.reflect.Field;
 import java.util.Map;
 
-import static com.hazelblast.server.pojoslice.PojoUtils.getPublicFields;
+import static com.hazelblast.server.pojoslice.PojoUtils.getServiceFields;
 import static com.hazelblast.utils.Arguments.notNull;
 import static java.lang.String.format;
 
@@ -23,7 +23,7 @@ import static java.lang.String.format;
  * <p/>
  * If the Pojo implements {@link HazelcastInstanceAware} it will get a callback when the {@link #onStart()} is called
  * with the {@link HazelcastInstance} to be used.
- *
+ * <p/>
  * If the Pojo implements {@link SlicePartitionAware} it will get callbacks when partitions are added/removed
  * from the {@link Slice}.
  *
@@ -56,7 +56,7 @@ public final class PojoSlice implements Slice {
     public PojoSlice(Object target, SliceParameters sliceParameters) {
         this.target = notNull("target", target);
         Class targetClass = target.getClass();
-        this.services = getPublicFields(targetClass);
+        this.services = getServiceFields(targetClass);
         this.sliceParameters = sliceParameters;
     }
 
@@ -102,12 +102,12 @@ public final class PojoSlice implements Slice {
     }
 
     public void onStart() {
-        if (target instanceof SliceLifecycleAware) {
-            ((SliceLifecycleAware) target).onStart();
-        }
-
         if (target instanceof HazelcastInstanceAware) {
             ((HazelcastInstanceAware) target).setHazelcastInstance(sliceParameters.hazelcastInstance);
+        }
+
+        if (target instanceof SliceLifecycleAware) {
+            ((SliceLifecycleAware) target).onStart();
         }
     }
 

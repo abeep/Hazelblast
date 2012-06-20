@@ -1,8 +1,8 @@
 package com.hazelblast.client;
 
+import com.hazelblast.client.annotations.DistributedService;
 import com.hazelblast.client.annotations.PartitionKey;
 import com.hazelblast.client.annotations.Partitioned;
-import com.hazelblast.client.annotations.RemoteInterface;
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.PartitionAware;
@@ -33,7 +33,7 @@ public class Partitioned_DefaultProxyProviderTest {
         proxyProvider.getProxy(PartitionedMethodWithoutArguments.class);
     }
 
-    @RemoteInterface
+    @DistributedService
     interface PartitionedMethodWithoutArguments {
         @Partitioned
         void method();
@@ -46,7 +46,7 @@ public class Partitioned_DefaultProxyProviderTest {
 
     }
 
-    @RemoteInterface
+    @DistributedService
     interface PartitionedMethodWithoutPartitionKeyArgument {
         @Partitioned
         void method(int arg1);
@@ -63,7 +63,7 @@ public class Partitioned_DefaultProxyProviderTest {
         proxyProvider.getProxy(PartitionedMethodWithoutExistingProperty.class);
     }
 
-    @RemoteInterface
+    @DistributedService
     interface PartitionedMethodWithoutExistingProperty {
         @Partitioned
         void method(@PartitionKey(property = "nonexising") String s);
@@ -168,7 +168,7 @@ public class Partitioned_DefaultProxyProviderTest {
         assertEquals(partitionKey, x.getPartitionKey());
     }
 
-    @RemoteInterface
+    @DistributedService
     interface PartitionedService {
         @Partitioned
         void valid(@PartitionKey Object a);
