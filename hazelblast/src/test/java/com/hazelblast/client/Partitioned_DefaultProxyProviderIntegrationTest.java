@@ -1,9 +1,9 @@
 package com.hazelblast.client;
 
 
+import com.hazelblast.client.annotations.DistributedService;
 import com.hazelblast.client.annotations.PartitionKey;
 import com.hazelblast.client.annotations.Partitioned;
-import com.hazelblast.client.annotations.RemoteInterface;
 import com.hazelblast.server.SliceServer;
 import com.hazelblast.server.pojoslice.PojoSlice;
 import com.hazelblast.server.pojoslice.Service;
@@ -98,7 +98,7 @@ public class Partitioned_DefaultProxyProviderIntegrationTest {
     static class MyRuntimeException extends RuntimeException {
     }
 
-    @RemoteInterface
+    @DistributedService
     interface TestService {
         @Partitioned
         String singleArg(@PartitionKey String arg);

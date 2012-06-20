@@ -1,8 +1,8 @@
 package com.hazelblast.client;
 
+import com.hazelblast.client.annotations.DistributedService;
 import com.hazelblast.client.annotations.LoadBalanced;
 import com.hazelblast.client.annotations.Partitioned;
-import com.hazelblast.client.annotations.RemoteInterface;
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
 import org.junit.AfterClass;
@@ -76,7 +76,7 @@ public class DefaultProxyProviderTest {
         proxyProvider.getProxy(RemoteInterfaceExtendingNonRemoteInterface.class);
     }
 
-    @RemoteInterface
+    @DistributedService
     public interface RemoteInterfaceExtendingNonRemoteInterface extends NonRemoteInterface {
     }
 
@@ -89,7 +89,7 @@ public class DefaultProxyProviderTest {
         proxyProvider.getProxy(MethodWithMultipleAnnotations.class);
     }
 
-    @RemoteInterface
+    @DistributedService
     interface MethodWithMultipleAnnotations {
         @Partitioned
         @LoadBalanced
@@ -102,13 +102,13 @@ public class DefaultProxyProviderTest {
         proxyProvider.getProxy(RemoteAnnotationMissing.class);
     }
 
-    @RemoteInterface
+    @DistributedService
     interface RemoteAnnotationMissing {
         void method();
     }
 
 
-    @RemoteInterface
+    @DistributedService
     interface DummyRemoteService {
     }
 

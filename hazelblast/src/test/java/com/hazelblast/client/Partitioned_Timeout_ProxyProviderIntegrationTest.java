@@ -1,8 +1,8 @@
 package com.hazelblast.client;
 
+import com.hazelblast.client.annotations.DistributedService;
 import com.hazelblast.client.annotations.PartitionKey;
 import com.hazelblast.client.annotations.Partitioned;
-import com.hazelblast.client.annotations.RemoteInterface;
 import com.hazelblast.client.exceptions.RemoteMethodTimeoutException;
 import com.hazelblast.server.SliceServer;
 import com.hazelblast.server.pojoslice.PojoSlice;
@@ -90,7 +90,7 @@ public class Partitioned_Timeout_ProxyProviderIntegrationTest {
         public TestServiceImpl testService = new TestServiceImpl();
     }
 
-    @RemoteInterface
+    @DistributedService
     interface TestService {
         @Partitioned(timeoutMs = 5000, interruptOnTimeout = true)
         void fiveSecondTimeoutAndInterruptible(@PartitionKey String p, int timeoutMs);

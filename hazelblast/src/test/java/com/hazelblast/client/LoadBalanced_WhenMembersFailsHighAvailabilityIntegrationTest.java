@@ -1,10 +1,9 @@
 package com.hazelblast.client;
 
 import com.hazelblast.TestUtils;
+import com.hazelblast.client.annotations.DistributedService;
 import com.hazelblast.client.annotations.LoadBalanced;
-import com.hazelblast.client.annotations.RemoteInterface;
 import com.hazelblast.client.loadbalancers.LoadBalancer;
-import com.hazelblast.server.Slice;
 import com.hazelblast.server.SliceParameters;
 import com.hazelblast.server.SliceServer;
 import com.hazelblast.server.pojoslice.PojoSlice;
@@ -94,7 +93,7 @@ public class LoadBalanced_WhenMembersFailsHighAvailabilityIntegrationTest {
         }
     }
 
-    @RemoteInterface
+    @DistributedService
     public static interface SomeService {
 
         @LoadBalanced(loadBalancer = TestLoadBalancer.class)

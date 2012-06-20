@@ -1,9 +1,9 @@
 package com.hazelblast.client;
 
 import com.hazelblast.TestUtils;
+import com.hazelblast.client.annotations.DistributedService;
 import com.hazelblast.client.annotations.PartitionKey;
 import com.hazelblast.client.annotations.Partitioned;
-import com.hazelblast.client.annotations.RemoteInterface;
 import com.hazelblast.server.Slice;
 import com.hazelblast.server.SliceParameters;
 import com.hazelblast.server.SliceServer;
@@ -80,7 +80,7 @@ public class PartitionedClusterTest {
         }
     }
 
-    @RemoteInterface
+    @DistributedService
     public static interface SomeService {
         @Partitioned
         void someMethod(@PartitionKey int x);

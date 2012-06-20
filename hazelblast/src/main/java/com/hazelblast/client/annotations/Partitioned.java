@@ -8,6 +8,12 @@ import java.lang.annotation.Target;
 /**
  * Annotation that can be placed on a method to indicate that the call should be send to a specific partition.
  *
+ * Each {@link Partitioned} method should have:
+ * <ol>
+ *     <li>at least 1 argument</li>
+ *     <li>exactly 1 argument should have the {@link PartitionKey} annotation</li>
+ * </ol>
+ *
  * @author Peter Veentjer.
  */
 @Retention(RetentionPolicy.RUNTIME)
