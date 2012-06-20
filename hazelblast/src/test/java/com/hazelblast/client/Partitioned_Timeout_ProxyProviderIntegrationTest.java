@@ -6,6 +6,7 @@ import com.hazelblast.client.annotations.RemoteInterface;
 import com.hazelblast.client.exceptions.RemoteMethodTimeoutException;
 import com.hazelblast.server.SliceServer;
 import com.hazelblast.server.pojoslice.PojoSlice;
+import com.hazelblast.server.pojoslice.Service;
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
 import org.junit.After;
@@ -85,6 +86,7 @@ public class Partitioned_Timeout_ProxyProviderIntegrationTest {
 
 
     static public class Pojo {
+        @Service
         public TestServiceImpl testService = new TestServiceImpl();
     }
 

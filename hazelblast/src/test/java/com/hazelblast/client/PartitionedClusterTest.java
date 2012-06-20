@@ -9,6 +9,7 @@ import com.hazelblast.server.SliceParameters;
 import com.hazelblast.server.SliceServer;
 import com.hazelblast.server.pojoslice.PojoSlice;
 import com.hazelblast.server.pojoslice.PojoSliceFactory;
+import com.hazelblast.server.pojoslice.Service;
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
 import org.junit.After;
@@ -72,6 +73,7 @@ public class PartitionedClusterTest {
     }
 
     public static class Pojo {
+        @Service
         public SomeService someService = new SomeServiceImpl();
 
         public Pojo() {

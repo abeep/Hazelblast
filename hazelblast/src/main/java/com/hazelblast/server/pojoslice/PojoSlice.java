@@ -11,7 +11,7 @@ import com.hazelcast.core.HazelcastInstanceAware;
 import java.lang.reflect.Field;
 import java.util.Map;
 
-import static com.hazelblast.server.pojoslice.PojoUtils.getPublicFields;
+import static com.hazelblast.server.pojoslice.PojoUtils.getServiceFields;
 import static com.hazelblast.utils.Arguments.notNull;
 import static java.lang.String.format;
 
@@ -56,7 +56,7 @@ public final class PojoSlice implements Slice {
     public PojoSlice(Object target, SliceParameters sliceParameters) {
         this.target = notNull("target", target);
         Class targetClass = target.getClass();
-        this.services = getPublicFields(targetClass);
+        this.services = getServiceFields(targetClass);
         this.sliceParameters = sliceParameters;
     }
 
