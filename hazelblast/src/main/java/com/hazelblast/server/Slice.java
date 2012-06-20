@@ -1,8 +1,11 @@
 package com.hazelblast.server;
 
+import com.hazelcast.core.HazelcastInstance;
+import com.hazelcast.core.HazelcastInstanceAware;
+
 /**
- * To make a distributed system, a verical slice (so top to bottom) can be placed in parallel. Each machine is
- * responsible for running a complete slice, just add more machines for more capacity.
+ * To make a distributed system, a verical slice (so top to bottom) can be placed in parallel. Each machine can be
+ * responsible for running a vertical complete slice, just add more machines for more capacity.
  * <p/>
  * A Slice has lifecycle hooks that are called when it is started and stopped, but also when a partition
  * is removed or added from this node.
@@ -15,6 +18,22 @@ package com.hazelblast.server;
  * @author Peter Veentjer.
  */
 public interface Slice {
+
+    String DEFAULT_NAME = "default";
+
+    /**
+     * Returns the name of the Slice.
+     *
+     * @return the name of the Slice.
+     */
+    String getName();
+
+    /**
+     * Returns the {@link HazelcastInstance} this Slice makes use of. Value will be constant and never be null.
+     *
+     * @return the HazelcastInstance.
+     */
+    HazelcastInstance getHazelcastInstance();
 
     /**
      * Gets the Service with the given serviceName.

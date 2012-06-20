@@ -5,6 +5,7 @@ import com.hazelblast.client.annotations.LoadBalanced;
 import com.hazelblast.client.annotations.RemoteInterface;
 import com.hazelblast.client.loadbalancers.LoadBalancer;
 import com.hazelblast.server.Slice;
+import com.hazelblast.server.SliceParameters;
 import com.hazelblast.server.SliceServer;
 import com.hazelblast.server.pojoslice.PojoSlice;
 import com.hazelblast.server.pojoslice.PojoSliceFactory;
@@ -40,21 +41,21 @@ public class LoadBalanced_WhenMembersFailsHighAvailabilityIntegrationTest {
 
         PojoSliceFactory factory = new PojoSliceFactory(Pojo.class);
 
-        PojoSlice slice1 = factory.create();
-        PojoSlice slice2 = factory.create();
-        PojoSlice slice3 = factory.create();
+        PojoSlice slice1 = factory.create(new SliceParameters(instance1));
+        PojoSlice slice2 = factory.create(new SliceParameters(instance2));
+        PojoSlice slice3 = factory.create(new SliceParameters(instance3));
 
         SomeServiceImpl service1 = (SomeServiceImpl) slice1.getService("someService");
         SomeServiceImpl service2 = (SomeServiceImpl) slice2.getService("someService");
         SomeServiceImpl service3 = (SomeServiceImpl) slice3.getService("someService");
 
-        SliceServer server1 = build(slice1, instance1, "foo");
-        SliceServer server2 = build(slice2, instance2, "foo");
-        SliceServer server3 = build(slice3, instance3, "foo");
+        SliceServer server1 = new SliceServer(slice1,1000).start();
+        SliceServer server2 = new SliceServer(slice2,1000).start();
+        SliceServer server3 = new SliceServer(slice3,1000).start();
 
         HazelcastInstance clientInstance = TestUtils.newLiteInstance();
 
-        ProxyProvider proxyProvider = new DefaultProxyProvider("foo", clientInstance);
+        ProxyProvider proxyProvider = new DefaultProxyProvider(clientInstance);
         SomeService someService = proxyProvider.getProxy(SomeService.class);
 
         Thread.sleep(10000);
@@ -82,12 +83,6 @@ public class LoadBalanced_WhenMembersFailsHighAvailabilityIntegrationTest {
         server1.shutdown();
         server2.shutdown();
         server3.shutdown();
-    }
-
-    public SliceServer build(Slice slice, HazelcastInstance hazelcastInstance, String name) {
-        SliceServer server = new SliceServer(slice, name, 1000, hazelcastInstance);
-        server.start();
-        return server;
     }
 
     public static class Pojo {

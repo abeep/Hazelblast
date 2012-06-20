@@ -24,12 +24,13 @@ public class RoundRobinLoadBalancer implements LoadBalancer {
     private final AtomicInteger counter = new AtomicInteger();
     private final Cluster cluster;
     private final AtomicReference<List<Member>> members = new AtomicReference<List<Member>>();
+    private final HazelcastInstance hazelcastInstance;
 
     public RoundRobinLoadBalancer(HazelcastInstance hazelcastInstance) {
-        notNull("hazelcastInstance", hazelcastInstance);
-        logger = hazelcastInstance.getLoggingService().getLogger(RoundRobinLoadBalancer.class.getName());
-        cluster = hazelcastInstance.getCluster();
-        cluster.addMembershipListener(new MembershipListenerImpl());
+        this.hazelcastInstance = notNull("hazelcastInstance", hazelcastInstance);
+        this.logger = hazelcastInstance.getLoggingService().getLogger(RoundRobinLoadBalancer.class.getName());
+        this.cluster = hazelcastInstance.getCluster();
+        this.cluster.addMembershipListener(new MembershipListenerImpl());
         reset();
     }
 
@@ -40,7 +41,8 @@ public class RoundRobinLoadBalancer implements LoadBalancer {
     public Member getNext() {
         List<Member> memberList = members.get();
         if (memberList.isEmpty()) {
-            throw new NoMemberAvailableException("RoundRobinLoadBalancer: There are no members in the cluster");
+            throw new NoMemberAvailableException(
+                    format("RoundRobinLoadBalancer: There are no members in the cluster of Hazelcast instance [%s]",hazelcastInstance.getName()));
         }
 
         int count = counter.getAndIncrement();

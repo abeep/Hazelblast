@@ -30,21 +30,21 @@ public class InMemoryClusterIntegrationTest {
 
         PojoSliceFactory factory = new PojoSliceFactory(Pojo.class);
 
-        PojoSlice slice1 = factory.create();
-        PojoSlice slice2 = factory.create();
-        PojoSlice slice3 = factory.create();
+        PojoSlice slice1 = factory.create(new SliceParameters(instance1));
+        PojoSlice slice2 = factory.create(new SliceParameters(instance2));
+        PojoSlice slice3 = factory.create(new SliceParameters(instance3));
 
         SomeService service1 = (SomeService) slice1.getService("someService");
         SomeService service2 = (SomeService) slice2.getService("someService");
         SomeService service3 = (SomeService) slice3.getService("someService");
 
-        SliceServer server1 = build(slice1, instance1, "foo");
-        SliceServer server2 = build(slice2, instance2, "foo");
-        SliceServer server3 = build(slice3, instance3, "foo");
+        SliceServer server1 = new SliceServer(slice1,1000).start();
+        SliceServer server2 = new SliceServer(slice2,1000).start();
+        SliceServer server3 = new SliceServer(slice3,1000).start();
 
-        SliceServer.executeMethod(instance1, "foo", "SomeService", "someMethod", new String[]{}, new Object[]{}, null);
-        SliceServer.executeMethod(instance2, "foo", "SomeService", "someMethod", new String[]{}, new Object[]{}, null);
-        SliceServer.executeMethod(instance2, "foo", "SomeService", "someMethod", new String[]{}, new Object[]{}, null);
+        SliceServer.executeMethod(instance1, Slice.DEFAULT_NAME, "SomeService", "someMethod", new String[]{}, new Object[]{}, null);
+        SliceServer.executeMethod(instance2, Slice.DEFAULT_NAME, "SomeService", "someMethod", new String[]{}, new Object[]{}, null);
+        SliceServer.executeMethod(instance2, Slice.DEFAULT_NAME, "SomeService", "someMethod", new String[]{}, new Object[]{}, null);
 
         assertEquals(1, service1.count);
         assertEquals(2, service2.count);
@@ -55,13 +55,7 @@ public class InMemoryClusterIntegrationTest {
         server3.shutdown();
     }
 
-    public SliceServer build(Slice slice, HazelcastInstance hazelcastInstance, String name) {
-        SliceServer server = new SliceServer(slice, name, 1000, hazelcastInstance);
-        server.start();
-        return server;
-    }
-
-    public static class Pojo {
+  public static class Pojo {
         public SomeService someService = new SomeService();
 
         public Pojo() {

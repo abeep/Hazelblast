@@ -24,11 +24,13 @@ public class LoadBalanced_Timeout_ProxyProviderIntegrationTest {
 
     @Before
     public void setUp() throws InterruptedException {
-        pojo = new Pojo();
-        PojoSlice slice = new PojoSlice(pojo);
-        HazelcastInstance hazelcastInstance = Hazelcast.newHazelcastInstance(null);
+        Hazelcast.shutdownAll();
 
-        server = new SliceServer(slice, "default", 100, hazelcastInstance);
+        pojo = new Pojo();
+        HazelcastInstance hazelcastInstance = Hazelcast.newHazelcastInstance(null);
+        PojoSlice slice = new PojoSlice(pojo,hazelcastInstance);
+
+        server = new SliceServer(slice, 100);
         server.start();
 
         Thread.sleep(1000);

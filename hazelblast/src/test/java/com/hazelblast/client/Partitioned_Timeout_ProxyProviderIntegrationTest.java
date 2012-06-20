@@ -27,15 +27,15 @@ public class Partitioned_Timeout_ProxyProviderIntegrationTest {
     @Before
     public void setUp() throws InterruptedException {
         pojo = new Pojo();
-        PojoSlice slice = new PojoSlice(pojo);
         HazelcastInstance hazelcastInstance = Hazelcast.newHazelcastInstance(null);
+        PojoSlice slice = new PojoSlice(pojo,hazelcastInstance);
 
-        server = new SliceServer(slice, "default", 100, hazelcastInstance);
+        server = new SliceServer(slice,100);
         server.start();
 
         Thread.sleep(1000);
 
-        proxyProvider = new DefaultProxyProvider("default", hazelcastInstance);
+        proxyProvider = new DefaultProxyProvider(hazelcastInstance);
     }
 
     @After
