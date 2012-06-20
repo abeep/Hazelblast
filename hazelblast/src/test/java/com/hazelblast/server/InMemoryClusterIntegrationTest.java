@@ -1,8 +1,8 @@
 package com.hazelblast.server;
 
+import com.hazelblast.server.pojoslice.ExposeService;
 import com.hazelblast.server.pojoslice.PojoSlice;
 import com.hazelblast.server.pojoslice.PojoSliceFactory;
-import com.hazelblast.server.pojoslice.Service;
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
 import org.junit.After;
@@ -57,7 +57,7 @@ public class InMemoryClusterIntegrationTest {
     }
 
     public static class Pojo {
-        @Service
+        @ExposeService
         public SomeService someService = new SomeService();
 
         public Pojo() {

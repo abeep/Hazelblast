@@ -5,8 +5,8 @@ import com.hazelblast.client.annotations.DistributedService;
 import com.hazelblast.client.annotations.PartitionKey;
 import com.hazelblast.client.annotations.Partitioned;
 import com.hazelblast.server.SliceServer;
+import com.hazelblast.server.pojoslice.ExposeService;
 import com.hazelblast.server.pojoslice.PojoSlice;
-import com.hazelblast.server.pojoslice.Service;
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
 import org.junit.After;
@@ -91,7 +91,7 @@ public class Partitioned_DefaultProxyProviderIntegrationTest {
     }
 
     static public class Pojo {
-        @Service
+        @ExposeService
         public TestService testService;
     }
 

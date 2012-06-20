@@ -5,8 +5,8 @@ import com.hazelblast.client.annotations.LoadBalanced;
 import com.hazelblast.client.annotations.PartitionKey;
 import com.hazelblast.client.loadbalancers.LoadBalancer;
 import com.hazelblast.server.SliceServer;
+import com.hazelblast.server.pojoslice.ExposeService;
 import com.hazelblast.server.pojoslice.PojoSlice;
-import com.hazelblast.server.pojoslice.Service;
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.Member;
@@ -124,7 +124,7 @@ public class LoadBalanced_DefaultProxyProviderTest {
     }
 
     static public class Pojo {
-        @Service
+        @ExposeService
         public TestService testService;
     }
 

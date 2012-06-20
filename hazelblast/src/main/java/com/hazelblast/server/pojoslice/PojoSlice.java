@@ -23,7 +23,7 @@ import static java.lang.String.format;
  * <p/>
  * If the Pojo implements {@link HazelcastInstanceAware} it will get a callback when the {@link #onStart()} is called
  * with the {@link HazelcastInstance} to be used.
- *
+ * <p/>
  * If the Pojo implements {@link SlicePartitionAware} it will get callbacks when partitions are added/removed
  * from the {@link Slice}.
  *
@@ -102,12 +102,12 @@ public final class PojoSlice implements Slice {
     }
 
     public void onStart() {
-        if (target instanceof SliceLifecycleAware) {
-            ((SliceLifecycleAware) target).onStart();
-        }
-
         if (target instanceof HazelcastInstanceAware) {
             ((HazelcastInstanceAware) target).setHazelcastInstance(sliceParameters.hazelcastInstance);
+        }
+
+        if (target instanceof SliceLifecycleAware) {
+            ((SliceLifecycleAware) target).onStart();
         }
     }
 
