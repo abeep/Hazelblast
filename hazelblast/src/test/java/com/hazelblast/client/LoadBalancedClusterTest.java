@@ -4,11 +4,10 @@ import com.hazelblast.TestUtils;
 import com.hazelblast.client.annotations.DistributedService;
 import com.hazelblast.client.annotations.LoadBalanced;
 import com.hazelblast.server.Slice;
-import com.hazelblast.server.SliceParameters;
 import com.hazelblast.server.SliceServer;
 import com.hazelblast.server.pojoslice.ExposeService;
+import com.hazelblast.server.pojoslice.HazelcastInstanceProvider;
 import com.hazelblast.server.pojoslice.PojoSlice;
-import com.hazelblast.server.pojoslice.PojoSliceFactory;
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
 import org.junit.After;
@@ -35,11 +34,9 @@ public class LoadBalancedClusterTest {
         HazelcastInstance instance2 = Hazelcast.newHazelcastInstance(null);
         HazelcastInstance instance3 = Hazelcast.newHazelcastInstance(null);
 
-        PojoSliceFactory factory = new PojoSliceFactory(Pojo.class);
-
-        PojoSlice slice1 = factory.create(new SliceParameters(instance1));
-        PojoSlice slice2 = factory.create(new SliceParameters(instance2));
-        PojoSlice slice3 = factory.create(new SliceParameters(instance3));
+        PojoSlice slice1 = new PojoSlice(new Pojo(instance1));
+        PojoSlice slice2 = new PojoSlice(new Pojo(instance2));
+        PojoSlice slice3 = new PojoSlice(new Pojo(instance3));
 
         SomeServiceImpl service1 = (SomeServiceImpl) slice1.getService("someService");
         SomeServiceImpl service2 = (SomeServiceImpl) slice2.getService("someService");
@@ -54,7 +51,7 @@ public class LoadBalancedClusterTest {
         ProxyProvider proxyProvider = new DefaultProxyProvider(clientInstance);
         SomeService someService = proxyProvider.getProxy(SomeService.class);
 
-        for(int k=0;k<3*5;k++){
+        for (int k = 0; k < 3 * 5; k++) {
             someService.someMethod();
         }
 
@@ -68,16 +65,22 @@ public class LoadBalancedClusterTest {
     }
 
     public SliceServer build(Slice slice) {
-        SliceServer server = new SliceServer(slice,1000);
+        SliceServer server = new SliceServer(slice, 1000);
         server.start();
         return server;
     }
 
-    public static class Pojo {
+    public static class Pojo implements HazelcastInstanceProvider {
         @ExposeService
-        public SomeService someService = new SomeServiceImpl();
+        public final SomeService someService = new SomeServiceImpl();
+        private final HazelcastInstance hazelcastInstance;
 
-        public Pojo() {
+        public Pojo(HazelcastInstance hazelcastInstance) {
+            this.hazelcastInstance = hazelcastInstance;
+        }
+
+        public HazelcastInstance getHazelcastInstance() {
+            return hazelcastInstance;
         }
     }
 
@@ -87,7 +90,7 @@ public class LoadBalancedClusterTest {
         void someMethod();
     }
 
-    public static class SomeServiceImpl implements SomeService{
+    public static class SomeServiceImpl implements SomeService {
         public int count;
 
 

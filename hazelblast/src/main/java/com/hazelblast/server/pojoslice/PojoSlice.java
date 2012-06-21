@@ -1,8 +1,8 @@
 package com.hazelblast.server.pojoslice;
 
 import com.hazelblast.server.Slice;
+import com.hazelblast.server.SliceConfig;
 import com.hazelblast.server.SliceLifecycleListener;
-import com.hazelblast.server.SliceParameters;
 import com.hazelblast.server.SlicePartitionListener;
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
@@ -34,18 +34,15 @@ public final class PojoSlice implements Slice {
 
     private final Object target;
     private final Map<String, Field> services;
-    private final SliceParameters sliceParameters;
+    private final SliceConfig sliceConfig;
+    private final HazelcastInstance hazelcastInstance;
 
     public PojoSlice(Object target) {
-        this(target, DEFAULT_NAME, Hazelcast.getDefaultInstance());
+        this(target, DEFAULT_NAME);
     }
 
-    public PojoSlice(Object target, HazelcastInstance hazelcastInstance) {
-        this(target, DEFAULT_NAME, hazelcastInstance);
-    }
-
-    public PojoSlice(Object target, String sliceName, HazelcastInstance hazelcastInstance) {
-        this(target, new SliceParameters(hazelcastInstance, sliceName));
+    public PojoSlice(Object target, String sliceName) {
+        this(target, new SliceConfig(sliceName));
     }
 
     /**
@@ -54,19 +51,30 @@ public final class PojoSlice implements Slice {
      * @param target the object this PojoSlice wraps.
      * @throws NullPointerException if target is null.
      */
-    public PojoSlice(Object target, SliceParameters sliceParameters) {
+    public PojoSlice(Object target, SliceConfig sliceConfig) {
         this.target = notNull("target", target);
         Class targetClass = target.getClass();
         this.services = getServiceFields(targetClass);
-        this.sliceParameters = sliceParameters;
+        this.sliceConfig = sliceConfig;
+
+        HazelcastInstance instance = null;
+        if (target instanceof HazelcastInstanceProvider) {
+            instance = ((HazelcastInstanceProvider) target).getHazelcastInstance();
+        }
+
+        if (instance == null) {
+            instance = Hazelcast.getDefaultInstance();
+        }
+
+        this.hazelcastInstance = instance;
     }
 
     public String getName() {
-        return sliceParameters.name;
+        return sliceConfig.name;
     }
 
     public HazelcastInstance getHazelcastInstance() {
-        return sliceParameters.hazelcastInstance;
+        return hazelcastInstance;
     }
 
     public Object getService(String serviceName) {
@@ -104,7 +112,7 @@ public final class PojoSlice implements Slice {
 
     public void onStart() {
         if (target instanceof HazelcastInstanceAware) {
-            ((HazelcastInstanceAware) target).setHazelcastInstance(sliceParameters.hazelcastInstance);
+            ((HazelcastInstanceAware) target).setHazelcastInstance(hazelcastInstance);
         }
 
         if (target instanceof SliceLifecycleListener) {

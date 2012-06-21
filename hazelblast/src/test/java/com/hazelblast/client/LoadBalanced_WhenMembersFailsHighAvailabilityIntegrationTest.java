@@ -4,8 +4,9 @@ import com.hazelblast.TestUtils;
 import com.hazelblast.client.annotations.DistributedService;
 import com.hazelblast.client.annotations.LoadBalanced;
 import com.hazelblast.client.loadbalancers.LoadBalancer;
-import com.hazelblast.server.SliceParameters;
+import com.hazelblast.server.SliceConfig;
 import com.hazelblast.server.SliceServer;
+import com.hazelblast.server.pojoslice.HazelcastInstanceProvider;
 import com.hazelblast.server.pojoslice.PojoSlice;
 import com.hazelblast.server.pojoslice.PojoSliceFactory;
 import com.hazelblast.server.pojoslice.ExposeService;
@@ -39,11 +40,9 @@ public class LoadBalanced_WhenMembersFailsHighAvailabilityIntegrationTest {
         HazelcastInstance instance2 = Hazelcast.newHazelcastInstance(null);
         HazelcastInstance instance3 = Hazelcast.newHazelcastInstance(null);
 
-        PojoSliceFactory factory = new PojoSliceFactory(Pojo.class);
-
-        PojoSlice slice1 = factory.create(new SliceParameters(instance1));
-        PojoSlice slice2 = factory.create(new SliceParameters(instance2));
-        PojoSlice slice3 = factory.create(new SliceParameters(instance3));
+         PojoSlice slice1 = new PojoSlice(new Pojo(instance1));
+        PojoSlice slice2 = new PojoSlice(new Pojo(instance2));
+        PojoSlice slice3 = new PojoSlice(new Pojo(instance3));
 
         SomeServiceImpl service1 = (SomeServiceImpl) slice1.getService("someService");
         SomeServiceImpl service2 = (SomeServiceImpl) slice2.getService("someService");
@@ -85,11 +84,18 @@ public class LoadBalanced_WhenMembersFailsHighAvailabilityIntegrationTest {
         server3.shutdown();
     }
 
-    public static class Pojo {
+    public static class Pojo implements HazelcastInstanceProvider{
         @ExposeService
         public SomeService someService = new SomeServiceImpl();
 
-        public Pojo() {
+        private final HazelcastInstance hazelcastInstance;
+
+        public Pojo(HazelcastInstance hazelcastInstance) {
+            this.hazelcastInstance = hazelcastInstance;
+        }
+
+        public HazelcastInstance getHazelcastInstance() {
+            return hazelcastInstance;
         }
     }
 

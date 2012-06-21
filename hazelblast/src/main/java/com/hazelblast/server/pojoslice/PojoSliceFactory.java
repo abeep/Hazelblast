@@ -1,7 +1,7 @@
 package com.hazelblast.server.pojoslice;
 
+import com.hazelblast.server.SliceConfig;
 import com.hazelblast.server.SliceFactory;
-import com.hazelblast.server.SliceParameters;
 import com.hazelcast.logging.ILogger;
 import com.hazelcast.logging.Logger;
 
@@ -69,10 +69,10 @@ public final class PojoSliceFactory implements SliceFactory {
         }
     }
 
-    public PojoSlice create(SliceParameters sliceParameters) {
+    public PojoSlice create(SliceConfig sliceConfig) {
          try {
             Object pojo = pojoConstructor.newInstance();
-            return new PojoSlice(pojo,sliceParameters);
+            return new PojoSlice(pojo, sliceConfig);
         } catch (InstantiationException e) {
             throw new RuntimeException("Failed to create a PojoSlice because the Pojo constructor " + pojoConstructor + " failed", e);
         } catch (IllegalAccessException e) {

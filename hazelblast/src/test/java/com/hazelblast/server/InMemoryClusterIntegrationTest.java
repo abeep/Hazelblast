@@ -1,8 +1,8 @@
 package com.hazelblast.server;
 
 import com.hazelblast.server.pojoslice.ExposeService;
+import com.hazelblast.server.pojoslice.HazelcastInstanceProvider;
 import com.hazelblast.server.pojoslice.PojoSlice;
-import com.hazelblast.server.pojoslice.PojoSliceFactory;
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
 import org.junit.After;
@@ -29,11 +29,9 @@ public class InMemoryClusterIntegrationTest {
         HazelcastInstance instance2 = Hazelcast.newHazelcastInstance(null);
         HazelcastInstance instance3 = Hazelcast.newHazelcastInstance(null);
 
-        PojoSliceFactory factory = new PojoSliceFactory(Pojo.class);
-
-        PojoSlice slice1 = factory.create(new SliceParameters(instance1));
-        PojoSlice slice2 = factory.create(new SliceParameters(instance2));
-        PojoSlice slice3 = factory.create(new SliceParameters(instance3));
+        PojoSlice slice1 = new PojoSlice(new Pojo(instance1));
+        PojoSlice slice2 = new PojoSlice(new Pojo(instance2));
+        PojoSlice slice3 = new PojoSlice(new Pojo(instance3));
 
         SomeService service1 = (SomeService) slice1.getService("someService");
         SomeService service2 = (SomeService) slice2.getService("someService");
@@ -56,11 +54,17 @@ public class InMemoryClusterIntegrationTest {
         server3.shutdown();
     }
 
-    public static class Pojo {
+    public static class Pojo implements HazelcastInstanceProvider {
         @ExposeService
-        public SomeService someService = new SomeService();
+        public final SomeService someService = new SomeService();
+        private final HazelcastInstance hazelcastInstance;
 
-        public Pojo() {
+        public Pojo(HazelcastInstance hazelcastInstance) {
+            this.hazelcastInstance = hazelcastInstance;
+        }
+
+        public HazelcastInstance getHazelcastInstance() {
+            return hazelcastInstance;
         }
     }
 

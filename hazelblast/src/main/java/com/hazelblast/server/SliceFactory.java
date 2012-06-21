@@ -8,7 +8,7 @@ package com.hazelblast.server;
  * world.
  *
  * A {@link SliceFactory} implementation needs to have at least a constructor with a single argument of
- * type {@link SliceParameters}. This method will be used to instantiate the SliceFactory.
+ * type {@link SliceConfig}. This method will be used to instantiate the SliceFactory.
  *
  * @author Peter Veentjer.
  */
@@ -19,5 +19,5 @@ public interface SliceFactory {
      *
      * @return the created Slice.
      */
-    Slice create(SliceParameters sliceParameters);
+    Slice create(SliceConfig sliceConfig);
 }

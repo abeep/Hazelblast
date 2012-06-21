@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans-2.5.xsd">
+
+    <bean id="hazelcastInstance" class="org.springframework.beans.factory.config.MethodInvokingFactoryBean">
+        <property name="staticMethod" value="com.hazelcast.core.Hazelcast.newHazelcastInstance"/>
+        <property name="arguments">
+            <list>
+                <null/>
+            </list>
+        </property>
+    </bean>
+
+    <bean id="exposedBeans"
+          class="com.hazelblast.server.springslice.ExposedBeans">
+
+        <property name="beans">
+            <map>
+            </map>
+        </property>
+    </bean>
+</beans>
