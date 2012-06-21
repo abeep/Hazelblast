@@ -3,6 +3,7 @@ package com.hazelblast.server.springslice;
 import com.hazelblast.server.*;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.HazelcastInstanceAware;
+import com.hazelcast.partition.Partition;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
@@ -73,14 +74,13 @@ public class SpringSliceFactory implements SliceFactory {
             name = name.substring(0, 1).toLowerCase() + name.substring(1);
             Object service = exposedBeans.getBean(name);
             if (service == null) {
-                throw new IllegalArgumentException(format("service with name '%s' is not exposed", name));
+                throw new IllegalArgumentException(format("Service with name '%s' is not found", name));
             }
 
             return service;
         }
 
         public void onStart() {
-
             for (String id : appContext.getBeanNamesForType(HazelcastInstanceAware.class, false, true)) {
                 HazelcastInstanceAware l = (HazelcastInstanceAware) appContext.getBean(id);
                 try {
@@ -92,8 +92,8 @@ public class SpringSliceFactory implements SliceFactory {
 
             appContext.start();
 
-            for (String id : appContext.getBeanNamesForType(SliceLifecycleAware.class, false, true)) {
-                SliceLifecycleAware l = (SliceLifecycleAware) appContext.getBean(id);
+            for (String id : appContext.getBeanNamesForType(SliceLifecycleListener.class, false, true)) {
+                SliceLifecycleListener l = (SliceLifecycleListener) appContext.getBean(id);
                 try {
                     l.onStart();
                 } catch (Exception e) {
@@ -105,10 +105,9 @@ public class SpringSliceFactory implements SliceFactory {
         public void onStop() {
             appContext.close();
 
-            String[] names = appContext.getBeanNamesForType(SliceLifecycleAware.class, false, true);
-
+            String[] names = appContext.getBeanNamesForType(SliceLifecycleListener.class, false, true);
             for (String id : names) {
-                SliceLifecycleAware l = (SliceLifecycleAware) appContext.getBean(id);
+                SliceLifecycleListener l = (SliceLifecycleListener) appContext.getBean(id);
                 try {
                     l.onStop();
                 } catch (Exception e) {
@@ -117,25 +116,22 @@ public class SpringSliceFactory implements SliceFactory {
             }
         }
 
-        public void onPartitionAdded(int partitionId) {
-            String[] names = appContext.getBeanNamesForType(SlicePartitionAware.class, false, true);
-            for (String id : names) {
-                SlicePartitionAware l = (SlicePartitionAware) appContext.getBean(id);
+        public void onPartitionAdded(Partition partition) {
+            for (String id : appContext.getBeanNamesForType(SlicePartitionListener.class, false, true)) {
+                SlicePartitionListener l = (SlicePartitionListener) appContext.getBean(id);
                 try {
-                    l.onPartitionAdded(partitionId);
+                    l.onPartitionAdded(partition);
                 } catch (Exception e) {
                     log.warn(format("failed to call onPartitionAdded on bean [%s] of class [%s]", id, l.getClass()), e);
                 }
-
             }
         }
 
-        public void onPartitionRemoved(int partitionId) {
-            String[] names = appContext.getBeanNamesForType(SlicePartitionAware.class, false, true);
-            for (String id : names) {
-                SlicePartitionAware l = (SlicePartitionAware) appContext.getBean(id);
+        public void onPartitionRemoved(Partition partition) {
+             for (String id : appContext.getBeanNamesForType(SlicePartitionListener.class, false, true)) {
+                SlicePartitionListener l = (SlicePartitionListener) appContext.getBean(id);
                 try {
-                    l.onPartitionRemoved(partitionId);
+                    l.onPartitionRemoved(partition);
                 } catch (Exception e) {
                     log.warn(format("failed to call onPartitionRemoved on bean [%s] of class [%s]", id, l.getClass()), e);
                 }

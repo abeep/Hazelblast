@@ -12,6 +12,8 @@ import com.hazelcast.partition.PartitionService;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.logging.Level;
 
 import static com.hazelblast.utils.Arguments.notNull;
@@ -27,7 +29,7 @@ final class SliceContainer {
     private final ILogger logger;
 
     private final Slice slice;
-    private final Set<Integer> managedPartitions = Collections.synchronizedSet(new HashSet<Integer>());
+    private final ConcurrentMap<Integer,Partition> managedPartitions = new ConcurrentHashMap<Integer,Partition>();
 
     private final PartitionService partitionService;
     private final Member self;
@@ -129,18 +131,18 @@ final class SliceContainer {
         for (Partition partition : partitions) {
             int partitionId = partition.getPartitionId();
             if (self.equals(partition.getOwner())) {
-                boolean startManagingPartition = !managedPartitions.contains(partitionId);
+                boolean startManagingPartition = !managedPartitions.containsKey(partitionId);
 
                 if (startManagingPartition) {
-                    if (addPartition(partitionId)) {
+                    if (addPartition(partition)) {
                         changeDetected = true;
                     }
                 }
             } else {
-                boolean stopManagingPartition = managedPartitions.contains(partitionId);
+                boolean stopManagingPartition = managedPartitions.containsKey(partitionId);
 
                 if (stopManagingPartition) {
-                    removePartition(partitionId);
+                    removePartition(partition);
                     changeDetected = true;
                 }
             }
@@ -153,64 +155,64 @@ final class SliceContainer {
         }
     }
 
-    private void removePartition(int partitionId) {
+    private void removePartition(Partition partition) {
         //removing the partition from the managedPartitions, prevents new calls from being accepted.
-        managedPartitions.remove(partitionId);
+        managedPartitions.remove(partition.getPartitionId());
 
         long startMs = System.currentTimeMillis();
         if (logger.isLoggable(Level.FINEST)) {
-            logger.log(Level.FINEST, format("[%s] Slice.onPartitionRemoved(%s) begin", slice.getName(), partitionId));
+            logger.log(Level.FINEST, format("[%s] Slice.onPartitionRemoved(%s) begin", slice.getName(), partition.getPartitionId()));
         }
 
         //first we give the container the chance to terminate/persist all resources that were available
         //for the given partition.
         try {
-            slice.onPartitionRemoved(partitionId);
+            slice.onPartitionRemoved(partition);
 
             if (logger.isLoggable(Level.FINEST)) {
                 long durationMs = System.currentTimeMillis() - startMs;
-                logger.log(Level.FINEST, format("[%s] Slice.onPartitionRemoved(%s) finished in [%s] ms", slice.getName(), partitionId, durationMs));
+                logger.log(Level.FINEST, format("[%s] Slice.onPartitionRemoved(%s) finished in [%s] ms", slice.getName(), partition.getPartitionId(), durationMs));
             }
         } catch (Throwable e) {
-            logger.log(Level.SEVERE, format("[%s] Slice.onPartitionRemoved(%s) failed", slice.getName(), partitionId), e);
+            logger.log(Level.SEVERE, format("[%s] Slice.onPartitionRemoved(%s) failed", slice.getName(), partition.getPartitionId()), e);
         }
 
         //we release the lock, so that a different node now is able to take over the partition.
-        ILock lock = partitionLockMap.get(partitionId);
+        ILock lock = partitionLockMap.get(partition.getPartitionId());
         lock.unlock();
     }
 
-    private boolean addPartition(int partitionId) {
+    private boolean addPartition(Partition partition) {
         boolean changeDetected = false;
 
-        ILock lock = partitionLockMap.get(partitionId);
+        ILock lock = partitionLockMap.get(partition.getPartitionId());
 
         if (!lock.tryLock()) {
             if (logger.isLoggable(Level.FINEST)) {
                 logger.log(Level.FINEST, format("[%s] Could not obtain lock on partition [%s], maybe more luck next time.",
-                        slice.getName(), partitionId));
+                        slice.getName(), partition.getPartitionId()));
             }
         } else {
             changeDetected = true;
 
             long startMs = System.currentTimeMillis();
             if (logger.isLoggable(Level.FINEST)) {
-                logger.log(Level.FINEST, format("[%s] Slice.onPartitionAdded(%s) begin", slice.getName(), partitionId));
+                logger.log(Level.FINEST, format("[%s] Slice.onPartitionAdded(%s) begin", slice.getName(), partition.getPartitionId()));
             }
 
             try {
-                slice.onPartitionAdded(partitionId);
+                slice.onPartitionAdded(partition);
 
                 if (logger.isLoggable(Level.FINEST)) {
                     long durationMs = System.currentTimeMillis() - startMs;
-                    logger.log(Level.FINEST, format("[%s] Slice.onPartitionAdded(%s) finished in [%s] ms", slice.getName(), partitionId, durationMs));
+                    logger.log(Level.FINEST, format("[%s] Slice.onPartitionAdded(%s) finished in [%s] ms", slice.getName(), partition.getPartitionId(), durationMs));
                 }
             } catch (Throwable e) {
-                logger.log(Level.SEVERE, format("[%s] Slice.OnPartitionAdded(%s) failed", slice.getName(), partitionId), e);
+                logger.log(Level.SEVERE, format("[%s] Slice.OnPartitionAdded(%s) failed", slice.getName(), partition.getPartitionId()), e);
             }
 
             //by adding the partition to the managed partitions, external calls are allowed to be executed again.
-            managedPartitions.add(partitionId);
+            managedPartitions.put(partition.getPartitionId(),partition);
         }
         return changeDetected;
     }
@@ -229,7 +231,7 @@ final class SliceContainer {
             Partition partition = partitionService.getPartition(partitionKey);
 
             int partitionId = partition.getPartitionId();
-            if (!managedPartitions.contains(partitionId)) {
+            if (!managedPartitions.containsKey(partitionId)) {
                 //if the partition is not managed by this SliceContainer, we throw an exception that
                 //will be caught by the proxy, and the call will be retried.
                 throw new PartitionMovedException(format("Partition [%s] is not found on member [%s]", partitionId, self));

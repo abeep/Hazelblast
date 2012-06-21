@@ -1,6 +1,6 @@
 package com.hazelblast.server;
 
-public interface SliceLifecycleAware {
+public interface SliceLifecycleListener {
 
     void onStart();
 

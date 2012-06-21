@@ -1,12 +1,13 @@
 package com.hazelblast.server.pojoslice;
 
 import com.hazelblast.server.Slice;
-import com.hazelblast.server.SliceLifecycleAware;
+import com.hazelblast.server.SliceLifecycleListener;
 import com.hazelblast.server.SliceParameters;
-import com.hazelblast.server.SlicePartitionAware;
+import com.hazelblast.server.SlicePartitionListener;
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.HazelcastInstanceAware;
+import com.hazelcast.partition.Partition;
 
 import java.lang.reflect.Field;
 import java.util.Map;
@@ -16,15 +17,15 @@ import static com.hazelblast.utils.Arguments.notNull;
 import static java.lang.String.format;
 
 /**
- * The PojoSlice is a {@link com.hazelblast.server.Slice} that contains a single Pojo and all public
- * fields on this Pojo will be exposed as a service.
+ * The PojoSlice is a {@link com.hazelblast.server.Slice} that contains a single Pojo and all fields that are
+ * annotated with {@link ExposeService} will be exposed as service.
  * <p/>
- * If the Pojo implements {@link SliceLifecycleAware} it will get callbacks for lifecycle events of the Slice.
+ * If the Pojo implements {@link com.hazelblast.server.SliceLifecycleListener} it will get callbacks for lifecycle events of the Slice.
  * <p/>
  * If the Pojo implements {@link HazelcastInstanceAware} it will get a callback when the {@link #onStart()} is called
  * with the {@link HazelcastInstance} to be used.
  * <p/>
- * If the Pojo implements {@link SlicePartitionAware} it will get callbacks when partitions are added/removed
+ * If the Pojo implements {@link com.hazelblast.server.SlicePartitionListener} it will get callbacks when partitions are added/removed
  * from the {@link Slice}.
  *
  * @author Peter Veentjer.
@@ -89,15 +90,15 @@ public final class PojoSlice implements Slice {
         }
     }
 
-    public void onPartitionAdded(int partitionId) {
-        if (target instanceof SlicePartitionAware) {
-            ((SlicePartitionAware) target).onPartitionAdded(partitionId);
+    public void onPartitionAdded(Partition partition) {
+        if (target instanceof SlicePartitionListener) {
+            ((SlicePartitionListener) target).onPartitionAdded(partition);
         }
     }
 
-    public void onPartitionRemoved(int partitionId) {
-        if (target instanceof SlicePartitionAware) {
-            ((SlicePartitionAware) target).onPartitionRemoved(partitionId);
+    public void onPartitionRemoved(Partition partition) {
+        if (target instanceof SlicePartitionListener) {
+            ((SlicePartitionListener) target).onPartitionRemoved(partition);
         }
     }
 
@@ -106,14 +107,14 @@ public final class PojoSlice implements Slice {
             ((HazelcastInstanceAware) target).setHazelcastInstance(sliceParameters.hazelcastInstance);
         }
 
-        if (target instanceof SliceLifecycleAware) {
-            ((SliceLifecycleAware) target).onStart();
+        if (target instanceof SliceLifecycleListener) {
+            ((SliceLifecycleListener) target).onStart();
         }
     }
 
     public void onStop() {
-        if (target instanceof SliceLifecycleAware) {
-            ((SliceLifecycleAware) target).onStop();
+        if (target instanceof SliceLifecycleListener) {
+            ((SliceLifecycleListener) target).onStop();
         }
     }
 }

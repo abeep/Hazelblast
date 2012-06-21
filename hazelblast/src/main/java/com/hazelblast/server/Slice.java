@@ -1,19 +1,24 @@
 package com.hazelblast.server;
 
 import com.hazelcast.core.HazelcastInstance;
-import com.hazelcast.core.HazelcastInstanceAware;
+import com.hazelcast.partition.Partition;
 
 /**
- * To make a distributed system, a verical slice (so top to bottom) can be placed in parallel. Each machine can be
- * responsible for running a vertical complete slice, just add more machines for more capacity.
+ * To make a distributed system, a vertical slice (so top to bottom) can be placed in parallel. Each machine can be
+ * responsible for running a complete vertical complete and you can just add more machines for more capacity.
  * <p/>
- * A Slice has lifecycle hooks that are called when it is started and stopped, but also when a partition
- * is removed or added from this node.
- * <p/>
- * In Spring terminology it would be called an ApplicationContext.
+ * In Spring terminology this could be compared to an application-context.
  *
- * The methods {@link #onStart()},{@link #onStop()}, {@link #onPartitionAdded(int)} and {@link #onPartitionRemoved(int)}}
- * will never be called concurrently. This is guaranteed.
+ * A Slice has lifecycle hooks that are called when it is started and stopped and when partitions are added/removed
+ * from the slice.
+ * <p/>
+ * The following lifecycle methods will never be called concurrently:
+ * <ol>
+ *     <li>{@link #onStart()}</li>
+ *     <li>{@link #onStop()}</li>
+ *     <li>{@link #onPartitionAdded(Partition)}</li>
+ *     <li>{@link #onPartitionRemoved(Partition)}}</li>
+ * </ol>
  *
  * @author Peter Veentjer.
  */
@@ -62,14 +67,14 @@ public interface Slice {
     /**
      * Called when a partition is added to this {@link Slice}.
      *
-     * @param partitionId the id of the partition.
+     * @param partition the {@link Partition}.
      */
-    void onPartitionAdded(int partitionId);
+    void onPartitionAdded(Partition partition);
 
     /**
      * Called when a partition is removed from this {@link Slice}.
      *
-     * @param partitionId the id of this partition.
+     * @param partition the {@link Partition}
      */
-    void onPartitionRemoved(int partitionId);
+    void onPartitionRemoved(Partition partition);
 }
