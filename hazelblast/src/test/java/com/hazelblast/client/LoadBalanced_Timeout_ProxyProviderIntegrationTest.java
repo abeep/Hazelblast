@@ -5,6 +5,7 @@ import com.hazelblast.client.annotations.DistributedService;
 import com.hazelblast.client.annotations.LoadBalanced;
 import com.hazelblast.client.exceptions.RemoteMethodTimeoutException;
 import com.hazelblast.server.SliceServer;
+import com.hazelblast.server.pojoslice.HazelcastInstanceProvider;
 import com.hazelblast.server.pojoslice.PojoSlice;
 import com.hazelblast.server.pojoslice.ExposeService;
 import com.hazelcast.core.Hazelcast;
@@ -27,9 +28,9 @@ public class LoadBalanced_Timeout_ProxyProviderIntegrationTest {
     public void setUp() throws InterruptedException {
         Hazelcast.shutdownAll();
 
-        pojo = new Pojo();
         HazelcastInstance hazelcastInstance = Hazelcast.newHazelcastInstance(null);
-        PojoSlice slice = new PojoSlice(pojo,hazelcastInstance);
+        pojo = new Pojo(hazelcastInstance);
+        PojoSlice slice = new PojoSlice(pojo);
 
         server = new SliceServer(slice, 100);
         server.start();
@@ -86,9 +87,19 @@ public class LoadBalanced_Timeout_ProxyProviderIntegrationTest {
     }
 
 
-    static public class Pojo {
+    static public class Pojo implements HazelcastInstanceProvider{
         @ExposeService
         public TestServiceImpl testService = new TestServiceImpl();
+
+        private final HazelcastInstance hazelcastInstance;
+
+        public Pojo(HazelcastInstance hazelcastInstance) {
+            this.hazelcastInstance = hazelcastInstance;
+        }
+
+        public HazelcastInstance getHazelcastInstance() {
+            return hazelcastInstance;
+        }
     }
 
     @DistributedService

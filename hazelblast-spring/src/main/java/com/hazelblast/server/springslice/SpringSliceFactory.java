@@ -3,18 +3,13 @@ package com.hazelblast.server.springslice;
 import com.hazelblast.server.*;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.HazelcastInstanceAware;
-import com.hazelcast.partition.Partition;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.springframework.context.support.ClassPathXmlApplicationContext;
 
-import static com.hazelblast.utils.Arguments.notNull;
 import static java.lang.String.format;
 
 /**
  * A Spring based {@link com.hazelblast.server.SliceFactory}.
  * <p/>
- * It expects a slice.xml to be available in the root of the jar.
+ * It expects a 'slice.xml' to be available in the root of the jar.
  * <p/>
  * <h2>exposedBeans bean</h2>
  * The slice.xml should contain a bean called 'exposedBeans' where all the beans that
@@ -34,108 +29,30 @@ import static java.lang.String.format;
  * <br/>
  * If the 'exposedBeans' bean isn't available, a {@link org.springframework.beans.factory.NoSuchBeanDefinitionException}
  * will be thrown when the application context is created.
+ * <p/>
+ * All beans that implement {@link HazelcastInstanceAware} will be injected with the HazelcastInstance.
+ * <p/>
+ * All beans that implement {@link SliceLifecycleListener} will be notified when the slice is starting or stopping,
+ * although also the the normal spring init/destroy hooks can be used for that purpose. If a bean is implementing the
+ * {@link SliceLifecycleListener} and also the normal Spring functionality is used, it will get multiple calls. So in
+ * most cases it is better to make sure that there is only 1 mechanism being used.
+ * <p/>
+ * If a bean implement {@link HazelcastInstanceAware} and {@link SlicePartitionListener}, the
+ * {@link HazelcastInstanceAware#setHazelcastInstance(com.hazelcast.core.HazelcastInstance)} will be called before
+ * {@link com.hazelblast.server.SliceLifecycleListener#onStart()}.
+ * <p/>
+ * All beans that implement {@link SlicePartitionListener} will be notified when a slice starts/ends the management
+ * of a partition.
+ * <p/>
+ * If a bean is created with name 'hazelcastInstance', it will be used as the {@link HazelcastInstance}. If that bean
+ * is missing, currently the {@link com.hazelcast.core.Hazelcast#getDefaultInstance()} will be asked for the default
+ * {@link HazelcastInstance}.
  *
  * @author Peter Veentjer.
  */
 public class SpringSliceFactory implements SliceFactory {
 
-    public Slice create(SliceParameters sliceParameters) {
-        return new SpringSlice(sliceParameters);
-    }
-
-    private static class SpringSlice implements Slice {
-        private static Log log = LogFactory.getLog(SpringSlice.class);
-
-        private final ClassPathXmlApplicationContext appContext;
-        private final ExposedBeans exposedBeans;
-        private final SliceParameters sliceParameters;
-
-        private SpringSlice(SliceParameters sliceParameters) {
-            this.appContext = new ClassPathXmlApplicationContext("slice.xml");
-            this.exposedBeans = appContext.getBean("exposedBeans", ExposedBeans.class);
-            this.sliceParameters = sliceParameters;
-        }
-
-        public String getName() {
-            return sliceParameters.name;
-        }
-
-        public HazelcastInstance getHazelcastInstance() {
-            return sliceParameters.hazelcastInstance;
-        }
-
-        public Object getService(String name) {
-            notNull("name", name);
-
-            if (name.isEmpty()) {
-                throw new IllegalArgumentException("name can't be empty");
-            }
-
-            name = name.substring(0, 1).toLowerCase() + name.substring(1);
-            Object service = exposedBeans.getBean(name);
-            if (service == null) {
-                throw new IllegalArgumentException(format("Service with name '%s' is not found", name));
-            }
-
-            return service;
-        }
-
-        public void onStart() {
-            for (String id : appContext.getBeanNamesForType(HazelcastInstanceAware.class, false, true)) {
-                HazelcastInstanceAware l = (HazelcastInstanceAware) appContext.getBean(id);
-                try {
-                    l.setHazelcastInstance(sliceParameters.hazelcastInstance);
-                } catch (Exception e) {
-                    log.warn(format("failed to call setHazelcastInstance on bean [%s] of class [%s]", id, l.getClass()), e);
-                }
-            }
-
-            appContext.start();
-
-            for (String id : appContext.getBeanNamesForType(SliceLifecycleListener.class, false, true)) {
-                SliceLifecycleListener l = (SliceLifecycleListener) appContext.getBean(id);
-                try {
-                    l.onStart();
-                } catch (Exception e) {
-                    log.warn(format("failed to call onStart on bean [%s] of class [%s]", id, l.getClass()), e);
-                }
-            }
-        }
-
-        public void onStop() {
-            appContext.close();
-
-            String[] names = appContext.getBeanNamesForType(SliceLifecycleListener.class, false, true);
-            for (String id : names) {
-                SliceLifecycleListener l = (SliceLifecycleListener) appContext.getBean(id);
-                try {
-                    l.onStop();
-                } catch (Exception e) {
-                    log.warn(format("failed to call onStop on bean [%s] of class [%s]", id, l.getClass()), e);
-                }
-            }
-        }
-
-        public void onPartitionAdded(Partition partition) {
-            for (String id : appContext.getBeanNamesForType(SlicePartitionListener.class, false, true)) {
-                SlicePartitionListener l = (SlicePartitionListener) appContext.getBean(id);
-                try {
-                    l.onPartitionAdded(partition);
-                } catch (Exception e) {
-                    log.warn(format("failed to call onPartitionAdded on bean [%s] of class [%s]", id, l.getClass()), e);
-                }
-            }
-        }
-
-        public void onPartitionRemoved(Partition partition) {
-             for (String id : appContext.getBeanNamesForType(SlicePartitionListener.class, false, true)) {
-                SlicePartitionListener l = (SlicePartitionListener) appContext.getBean(id);
-                try {
-                    l.onPartitionRemoved(partition);
-                } catch (Exception e) {
-                    log.warn(format("failed to call onPartitionRemoved on bean [%s] of class [%s]", id, l.getClass()), e);
-                }
-            }
-        }
+    public Slice create(SliceConfig sliceConfig) {
+        return new SpringSlice(sliceConfig);
     }
 }

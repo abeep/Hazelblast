@@ -54,9 +54,8 @@ public final class SliceServer {
         String sliceFactory = commandLine.getOptionValue("sliceFactory");
         long scanDelayMs = Long.parseLong(commandLine.getOptionValue("scanDelay", "" + DEFAULT_SCAN_DELAY_MS));
 
-        HazelcastInstance hazelcastInstance = Hazelcast.getDefaultInstance();
-        SliceParameters sliceParameters = new SliceParameters(hazelcastInstance, sliceName);
-        Slice slice = buildSlice(sliceFactory, sliceParameters);
+        SliceConfig sliceConfig = new SliceConfig(sliceName);
+        Slice slice = buildSlice(sliceFactory, sliceConfig);
         SliceServer server = new SliceServer(slice, scanDelayMs);
         server.start();
     }
@@ -128,14 +127,14 @@ public final class SliceServer {
         return server.container;
     }
 
-    private static Slice buildSlice(String factoryName, SliceParameters sliceParameters) {
+    private static Slice buildSlice(String factoryName, SliceConfig sliceConfig) {
         System.out.printf("Creating slice using factory [%s]\n", factoryName);
 
         ClassLoader classLoader = SliceServer.class.getClassLoader();
         try {
             Class<SliceFactory> factoryClazz = (Class<SliceFactory>) classLoader.loadClass(factoryName);
             SliceFactory sliceFactory = factoryClazz.newInstance();
-            return sliceFactory.create(sliceParameters);
+            return sliceFactory.create(sliceConfig);
         } catch (ClassNotFoundException e) {
             throw new RuntimeException(format("Failed to create a slice using sliceFactory [%s]", factoryName), e);
         } catch (InstantiationException e) {

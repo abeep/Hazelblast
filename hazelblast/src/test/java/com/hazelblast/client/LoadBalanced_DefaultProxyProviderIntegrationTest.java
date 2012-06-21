@@ -4,6 +4,7 @@ package com.hazelblast.client;
 import com.hazelblast.client.annotations.DistributedService;
 import com.hazelblast.client.annotations.LoadBalanced;
 import com.hazelblast.server.SliceServer;
+import com.hazelblast.server.pojoslice.HazelcastInstanceProvider;
 import com.hazelblast.server.pojoslice.PojoSlice;
 import com.hazelblast.server.pojoslice.ExposeService;
 import com.hazelcast.core.Hazelcast;
@@ -27,11 +28,12 @@ public class LoadBalanced_DefaultProxyProviderIntegrationTest {
     @Before
     public void setUp() throws InterruptedException {
         testServiceMock = mock(TestService.class);
-        Pojo pojo = new Pojo();
-        pojo.testService = testServiceMock;
-        HazelcastInstance hazelcastInstance = Hazelcast.newHazelcastInstance(null);
 
-        PojoSlice slice = new PojoSlice(pojo,"default",hazelcastInstance);
+        HazelcastInstance hazelcastInstance = Hazelcast.newHazelcastInstance(null);
+        Pojo pojo = new Pojo(hazelcastInstance);
+        pojo.testService = testServiceMock;
+
+        PojoSlice slice = new PojoSlice(pojo,"default");
 
         server = new SliceServer(slice, 100);
         server.start();
@@ -101,9 +103,19 @@ public class LoadBalanced_DefaultProxyProviderIntegrationTest {
         assertEquals(result, found);
     }
 
-    static public class Pojo {
+    static public class Pojo implements HazelcastInstanceProvider{
         @ExposeService
         public TestService testService;
+
+        public final HazelcastInstance hazelcastInstance;
+
+        public Pojo(HazelcastInstance hazelcastInstance){
+            this.hazelcastInstance = hazelcastInstance;
+        }
+
+        public HazelcastInstance getHazelcastInstance() {
+            return hazelcastInstance;
+        }
     }
 
     static class MyRuntimeException extends RuntimeException {

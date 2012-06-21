@@ -13,6 +13,7 @@ import java.util.List;
 import static org.mockito.Mockito.*;
 
 public class PojoSliceTest {
+
     @Test
     public void partition_whenTargetNotImplementsPartitionAware() {
         List pojo = mock(List.class);
@@ -69,7 +70,7 @@ public class PojoSliceTest {
     public void instanceAware_whenTargetImplementsHazelcastInstanceAware() {
         HazelcastInstanceAware pojo = mock(HazelcastInstanceAware.class);
         HazelcastInstance hazelcastInstance = Hazelcast.getDefaultInstance();
-        PojoSlice slice = new PojoSlice(pojo,hazelcastInstance);
+        PojoSlice slice = new PojoSlice(pojo);
         slice.onStart();
 
         verify(pojo).setHazelcastInstance(hazelcastInstance);

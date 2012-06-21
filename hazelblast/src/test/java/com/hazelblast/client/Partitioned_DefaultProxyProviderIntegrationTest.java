@@ -6,6 +6,7 @@ import com.hazelblast.client.annotations.PartitionKey;
 import com.hazelblast.client.annotations.Partitioned;
 import com.hazelblast.server.SliceServer;
 import com.hazelblast.server.pojoslice.ExposeService;
+import com.hazelblast.server.pojoslice.HazelcastInstanceProvider;
 import com.hazelblast.server.pojoslice.PojoSlice;
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
@@ -28,12 +29,12 @@ public class Partitioned_DefaultProxyProviderIntegrationTest {
     @Before
     public void setUp() throws InterruptedException {
         testServiceMock = mock(TestService.class);
-        Pojo pojo = new Pojo();
-        pojo.testService = testServiceMock;
         HazelcastInstance hazelcastInstance = Hazelcast.newHazelcastInstance(null);
 
-        PojoSlice slice = new PojoSlice(pojo,hazelcastInstance);
-        server = new SliceServer(slice,  100);
+        Pojo pojo = new Pojo(hazelcastInstance);
+        pojo.testService = testServiceMock;
+        PojoSlice slice = new PojoSlice(pojo);
+        server = new SliceServer(slice, 100);
         server.start();
 
         Thread.sleep(1000);
@@ -90,9 +91,20 @@ public class Partitioned_DefaultProxyProviderIntegrationTest {
         assertEquals(result, found);
     }
 
-    static public class Pojo {
+    static public class Pojo implements HazelcastInstanceProvider{
+
         @ExposeService
         public TestService testService;
+
+        private final HazelcastInstance hazelcastInstance;
+
+        public Pojo(HazelcastInstance hazelcastInstance) {
+            this.hazelcastInstance = hazelcastInstance;
+        }
+
+        public HazelcastInstance getHazelcastInstance() {
+            return hazelcastInstance;
+        }
     }
 
     static class MyRuntimeException extends RuntimeException {
