@@ -16,3 +16,6 @@ for DIR in $(find ./snapshot-repository -type d); do
   ) > "${DIR}/index.html"
 done
 
+git add -A
+git commit -m "update"
+git push
