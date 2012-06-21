@@ -1,6 +1,12 @@
 Hazelblast
 -------------------------
-A layer on top of Hazelcast to provide transparent remote interfaces.
+A layer on top of Hazelcast to provide transparent distributed services. Although Hazelcast is an excellent datagrid
+for Java, there is some high level functionality missing to make distributed services.
+
+With Hazelblast it also is possible to move 'complex' objects like threads or jmx connections around in a cluster;
+this can be done by listening to partition changes and deactivating these resources when a partition ends on a specific
+ machine and reactivating when it starts on another machine. Also high availability for these complex services can
+ be realized this way.
 
 News
 -------------------------
@@ -13,8 +19,8 @@ News
 
 Example
 -------------------------
-This interface can be shared between the client (that calls this service) and the server (that implements
-this service). The fire method is routed on the employeeId.
+This interface needs be shared between the client (that calls this service) and the server (that implements
+this service). The fire method is partitioned and is routed on the employeeId.
 
     @RemoteInterface
     class FireService{
@@ -42,7 +48,7 @@ On the server, the following can be done:
     }
 
 There is functionality in Hazelblast to use POJO's or Spring to run this service on each Hazelcast node. It
-is quite simple to add additional strategies for running services.
+is quite simple to add additional strategies like Guice for running services.
 
 There currently are 2 different types of calls
 
