@@ -121,7 +121,7 @@ public final class SliceServer {
 
         //TODO: Improve exception, also the hazelcastInstance should be part of exception
         if (server == null) {
-            throw new IllegalStateException(format("No container found for service context %s@%s on member [%s], available slice's %s",
+            throw new IllegalStateException(format("No slice-container found for slice %s@%s on member [%s], available slices %s",
                     name, hazelcastInstance.getName(), Hazelcast.getCluster().getLocalMember(), serverMap.keySet()));
         }
 
@@ -129,7 +129,7 @@ public final class SliceServer {
     }
 
     private static Slice buildSlice(String factoryName, SliceParameters sliceParameters) {
-        System.out.printf("Creating Slice using factory [%s]\n", factoryName);
+        System.out.printf("Creating slice using factory [%s]\n", factoryName);
 
         ClassLoader classLoader = SliceServer.class.getClassLoader();
         try {
@@ -137,11 +137,11 @@ public final class SliceServer {
             SliceFactory sliceFactory = factoryClazz.newInstance();
             return sliceFactory.create(sliceParameters);
         } catch (ClassNotFoundException e) {
-            throw new RuntimeException(format("Failed to create a Slice using sliceFactory [%s]", factoryName), e);
+            throw new RuntimeException(format("Failed to create a slice using sliceFactory [%s]", factoryName), e);
         } catch (InstantiationException e) {
-            throw new RuntimeException(format("Failed to create a Slice using sliceFactory [%s]", factoryName), e);
+            throw new RuntimeException(format("Failed to create a slice using sliceFactory [%s]", factoryName), e);
         } catch (IllegalAccessException e) {
-            throw new RuntimeException(format("Failed to create a Slice using sliceFactory [%s]", factoryName), e);
+            throw new RuntimeException(format("Failed to create a slice using sliceFactory [%s]", factoryName), e);
         }
     }
 

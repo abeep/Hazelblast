@@ -50,7 +50,7 @@ public class SpringSliceFactory implements SliceFactory {
         private final SliceParameters sliceParameters;
 
         private SpringSlice(SliceParameters sliceParameters) {
-            this.appContext = new ClassPathXmlApplicationContext("slice-appcontext.xml");
+            this.appContext = new ClassPathXmlApplicationContext("slice.xml");
             this.exposedBeans = appContext.getBean("exposedBeans", ExposedBeans.class);
             this.sliceParameters = sliceParameters;
         }

@@ -111,7 +111,6 @@ public class RoundRobinLoadBalancerTest {
         LoadBalancer loadBalancer = new RoundRobinLoadBalancer(instance1);
         assertRoundRobin(loadBalancer, instance1);
 
-
         //lets create an additional member
         TestUtils.newLiteInstance();
 
