@@ -22,7 +22,7 @@ import com.hazelcast.partition.Partition;
  *
  * @author Peter Veentjer.
  */
-public interface Slice {
+public interface Slice extends SliceLifecycleListener, SlicePartitionListener{
 
     String DEFAULT_NAME = "default";
 
@@ -49,32 +49,4 @@ public interface Slice {
      *                          depends on framework being used.
      */
     Object getService(String serviceName);
-
-    /**
-     * Called when the {@link Slice} is started.
-     * <p/>
-     * This method will be called only once on an instance.
-     */
-    void onStart();
-
-    /**
-     * Called when the {@link Slice} is stopped.
-     * <p/>
-     * This method will be called only once on an instance.
-     */
-    void onStop();
-
-    /**
-     * Called when a partition is added to this {@link Slice}.
-     *
-     * @param partition the {@link Partition}.
-     */
-    void onPartitionAdded(Partition partition);
-
-    /**
-     * Called when a partition is removed from this {@link Slice}.
-     *
-     * @param partition the {@link Partition}
-     */
-    void onPartitionRemoved(Partition partition);
 }

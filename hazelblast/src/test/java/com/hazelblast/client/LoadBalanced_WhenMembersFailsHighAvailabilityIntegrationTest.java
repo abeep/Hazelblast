@@ -3,12 +3,10 @@ package com.hazelblast.client;
 import com.hazelblast.TestUtils;
 import com.hazelblast.client.annotations.DistributedService;
 import com.hazelblast.client.annotations.LoadBalanced;
-import com.hazelblast.client.loadbalancers.LoadBalancer;
-import com.hazelblast.server.SliceConfig;
+import com.hazelblast.client.loadbalancers.ContentBasedLoadBalancer;
 import com.hazelblast.server.SliceServer;
 import com.hazelblast.server.pojoslice.HazelcastInstanceProvider;
 import com.hazelblast.server.pojoslice.PojoSlice;
-import com.hazelblast.server.pojoslice.PojoSliceFactory;
 import com.hazelblast.server.pojoslice.ExposeService;
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
@@ -17,6 +15,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.lang.reflect.Method;
 import java.util.Iterator;
 import java.util.LinkedList;
 
@@ -115,7 +114,7 @@ public class LoadBalanced_WhenMembersFailsHighAvailabilityIntegrationTest {
         }
     }
 
-    static class TestLoadBalancer implements LoadBalancer {
+    static class TestLoadBalancer implements ContentBasedLoadBalancer {
 
         private LinkedList<Member> members;
         private Iterator<Member> it;
@@ -130,7 +129,7 @@ public class LoadBalanced_WhenMembersFailsHighAvailabilityIntegrationTest {
             this.it = members.iterator();
         }
 
-        public Member getNext() {
+        public Member getNext(Method method, Object[] args) {
             Member next;
             if (it.hasNext()) {
                 next = it.next();

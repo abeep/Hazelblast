@@ -4,10 +4,11 @@ import com.hazelblast.client.annotations.DistributedService;
 import com.hazelblast.client.annotations.LoadBalanced;
 import com.hazelblast.client.annotations.PartitionKey;
 import com.hazelblast.client.annotations.Partitioned;
+import com.hazelblast.client.exceptions.RemoteMethodTimeoutException;
+import com.hazelblast.client.loadbalancers.ContentBasedLoadBalancer;
+import com.hazelblast.client.loadbalancers.NoOpContentBasedLoadBalancer;
 import com.hazelblast.server.Slice;
 import com.hazelblast.server.exceptions.PartitionMovedException;
-import com.hazelblast.client.exceptions.RemoteMethodTimeoutException;
-import com.hazelblast.client.loadbalancers.LoadBalancer;
 import com.hazelcast.core.*;
 import com.hazelcast.core.Member;
 import com.hazelcast.logging.ILogger;
@@ -55,15 +56,15 @@ public final class DefaultProxyProvider implements ProxyProvider {
         this(Slice.DEFAULT_NAME, Hazelcast.getDefaultInstance());
     }
 
-    public DefaultProxyProvider(HazelcastInstance hazelcastInstance){
-        this(Slice.DEFAULT_NAME,hazelcastInstance);
+    public DefaultProxyProvider(HazelcastInstance hazelcastInstance) {
+        this(Slice.DEFAULT_NAME, hazelcastInstance);
     }
 
     /**
      * Creates a ProxyProvider that connects to a Slice with the given name
      *
-     * @param sliceName the Slice to connect to.
-     * @param hazelcastInstance  the HazelcastInstance
+     * @param sliceName         the Slice to connect to.
+     * @param hazelcastInstance the HazelcastInstance
      * @throws NullPointerException if sliceName or executorService is null.
      */
     public DefaultProxyProvider(String sliceName, HazelcastInstance hazelcastInstance) {
@@ -75,9 +76,9 @@ public final class DefaultProxyProvider implements ProxyProvider {
     /**
      * Creates a ProxyProvider that connects to a Slice with the given name
      *
-     * @param sliceName the Slice to connect to.
-     * @param hazelcastInstance  the HazelcastInstance
-     * @param executorService    the executor service used. Make sure it belongs to the hazelcastInstance.
+     * @param sliceName         the Slice to connect to.
+     * @param hazelcastInstance the HazelcastInstance
+     * @param executorService   the executor service used. Make sure it belongs to the hazelcastInstance.
      * @throws NullPointerException if sliceName, hazelcastInstance or executorService is null.
      */
     public DefaultProxyProvider(String sliceName, HazelcastInstance hazelcastInstance, ExecutorService executorService) {
@@ -95,6 +96,10 @@ public final class DefaultProxyProvider implements ProxyProvider {
      */
     public String getSliceName() {
         return sliceName;
+    }
+
+    public HazelcastInstance getHazelcastInstance() {
+        return hazelcastInstance;
     }
 
     /**
@@ -200,25 +205,27 @@ public final class DefaultProxyProvider implements ProxyProvider {
         int partitionKeyIndex = -1;
         Method partitionKeyProperty = null;
         MethodType methodType;
-        LoadBalancer loadBalancer = null;
+        ContentBasedLoadBalancer loadBalancer = null;
         if (annotation instanceof LoadBalanced) {
             LoadBalanced loadBalancedAnnotation = (LoadBalanced) annotation;
             timeoutMs = loadBalancedAnnotation.timeoutMs();
             interruptOnTimeout = loadBalancedAnnotation.interruptOnTimeout();
             methodType = MethodType.LOAD_BALANCED;
 
-            Class<? extends LoadBalancer> loadBalancerClass = loadBalancedAnnotation.loadBalancer();
-            try {
-                Constructor<? extends LoadBalancer> constructor = loadBalancerClass.getConstructor(HazelcastInstance.class);
-                loadBalancer = constructor.newInstance(hazelcastInstance);
-            } catch (InstantiationException e) {
-                throw new IllegalArgumentException(format("Failed to instantiate LoadBalancer class '%s'", loadBalancerClass.getName()), e);
-            } catch (IllegalAccessException e) {
-                throw new IllegalArgumentException(format("Failed to instantiate LoadBalancer class '%s'", loadBalancerClass.getName()), e);
-            } catch (NoSuchMethodException e) {
-                throw new IllegalArgumentException(format("Failed to instantiate LoadBalancer class '%s'", loadBalancerClass.getName()), e);
-            } catch (InvocationTargetException e) {
-                throw new IllegalArgumentException(format("Failed to instantiate LoadBalancer class '%s'", loadBalancerClass.getName()), e);
+            Class<? extends ContentBasedLoadBalancer> loadBalancerClass = loadBalancedAnnotation.loadBalancer();
+            if (!loadBalancerClass.equals(NoOpContentBasedLoadBalancer.class)) {
+                try {
+                    Constructor<? extends ContentBasedLoadBalancer> constructor = loadBalancerClass.getConstructor(HazelcastInstance.class);
+                    loadBalancer = constructor.newInstance(hazelcastInstance);
+                } catch (InstantiationException e) {
+                    throw new IllegalArgumentException(format("Failed to instantiate ContentBasedLoadBalancer class '%s'", loadBalancerClass.getName()), e);
+                } catch (IllegalAccessException e) {
+                    throw new IllegalArgumentException(format("Failed to instantiate ContentBasedLoadBalancer class '%s'", loadBalancerClass.getName()), e);
+                } catch (NoSuchMethodException e) {
+                    throw new IllegalArgumentException(format("Failed to instantiate ContentBasedLoadBalancer class '%s'", loadBalancerClass.getName()), e);
+                } catch (InvocationTargetException e) {
+                    throw new IllegalArgumentException(format("Failed to instantiate ContentBasedLoadBalancer class '%s'", loadBalancerClass.getName()), e);
+                }
             }
         } else if (annotation instanceof Partitioned) {
             Partitioned partitionedAnnotation = (Partitioned) annotation;
@@ -409,11 +416,14 @@ public final class DefaultProxyProvider implements ProxyProvider {
                     sliceName, remoteInterfaceInfo.targetInterface.getSimpleName(), remoteMethodInfo.method.getName(),
                     args, remoteMethodInfo.argTypes, null);
 
-            Member targetMember = remoteMethodInfo.loadBalancer.getNext();
+            Future future;
+            if (remoteMethodInfo.loadBalancer == null) {
+                future = executorService.submit(callable);
+            } else {
+                Member targetMember = remoteMethodInfo.loadBalancer.getNext(remoteMethodInfo.method, args);
+                future = executorService.submit(new DistributedTask(callable, targetMember));
+            }
 
-            DistributedTask<String> task = new DistributedTask<String>(callable, targetMember);
-
-            Future future = executorService.submit(task);
             try {
                 return future.get(remoteMethodInfo.timeoutMs, TimeUnit.MILLISECONDS);
             } catch (MemberLeftException e) {
@@ -540,11 +550,11 @@ public final class DefaultProxyProvider implements ProxyProvider {
         final Method partitionKeyProperty;
         final String[] argTypes;
         final long timeoutMs;
-        final LoadBalancer loadBalancer;
+        final ContentBasedLoadBalancer loadBalancer;
         final boolean interruptOnTimeout;
 
         private RemoteMethodInfo(Method method, MethodType methodType, int partitionKeyIndex,
-                                 Method partitionKeyProperty, long timeoutMs, boolean interruptOnTimeout, LoadBalancer loadBalancer) {
+                                 Method partitionKeyProperty, long timeoutMs, boolean interruptOnTimeout, ContentBasedLoadBalancer loadBalancer) {
             this.method = method;
             this.methodType = methodType;
             this.partitionKeyIndex = partitionKeyIndex;

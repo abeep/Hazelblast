@@ -32,7 +32,6 @@ public final class SerializableRemoteMethodInvocationFactory implements RemoteMe
 
         private transient ILogger logger;
 
-
         static final long serialVersionUID = 1;
 
         private final String sliceName;

@@ -1,7 +1,7 @@
 package com.hazelblast.client.annotations;
 
-import com.hazelblast.client.loadbalancers.LoadBalancer;
-import com.hazelblast.client.loadbalancers.RoundRobinLoadBalancer;
+import com.hazelblast.client.loadbalancers.ContentBasedLoadBalancer;
+import com.hazelblast.client.loadbalancers.NoOpContentBasedLoadBalancer;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -33,9 +33,9 @@ public @interface LoadBalanced{
     boolean interruptOnTimeout() default true;
 
     /**
-     * The LoadBalancer class used to load balance calls.
+     * The ContentBasedLoadBalancer class used to load balance calls.
      *
-     * @return the LoadBalancer class.
+     * @return the ContentBasedLoadBalancer class.
      */
-    Class<? extends LoadBalancer> loadBalancer() default RoundRobinLoadBalancer.class;
+    Class<? extends ContentBasedLoadBalancer> loadBalancer() default NoOpContentBasedLoadBalancer.class;
 }
