@@ -1,5 +1,7 @@
 package com.hazelblast.client;
 
+import com.hazelcast.core.HazelcastInstance;
+
 /**
  * Provides a 'client' side proxy to 'server' side implementations.
  * <p/>
@@ -21,6 +23,13 @@ public interface ProxyProvider {
      * @return the name of the Slice.
      */
     String getSliceName();
+
+    /**
+     * Returns the (client-side) HazelcastInstance used by this ProxyProvider.
+     *
+     * @return the HazelcastInstance.
+     */
+    HazelcastInstance getHazelcastInstance();
 
     /**
      * Gets a proxy to to given interface.

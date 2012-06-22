@@ -3,7 +3,7 @@ package com.hazelblast.client;
 import com.hazelblast.client.annotations.DistributedService;
 import com.hazelblast.client.annotations.LoadBalanced;
 import com.hazelblast.client.annotations.PartitionKey;
-import com.hazelblast.client.loadbalancers.LoadBalancer;
+import com.hazelblast.client.loadbalancers.ContentBasedLoadBalancer;
 import com.hazelblast.server.SliceServer;
 import com.hazelblast.server.pojoslice.ExposeService;
 import com.hazelblast.server.pojoslice.HazelcastInstanceProvider;
@@ -15,6 +15,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.lang.reflect.Method;
 import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.*;
@@ -68,8 +69,8 @@ public class LoadBalanced_DefaultProxyProviderTest {
         void method();
     }
 
-    static class LoadBalancerWithBadConstructor implements LoadBalancer {
-        public Member getNext() {
+    static class LoadBalancerWithBadConstructor implements ContentBasedLoadBalancer {
+        public Member getNext(Method method, Object[] args) {
             return null;
         }
     }

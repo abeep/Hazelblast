@@ -20,7 +20,8 @@ import static com.hazelblast.utils.Arguments.notNull;
 import static java.lang.String.format;
 
 /**
- * The container that runs the {@link Slice}.
+ * The container that runs the {@link Slice}. It starts/stops the slice, it calls service methods on the slice
+ * and manages partitions and notifies the slice of any partition changes.
  *
  * @author Peter Veentjer.
  */
@@ -40,9 +41,9 @@ final class SliceContainer {
      * Creates a new SliceContainer with the given Slice.
      *
      * @param slice     the Slice contained in this SliceContainer.
-     * @throws NullPointerException if slice or sliceName is null.
+     * @throws NullPointerException if slice is null
      */
-    public SliceContainer(Slice slice) {
+    SliceContainer(Slice slice) {
         this.slice = notNull("slice", slice);
         HazelcastInstance hazelcastInstance = slice.getHazelcastInstance();
         this.logger = hazelcastInstance.getLoggingService().getLogger(SliceContainer.class.getName());
@@ -52,6 +53,10 @@ final class SliceContainer {
         }
 
         self = hazelcastInstance.getCluster().getLocalMember();
+        if(self.isLiteMember()){
+            throw new IllegalStateException(format("Can't create a SliceContainer using lite member [%s]",self));
+        }
+
         partitionService = hazelcastInstance.getPartitionService();
         for (Partition partition : partitionService.getPartitions()) {
             int partitionId = partition.getPartitionId();

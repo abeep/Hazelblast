@@ -10,12 +10,16 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.lang.reflect.Method;
 import java.util.LinkedList;
 import java.util.List;
 
 import static org.junit.Assert.*;
 
 public class RoundRobinLoadBalancerTest {
+
+    private final static Object[] ARGS = new Object[]{};
+    private final static Method METHOD = null;
 
     @Before
     public void setUp(){
@@ -31,11 +35,11 @@ public class RoundRobinLoadBalancerTest {
     public void noMembersInTheCluster() {
         HazelcastInstance hazelcastInstance = TestUtils.newLiteInstance();
 
-        LoadBalancer lb = new RoundRobinLoadBalancer(hazelcastInstance);
-        lb.getNext();
+        ContentBasedLoadBalancer lb = new RoundRobinLoadBalancer(hazelcastInstance);
+        lb.getNext(METHOD, ARGS);
     }
 
-    public void assertRoundRobin(LoadBalancer loadBalancer, HazelcastInstance... members) {
+    public void assertRoundRobin(ContentBasedLoadBalancer loadBalancer, HazelcastInstance... members) {
         List<Member> cluster = new LinkedList<Member>();
         for (HazelcastInstance instance : members) {
             cluster.add(instance.getCluster().getLocalMember());
@@ -44,7 +48,7 @@ public class RoundRobinLoadBalancerTest {
         //read out the pattern.
         List<Member> pattern = new LinkedList<Member>();
         for (int k = 0; k < members.length; k++) {
-            Member member = loadBalancer.getNext();
+            Member member = loadBalancer.getNext(METHOD,ARGS);
             assertTrue(String.format("member %s is not found in cluster %s", member, cluster), cluster.contains(member));
             assertFalse(pattern.contains(member));
             pattern.add(member);
@@ -53,7 +57,7 @@ public class RoundRobinLoadBalancerTest {
         //verify that the pattern is followed.
         for (int k = 0; k < 100; k++) {
             for (int l = 0; l < members.length; l++) {
-                assertEquals(pattern.get(l), loadBalancer.getNext());
+                assertEquals(pattern.get(l), loadBalancer.getNext(METHOD,ARGS));
             }
         }
     }
@@ -81,9 +85,9 @@ public class RoundRobinLoadBalancerTest {
     @Test
     public void singleMember() {
         HazelcastInstance instance = newNormalInstance();
-        LoadBalancer loadBalancer = new RoundRobinLoadBalancer(instance);
-        Member first = loadBalancer.getNext();
-        Member second = loadBalancer.getNext();
+        ContentBasedLoadBalancer loadBalancer = new RoundRobinLoadBalancer(instance);
+        Member first = loadBalancer.getNext(METHOD,ARGS);
+        Member second = loadBalancer.getNext(METHOD,ARGS);
         Member self = instance.getCluster().getLocalMember();
         assertEquals(self, first);
         assertEquals(self, second);
@@ -108,7 +112,7 @@ public class RoundRobinLoadBalancerTest {
     public void liteMemberIsAdded() {
         HazelcastInstance instance1 = newNormalInstance();
 
-        LoadBalancer loadBalancer = new RoundRobinLoadBalancer(instance1);
+        ContentBasedLoadBalancer loadBalancer = new RoundRobinLoadBalancer(instance1);
         assertRoundRobin(loadBalancer, instance1);
 
         //lets create an additional member
@@ -141,7 +145,7 @@ public class RoundRobinLoadBalancerTest {
             instances[k] = newNormalInstance();
         }
 
-        LoadBalancer lb = new RoundRobinLoadBalancer(instances[0]);
+        ContentBasedLoadBalancer lb = new RoundRobinLoadBalancer(instances[0]);
         assertRoundRobin(lb, instances);
     }
 }

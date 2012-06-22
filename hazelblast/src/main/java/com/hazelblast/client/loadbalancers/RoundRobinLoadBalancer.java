@@ -4,6 +4,7 @@ import com.hazelblast.server.exceptions.NoMemberAvailableException;
 import com.hazelcast.core.*;
 import com.hazelcast.logging.ILogger;
 
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -14,11 +15,11 @@ import static com.hazelblast.utils.Arguments.notNull;
 import static java.lang.String.format;
 
 /**
- * A {@link LoadBalancer} that uses round robin to iterate over the members of the cluster.
+ * A {@link ContentBasedLoadBalancer} that uses round robin to iterate over the members of the cluster.
  *
  * @author Peter Veentjer.
  */
-public class RoundRobinLoadBalancer implements LoadBalancer {
+public class RoundRobinLoadBalancer implements ContentBasedLoadBalancer {
     private final ILogger logger;
 
     private final AtomicInteger counter = new AtomicInteger();
@@ -38,7 +39,7 @@ public class RoundRobinLoadBalancer implements LoadBalancer {
         return members.get().size();
     }
 
-    public Member getNext() {
+    public Member getNext(Method method, Object[] args) {
         List<Member> memberList = members.get();
         if (memberList.isEmpty()) {
             throw new NoMemberAvailableException(
