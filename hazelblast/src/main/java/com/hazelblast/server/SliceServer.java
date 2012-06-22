@@ -29,10 +29,10 @@ import static java.lang.String.format;
  * @author Peter Veentjer.
  */
 public final class SliceServer {
+
     public static final int DEFAULT_SCAN_DELAY_MS = 1000;
 
     private static final ConcurrentMap<Key, SliceServer> serverMap = new ConcurrentHashMap<Key, SliceServer>();
-
 
     public static void main(String[] args) {
         Options options = buildOptions();
@@ -127,20 +127,20 @@ public final class SliceServer {
         return server.container;
     }
 
-    private static Slice buildSlice(String factoryName, SliceConfig sliceConfig) {
-        System.out.printf("Creating slice using factory [%s]\n", factoryName);
+    private static Slice buildSlice(String factoryClass, SliceConfig sliceConfig) {
+        System.out.printf("Creating slice using factory [%s]\n", factoryClass);
 
         ClassLoader classLoader = SliceServer.class.getClassLoader();
         try {
-            Class<SliceFactory> factoryClazz = (Class<SliceFactory>) classLoader.loadClass(factoryName);
+            Class<SliceFactory> factoryClazz = (Class<SliceFactory>) classLoader.loadClass(factoryClass);
             SliceFactory sliceFactory = factoryClazz.newInstance();
             return sliceFactory.create(sliceConfig);
         } catch (ClassNotFoundException e) {
-            throw new RuntimeException(format("Failed to create a slice using sliceFactory [%s]", factoryName), e);
+            throw new RuntimeException(format("Failed to create a slice using sliceFactory [%s]", factoryClass), e);
         } catch (InstantiationException e) {
-            throw new RuntimeException(format("Failed to create a slice using sliceFactory [%s]", factoryName), e);
+            throw new RuntimeException(format("Failed to create a slice using sliceFactory [%s]", factoryClass), e);
         } catch (IllegalAccessException e) {
-            throw new RuntimeException(format("Failed to create a slice using sliceFactory [%s]", factoryName), e);
+            throw new RuntimeException(format("Failed to create a slice using sliceFactory [%s]", factoryClass), e);
         }
     }
 
