@@ -4,6 +4,7 @@ package com.hazelblast.client;
 import com.hazelblast.client.annotations.DistributedService;
 import com.hazelblast.client.annotations.PartitionKey;
 import com.hazelblast.client.annotations.Partitioned;
+import com.hazelblast.client.smarter.SmarterProxyProvider;
 import com.hazelblast.server.SliceServer;
 import com.hazelblast.server.pojoslice.ExposeService;
 import com.hazelblast.server.pojoslice.HazelcastInstanceProvider;
@@ -12,6 +13,7 @@ import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.concurrent.TimeUnit;
@@ -22,7 +24,7 @@ import static org.mockito.Mockito.when;
 
 public class Partitioned_DefaultProxyProviderIntegrationTest {
 
-    private DefaultProxyProvider proxyProvider;
+    private SmarterProxyProvider proxyProvider;
     private SliceServer server;
     private TestService testServiceMock;
 
@@ -39,7 +41,7 @@ public class Partitioned_DefaultProxyProviderIntegrationTest {
 
         Thread.sleep(1000);
 
-        proxyProvider = new DefaultProxyProvider("default", hazelcastInstance);
+        proxyProvider = new SmarterProxyProvider("default", hazelcastInstance);
     }
 
     @After
@@ -50,6 +52,11 @@ public class Partitioned_DefaultProxyProviderIntegrationTest {
         assertTrue("Could not terminate the servce within the given timeout", terminated);
         Hazelcast.shutdownAll();
     }
+
+
+    @Test
+      @Ignore
+      public void whenCallWithReturnValue(){}
 
     @Test
     public void exceptionUnwrapping() {

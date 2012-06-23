@@ -4,6 +4,7 @@ import com.hazelblast.client.annotations.DistributedService;
 import com.hazelblast.client.annotations.PartitionKey;
 import com.hazelblast.client.annotations.Partitioned;
 import com.hazelblast.client.exceptions.RemoteMethodTimeoutException;
+import com.hazelblast.client.smarter.SmarterProxyProvider;
 import com.hazelblast.server.SliceServer;
 import com.hazelblast.server.pojoslice.ExposeService;
 import com.hazelblast.server.pojoslice.HazelcastInstanceProvider;
@@ -22,7 +23,7 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 public class Partitioned_Timeout_ProxyProviderIntegrationTest {
-    private DefaultProxyProvider proxyProvider;
+    private SmarterProxyProvider proxyProvider;
     private SliceServer server;
     private Pojo pojo;
 
@@ -38,7 +39,7 @@ public class Partitioned_Timeout_ProxyProviderIntegrationTest {
 
         Thread.sleep(1000);
 
-        proxyProvider = new DefaultProxyProvider(hazelcastInstance);
+        proxyProvider = new SmarterProxyProvider(hazelcastInstance);
     }
 
     @After

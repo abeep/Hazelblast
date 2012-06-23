@@ -3,6 +3,7 @@ package com.hazelblast.client;
 
 import com.hazelblast.client.annotations.DistributedService;
 import com.hazelblast.client.annotations.LoadBalanced;
+import com.hazelblast.client.smarter.SmarterProxyProvider;
 import com.hazelblast.server.SliceServer;
 import com.hazelblast.server.pojoslice.HazelcastInstanceProvider;
 import com.hazelblast.server.pojoslice.PojoSlice;
@@ -11,6 +12,7 @@ import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.concurrent.TimeUnit;
@@ -21,7 +23,7 @@ import static org.mockito.Mockito.when;
 
 public class LoadBalanced_DefaultProxyProviderIntegrationTest {
 
-    private DefaultProxyProvider proxyProvider;
+    private ProxyProvider proxyProvider;
     private SliceServer server;
     private TestService testServiceMock;
 
@@ -40,7 +42,7 @@ public class LoadBalanced_DefaultProxyProviderIntegrationTest {
 
         Thread.sleep(1000);
 
-        proxyProvider = new DefaultProxyProvider( hazelcastInstance);
+        proxyProvider = new SmarterProxyProvider( hazelcastInstance);
     }
 
     @After
@@ -67,6 +69,10 @@ public class LoadBalanced_DefaultProxyProviderIntegrationTest {
             System.err.println("---------------------------------------------------");
         }
     }
+
+    @Test
+    @Ignore
+    public void whenCallWithReturnValue(){}
 
     @Test
     public void whenCalledWithNonNullArgument() {
