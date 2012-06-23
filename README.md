@@ -65,7 +65,7 @@ Maven
 -------------------------
 First a repo needs to be added:
 
-     <distributionManagement>
+     <repositories>
         <!-- use this if you want to work against a final-->
         <repository>
             <id>hazelblast-repository</id>
@@ -73,11 +73,11 @@ First a repo needs to be added:
         </repository>
 
         <!-- use this if you want to use a snapshot of multiverse -->
-        <snapshotRepository>
+        <repository>
             <id>hazelblast-snapshot-repository</id>
             <url>http://pveentjer.github.com/Hazelblast/snapshot-repository/</url>
-        </snapshotRepository>
-    </distributionManagement>
+        </repository>
+    </repositories>
 
 
 And add the following dependency:

@@ -76,13 +76,13 @@ public final class SliceServer {
                 .hasArg()
                 .withDescription("The name of the slice")
                 .withType(String.class)
-                .create("sliceFactory");
+                .create("sliceName");
 
         Option sliceFactory = OptionBuilder.withArgName("sliceFactory")
                 .hasArg()
                 .isRequired(true)
                 .withType(String.class)
-                .withDescription("The class of the com.hazelblast.api.SliceFactory implementation that creates the Slice")
+                .withDescription("The com.hazelblast.server.SliceFactory implementation that creates the Slice instance")
                 .create("sliceFactory");
 
         Option scanDelay = OptionBuilder.withArgName("scanDelay")
@@ -104,39 +104,43 @@ public final class SliceServer {
     }
 
     /**
-     * Gets a Slice with the given name.
+     * Gets a Slice with the given sliceName.
      *
-     * @param name the name of the Slice.
+     * @param sliceName the name of the Slice.
      * @return the found Slice.
-     * @throws NullPointerException  if name is null.
-     * @throws IllegalStateException if no Slice with the given name is found.
+     * @throws NullPointerException  if sliceName is null.
+     * @throws IllegalStateException if no Slice with the given sliceName is found.
      */
-    public static SliceContainer getContainer(HazelcastInstance hazelcastInstance, String name) {
+    public static SliceContainer getContainer(HazelcastInstance hazelcastInstance, String sliceName) {
         notNull("hazelcastInstance", hazelcastInstance);
-        notNull("name", name);
+        notNull("sliceName", sliceName);
 
-        Key key = new Key(hazelcastInstance, name);
+        Key key = new Key(hazelcastInstance, sliceName);
         SliceServer server = serverMap.get(key);
 
         //TODO: Improve exception, also the hazelcastInstance should be part of exception
         if (server == null) {
-            throw new IllegalStateException(format("No slice-container found for slice %s@%s on member [%s], available slices %s",
-                    name, hazelcastInstance.getName(), Hazelcast.getCluster().getLocalMember(), serverMap.keySet()));
+            throw new IllegalStateException(format("No slice found for slice %s@%s on member [%s], available slices %s",
+                    sliceName, hazelcastInstance.getName(), Hazelcast.getCluster().getLocalMember(), serverMap.keySet()));
         }
 
         return server.container;
     }
 
-    private static Slice buildSlice(String factoryClass, SliceConfig sliceConfig) {
-        System.out.printf("Creating slice using factory [%s]\n", factoryClass);
+    private static Slice buildSlice(String factoryClassName, SliceConfig sliceConfig) {
+        System.out.printf("Creating slice [%s] using sliceFactory [%s]\n", sliceConfig.name, factoryClassName);
 
         ClassLoader classLoader = SliceServer.class.getClassLoader();
+        Class<SliceFactory> factoryClass;
         try {
-            Class<SliceFactory> factoryClazz = (Class<SliceFactory>) classLoader.loadClass(factoryClass);
-            SliceFactory sliceFactory = factoryClazz.newInstance();
-            return sliceFactory.create(sliceConfig);
+            factoryClass = (Class<SliceFactory>) classLoader.loadClass(factoryClassName);
         } catch (ClassNotFoundException e) {
-            throw new RuntimeException(format("Failed to create a slice using sliceFactory [%s]", factoryClass), e);
+            throw new RuntimeException(format("Failed to load the sliceFactory class [%s]", factoryClassName), e);
+        }
+
+        try {
+            SliceFactory sliceFactory = factoryClass.newInstance();
+            return sliceFactory.create(sliceConfig);
         } catch (InstantiationException e) {
             throw new RuntimeException(format("Failed to create a slice using sliceFactory [%s]", factoryClass), e);
         } catch (IllegalAccessException e) {
@@ -251,9 +255,9 @@ public final class SliceServer {
      * This call safely can be made if the SliceServer already has been started.
      * <p/>
      * This method is thread safe.
-     * @return this instance.
      *
-     * @throws IllegalStateException if the SliceServer already is shutdown or terminated or if another processing unit with the same name
+     * @return this instance.
+     * @throws IllegalStateException if the SliceServer already is shutdown or terminated or if another processing unit with the same sliceName
      *                               has been started.
      */
     public SliceServer start() {
@@ -426,7 +430,7 @@ public final class SliceServer {
                 try {
                     container.scanForPartitionChanges();
                 } catch (Throwable e) {
-                    logger.log(Level.SEVERE, "Failed to run SliceContainer.scanForPartitionChanges", e);
+                    logger.log(Level.SEVERE, "Failed to run SliceContainer.scanForPartitionChanges()", e);
                 }
             }
         }

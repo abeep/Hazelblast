@@ -10,11 +10,7 @@ import com.hazelcast.core.HazelcastInstanceAware;
 import com.hazelcast.partition.Partition;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
-import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
-import org.springframework.beans.factory.config.BeanPostProcessor;
-import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
@@ -37,6 +33,10 @@ public class SpringSlice implements Slice {
     private HazelcastInstance hazelcastInstance;
     private final HazelcastInstance defaultHazelcastInstance;
 
+    public SpringSlice() {
+        this(new SliceConfig(Slice.DEFAULT_NAME));
+    }
+
     /**
      * Creates a SpringSlice which uses the {@link com.hazelcast.core.Hazelcast#getDefaultInstance()} as a
      * default {@link HazelcastInstance} if one is not provided by the application context.
@@ -47,7 +47,7 @@ public class SpringSlice implements Slice {
      *                              if context creation failed.
      */
     public SpringSlice(SliceConfig sliceConfig) {
-        this(sliceConfig, Hazelcast.getDefaultInstance());
+        this(sliceConfig, null);
     }
 
     /**
@@ -55,7 +55,7 @@ public class SpringSlice implements Slice {
      *
      * @param sliceConfig              the configuration for the slice.
      * @param defaultHazelcastInstance the default HazelcastInstance used if none is found in the applicationcontext.
-     * @throws NullPointerException if sliceConfig or defaultHazelcastInstance is null.
+     * @throws NullPointerException if sliceConfig is null.
      * @throws org.springframework.beans.BeansException
      *                              if context creation failed
      */
@@ -69,21 +69,27 @@ public class SpringSlice implements Slice {
      * @param sliceConfig              the configuration for the slice.
      * @param applicationContext       the applicationcontext to use.
      * @param defaultHazelcastInstance the default HazelcastInstance used if none is found in the applicationcontext.
-     * @throws NullPointerException if sliceConfig,applicationContext or defaultHazelcastInstance is null.
+     * @throws NullPointerException if sliceConfig,applicationContext is null.
      * @throws org.springframework.beans.BeansException
      *                              if context creation failed
      */
     public SpringSlice(SliceConfig sliceConfig, ConfigurableApplicationContext applicationContext, HazelcastInstance defaultHazelcastInstance) {
         this.sliceConfig = notNull("sliceConfig", sliceConfig);
+        this.defaultHazelcastInstance = defaultHazelcastInstance;
         this.applicationContext = notNull("applicationContext", applicationContext);
-        this.defaultHazelcastInstance = notNull("defaultHazelcastInstance",defaultHazelcastInstance);
+        this.exposedBeans = applicationContext.getBean("exposedBeans", ExposedBeans.class);
+        this.hazelcastInstance = findHazelcastInstance(applicationContext, defaultHazelcastInstance);
     }
 
     private static HazelcastInstance findHazelcastInstance(ApplicationContext appContext, HazelcastInstance defaultHazelcastInstance) {
         try {
             return appContext.getBean("hazelcastInstance", HazelcastInstance.class);
         } catch (NoSuchBeanDefinitionException e) {
-            return defaultHazelcastInstance;
+            if (defaultHazelcastInstance == null) {
+                return Hazelcast.getDefaultInstance();
+            } else {
+                return defaultHazelcastInstance;
+            }
         }
     }
 
@@ -131,9 +137,6 @@ public class SpringSlice implements Slice {
 
     public void onStart() {
         applicationContext.start();
-
-        this.exposedBeans = applicationContext.getBean("exposedBeans", ExposedBeans.class);
-        this.hazelcastInstance = findHazelcastInstance(applicationContext, notNull("defaultHazelcastInstance", defaultHazelcastInstance));
 
 
         for (String id : applicationContext.getBeanNamesForType(HazelcastInstanceAware.class, false, true)) {
