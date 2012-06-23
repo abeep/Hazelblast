@@ -1,4 +1,4 @@
-package com.hazelblast.client.loadbalancers;
+package com.hazelblast.client.router;
 
 import com.hazelblast.server.exceptions.NoMemberAvailableException;
 import com.hazelcast.core.*;
@@ -15,11 +15,11 @@ import static com.hazelblast.utils.Arguments.notNull;
 import static java.lang.String.format;
 
 /**
- * A {@link ContentBasedLoadBalancer} that uses round robin to iterate over the members of the cluster.
+ * A {@link Router} that uses round robin to iterate over the members of the cluster.
  *
  * @author Peter Veentjer.
  */
-public class RoundRobinLoadBalancer implements ContentBasedLoadBalancer {
+public class RoundRobinLoadBalancer implements Router {
     private final ILogger logger;
 
     private final AtomicInteger counter = new AtomicInteger();

@@ -3,7 +3,7 @@ package com.hazelblast.client;
 import com.hazelblast.TestUtils;
 import com.hazelblast.client.annotations.DistributedService;
 import com.hazelblast.client.annotations.LoadBalanced;
-import com.hazelblast.client.loadbalancers.RoundRobinLoadBalancer;
+import com.hazelblast.client.router.RoundRobinLoadBalancer;
 import com.hazelblast.server.Slice;
 import com.hazelblast.server.SliceServer;
 import com.hazelblast.server.pojoslice.ExposeService;

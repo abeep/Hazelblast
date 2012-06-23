@@ -31,7 +31,6 @@ public class SpringSlice implements Slice {
     private ExposedBeans exposedBeans;
     private final SliceConfig sliceConfig;
     private HazelcastInstance hazelcastInstance;
-    private final HazelcastInstance defaultHazelcastInstance;
 
     public SpringSlice() {
         this(new SliceConfig(Slice.DEFAULT_NAME));
@@ -75,7 +74,6 @@ public class SpringSlice implements Slice {
      */
     public SpringSlice(SliceConfig sliceConfig, ConfigurableApplicationContext applicationContext, HazelcastInstance defaultHazelcastInstance) {
         this.sliceConfig = notNull("sliceConfig", sliceConfig);
-        this.defaultHazelcastInstance = defaultHazelcastInstance;
         this.applicationContext = notNull("applicationContext", applicationContext);
         this.exposedBeans = applicationContext.getBean("exposedBeans", ExposedBeans.class);
         this.hazelcastInstance = findHazelcastInstance(applicationContext, defaultHazelcastInstance);

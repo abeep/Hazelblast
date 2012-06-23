@@ -5,8 +5,8 @@ import com.hazelblast.client.annotations.LoadBalanced;
 import com.hazelblast.client.annotations.PartitionKey;
 import com.hazelblast.client.annotations.Partitioned;
 import com.hazelblast.client.exceptions.RemoteMethodTimeoutException;
-import com.hazelblast.client.loadbalancers.ContentBasedLoadBalancer;
-import com.hazelblast.client.loadbalancers.NoOpContentBasedLoadBalancer;
+import com.hazelblast.client.router.Router;
+import com.hazelblast.client.router.NoOpRouter;
 import com.hazelblast.server.Slice;
 import com.hazelblast.server.exceptions.PartitionMovedException;
 import com.hazelcast.core.*;
@@ -205,26 +205,26 @@ public final class DefaultProxyProvider implements ProxyProvider {
         int partitionKeyIndex = -1;
         Method partitionKeyProperty = null;
         MethodType methodType;
-        ContentBasedLoadBalancer loadBalancer = null;
+        Router loadBalancer = null;
         if (annotation instanceof LoadBalanced) {
             LoadBalanced loadBalancedAnnotation = (LoadBalanced) annotation;
             timeoutMs = loadBalancedAnnotation.timeoutMs();
             interruptOnTimeout = loadBalancedAnnotation.interruptOnTimeout();
             methodType = MethodType.LOAD_BALANCED;
 
-            Class<? extends ContentBasedLoadBalancer> loadBalancerClass = loadBalancedAnnotation.loadBalancer();
-            if (!loadBalancerClass.equals(NoOpContentBasedLoadBalancer.class)) {
+            Class<? extends Router> loadBalancerClass = loadBalancedAnnotation.loadBalancer();
+            if (!loadBalancerClass.equals(NoOpRouter.class)) {
                 try {
-                    Constructor<? extends ContentBasedLoadBalancer> constructor = loadBalancerClass.getConstructor(HazelcastInstance.class);
+                    Constructor<? extends Router> constructor = loadBalancerClass.getConstructor(HazelcastInstance.class);
                     loadBalancer = constructor.newInstance(hazelcastInstance);
                 } catch (InstantiationException e) {
-                    throw new IllegalArgumentException(format("Failed to instantiate ContentBasedLoadBalancer class '%s'", loadBalancerClass.getName()), e);
+                    throw new IllegalArgumentException(format("Failed to instantiate Router class '%s'", loadBalancerClass.getName()), e);
                 } catch (IllegalAccessException e) {
-                    throw new IllegalArgumentException(format("Failed to instantiate ContentBasedLoadBalancer class '%s'", loadBalancerClass.getName()), e);
+                    throw new IllegalArgumentException(format("Failed to instantiate Router class '%s'", loadBalancerClass.getName()), e);
                 } catch (NoSuchMethodException e) {
-                    throw new IllegalArgumentException(format("Failed to instantiate ContentBasedLoadBalancer class '%s'", loadBalancerClass.getName()), e);
+                    throw new IllegalArgumentException(format("Failed to instantiate Router class '%s'", loadBalancerClass.getName()), e);
                 } catch (InvocationTargetException e) {
-                    throw new IllegalArgumentException(format("Failed to instantiate ContentBasedLoadBalancer class '%s'", loadBalancerClass.getName()), e);
+                    throw new IllegalArgumentException(format("Failed to instantiate Router class '%s'", loadBalancerClass.getName()), e);
                 }
             }
         } else if (annotation instanceof Partitioned) {
@@ -550,11 +550,11 @@ public final class DefaultProxyProvider implements ProxyProvider {
         final Method partitionKeyProperty;
         final String[] argTypes;
         final long timeoutMs;
-        final ContentBasedLoadBalancer loadBalancer;
+        final Router loadBalancer;
         final boolean interruptOnTimeout;
 
         private RemoteMethodInfo(Method method, MethodType methodType, int partitionKeyIndex,
-                                 Method partitionKeyProperty, long timeoutMs, boolean interruptOnTimeout, ContentBasedLoadBalancer loadBalancer) {
+                                 Method partitionKeyProperty, long timeoutMs, boolean interruptOnTimeout, Router loadBalancer) {
             this.method = method;
             this.methodType = methodType;
             this.partitionKeyIndex = partitionKeyIndex;

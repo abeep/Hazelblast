@@ -1,4 +1,4 @@
-package com.hazelblast.client.loadbalancers;
+package com.hazelblast.client.router;
 
 import com.hazelblast.TestUtils;
 import com.hazelblast.server.exceptions.NoMemberAvailableException;
@@ -35,11 +35,11 @@ public class RoundRobinLoadBalancerTest {
     public void noMembersInTheCluster() {
         HazelcastInstance hazelcastInstance = TestUtils.newLiteInstance();
 
-        ContentBasedLoadBalancer lb = new RoundRobinLoadBalancer(hazelcastInstance);
+        Router lb = new RoundRobinLoadBalancer(hazelcastInstance);
         lb.getNext(METHOD, ARGS);
     }
 
-    public void assertRoundRobin(ContentBasedLoadBalancer loadBalancer, HazelcastInstance... members) {
+    public void assertRoundRobin(Router loadBalancer, HazelcastInstance... members) {
         List<Member> cluster = new LinkedList<Member>();
         for (HazelcastInstance instance : members) {
             cluster.add(instance.getCluster().getLocalMember());
@@ -85,7 +85,7 @@ public class RoundRobinLoadBalancerTest {
     @Test
     public void singleMember() {
         HazelcastInstance instance = newNormalInstance();
-        ContentBasedLoadBalancer loadBalancer = new RoundRobinLoadBalancer(instance);
+        Router loadBalancer = new RoundRobinLoadBalancer(instance);
         Member first = loadBalancer.getNext(METHOD,ARGS);
         Member second = loadBalancer.getNext(METHOD,ARGS);
         Member self = instance.getCluster().getLocalMember();
@@ -112,7 +112,7 @@ public class RoundRobinLoadBalancerTest {
     public void liteMemberIsAdded() {
         HazelcastInstance instance1 = newNormalInstance();
 
-        ContentBasedLoadBalancer loadBalancer = new RoundRobinLoadBalancer(instance1);
+        Router loadBalancer = new RoundRobinLoadBalancer(instance1);
         assertRoundRobin(loadBalancer, instance1);
 
         //lets create an additional member
@@ -145,7 +145,7 @@ public class RoundRobinLoadBalancerTest {
             instances[k] = newNormalInstance();
         }
 
-        ContentBasedLoadBalancer lb = new RoundRobinLoadBalancer(instances[0]);
+        Router lb = new RoundRobinLoadBalancer(instances[0]);
         assertRoundRobin(lb, instances);
     }
 }

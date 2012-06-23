@@ -3,7 +3,7 @@ package com.hazelblast.client;
 import com.hazelblast.client.annotations.DistributedService;
 import com.hazelblast.client.annotations.LoadBalanced;
 import com.hazelblast.client.annotations.PartitionKey;
-import com.hazelblast.client.loadbalancers.ContentBasedLoadBalancer;
+import com.hazelblast.client.router.Router;
 import com.hazelblast.server.SliceServer;
 import com.hazelblast.server.pojoslice.ExposeService;
 import com.hazelblast.server.pojoslice.HazelcastInstanceProvider;
@@ -69,7 +69,7 @@ public class LoadBalanced_DefaultProxyProviderTest {
         void method();
     }
 
-    static class LoadBalancerWithBadConstructor implements ContentBasedLoadBalancer {
+    static class LoadBalancerWithBadConstructor implements Router {
         public Member getNext(Method method, Object[] args) {
             return null;
         }

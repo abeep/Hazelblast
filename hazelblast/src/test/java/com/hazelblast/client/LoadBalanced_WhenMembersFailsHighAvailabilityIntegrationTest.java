@@ -3,7 +3,7 @@ package com.hazelblast.client;
 import com.hazelblast.TestUtils;
 import com.hazelblast.client.annotations.DistributedService;
 import com.hazelblast.client.annotations.LoadBalanced;
-import com.hazelblast.client.loadbalancers.ContentBasedLoadBalancer;
+import com.hazelblast.client.router.Router;
 import com.hazelblast.server.SliceServer;
 import com.hazelblast.server.pojoslice.HazelcastInstanceProvider;
 import com.hazelblast.server.pojoslice.PojoSlice;
@@ -114,7 +114,7 @@ public class LoadBalanced_WhenMembersFailsHighAvailabilityIntegrationTest {
         }
     }
 
-    static class TestLoadBalancer implements ContentBasedLoadBalancer {
+    static class TestLoadBalancer implements Router {
 
         private LinkedList<Member> members;
         private Iterator<Member> it;
