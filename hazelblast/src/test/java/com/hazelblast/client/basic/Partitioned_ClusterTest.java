@@ -1,16 +1,16 @@
-package com.hazelblast.client;
+package com.hazelblast.client.basic;
 
 import com.hazelblast.TestUtils;
+import com.hazelblast.client.ProxyProvider;
 import com.hazelblast.client.annotations.DistributedService;
 import com.hazelblast.client.annotations.PartitionKey;
 import com.hazelblast.client.annotations.Partitioned;
+import com.hazelblast.client.basic.BasicProxyProvider;
 import com.hazelblast.server.Slice;
-import com.hazelblast.server.SliceConfig;
 import com.hazelblast.server.SliceServer;
+import com.hazelblast.server.pojoslice.Exposed;
 import com.hazelblast.server.pojoslice.HazelcastInstanceProvider;
 import com.hazelblast.server.pojoslice.PojoSlice;
-import com.hazelblast.server.pojoslice.PojoSliceFactory;
-import com.hazelblast.server.pojoslice.ExposeService;
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
 import org.junit.After;
@@ -19,7 +19,7 @@ import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
 
-public class PartitionedClusterTest {
+public class Partitioned_ClusterTest {
 
     @Before
     public void before() {
@@ -51,15 +51,17 @@ public class PartitionedClusterTest {
 
         HazelcastInstance clientInstance = TestUtils.newLiteInstance();
 
-        ProxyProvider proxyProvider = new DefaultProxyProvider(clientInstance);
+        ProxyProvider proxyProvider = new BasicProxyProvider(clientInstance);
         SomeService someService = proxyProvider.getProxy(SomeService.class);
 
-        for (int k = 0; k < 3 * 5; k++) {
+        int callPerInstance = 1000;
+
+        for (int k = 0; k < 3 * callPerInstance; k++) {
             someService.someMethod(k);
         }
 
         int sum = service1.count + service2.count + service3.count;
-        assertEquals(15, sum);
+        assertEquals(callPerInstance*3, sum);
 
         server1.shutdown();
         server2.shutdown();
@@ -72,7 +74,7 @@ public class PartitionedClusterTest {
     }
 
     public static class Pojo implements HazelcastInstanceProvider {
-        @ExposeService
+        @Exposed
         public SomeService someService = new SomeServiceImpl();
         private final HazelcastInstance hazelcastInstance;
 

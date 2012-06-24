@@ -1,11 +1,12 @@
-package com.hazelblast.client;
+package com.hazelblast.client.basic;
 
 import com.hazelblast.client.annotations.DistributedService;
 import com.hazelblast.client.annotations.PartitionKey;
 import com.hazelblast.client.annotations.Partitioned;
+import com.hazelblast.client.basic.BasicProxyProvider;
 import com.hazelblast.client.exceptions.RemoteMethodTimeoutException;
 import com.hazelblast.server.SliceServer;
-import com.hazelblast.server.pojoslice.ExposeService;
+import com.hazelblast.server.pojoslice.Exposed;
 import com.hazelblast.server.pojoslice.HazelcastInstanceProvider;
 import com.hazelblast.server.pojoslice.PojoSlice;
 import com.hazelcast.core.Hazelcast;
@@ -21,8 +22,8 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
-public class Partitioned_Timeout_ProxyProviderIntegrationTest {
-    private DefaultProxyProvider proxyProvider;
+public class Partitioned_TimeoutIntegrationTest {
+    private BasicProxyProvider proxyProvider;
     private SliceServer server;
     private Pojo pojo;
 
@@ -38,7 +39,7 @@ public class Partitioned_Timeout_ProxyProviderIntegrationTest {
 
         Thread.sleep(1000);
 
-        proxyProvider = new DefaultProxyProvider(hazelcastInstance);
+        proxyProvider = new BasicProxyProvider(hazelcastInstance);
     }
 
     @After
@@ -88,7 +89,7 @@ public class Partitioned_Timeout_ProxyProviderIntegrationTest {
 
 
     static public class Pojo implements HazelcastInstanceProvider {
-        @ExposeService
+        @Exposed
         public TestServiceImpl testService = new TestServiceImpl();
 
         private final HazelcastInstance hazelcastInstance;

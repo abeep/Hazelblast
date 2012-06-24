@@ -26,5 +26,5 @@ public interface Router {
      * @return the next member.
      * @throws com.hazelblast.server.exceptions.NoMemberAvailableException if no member can be found.
      */
-    Member getNext(Method method, Object[] args);
+    Target getTarget(Method method, Object[] args)throws Throwable;
 }

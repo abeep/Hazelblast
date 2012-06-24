@@ -1,13 +1,16 @@
-package com.hazelblast.client;
+package com.hazelblast.client.basic;
 
 import com.hazelblast.TestUtils;
+import com.hazelblast.client.ProxyProvider;
 import com.hazelblast.client.annotations.DistributedService;
 import com.hazelblast.client.annotations.LoadBalanced;
+import com.hazelblast.client.basic.BasicProxyProvider;
 import com.hazelblast.client.router.Router;
+import com.hazelblast.client.router.Target;
 import com.hazelblast.server.SliceServer;
+import com.hazelblast.server.pojoslice.Exposed;
 import com.hazelblast.server.pojoslice.HazelcastInstanceProvider;
 import com.hazelblast.server.pojoslice.PojoSlice;
-import com.hazelblast.server.pojoslice.ExposeService;
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.Member;
@@ -39,7 +42,7 @@ public class LoadBalanced_WhenMembersFailsHighAvailabilityIntegrationTest {
         HazelcastInstance instance2 = Hazelcast.newHazelcastInstance(null);
         HazelcastInstance instance3 = Hazelcast.newHazelcastInstance(null);
 
-         PojoSlice slice1 = new PojoSlice(new Pojo(instance1));
+        PojoSlice slice1 = new PojoSlice(new Pojo(instance1));
         PojoSlice slice2 = new PojoSlice(new Pojo(instance2));
         PojoSlice slice3 = new PojoSlice(new Pojo(instance3));
 
@@ -47,16 +50,14 @@ public class LoadBalanced_WhenMembersFailsHighAvailabilityIntegrationTest {
         SomeServiceImpl service2 = (SomeServiceImpl) slice2.getService("someService");
         SomeServiceImpl service3 = (SomeServiceImpl) slice3.getService("someService");
 
-        SliceServer server1 = new SliceServer(slice1,1000).start();
-        SliceServer server2 = new SliceServer(slice2,1000).start();
-        SliceServer server3 = new SliceServer(slice3,1000).start();
+        SliceServer server1 = new SliceServer(slice1, 1000).start();
+        SliceServer server2 = new SliceServer(slice2, 1000).start();
+        SliceServer server3 = new SliceServer(slice3, 1000).start();
 
         HazelcastInstance clientInstance = TestUtils.newLiteInstance();
 
-        ProxyProvider proxyProvider = new DefaultProxyProvider(clientInstance);
+        ProxyProvider proxyProvider = new BasicProxyProvider(clientInstance);
         SomeService someService = proxyProvider.getProxy(SomeService.class);
-
-        Thread.sleep(10000);
 
         for (int k = 0; k < 100; k++) {
             System.out.println(k);
@@ -83,8 +84,8 @@ public class LoadBalanced_WhenMembersFailsHighAvailabilityIntegrationTest {
         server3.shutdown();
     }
 
-    public static class Pojo implements HazelcastInstanceProvider{
-        @ExposeService
+    public static class Pojo implements HazelcastInstanceProvider {
+        @Exposed
         public SomeService someService = new SomeServiceImpl();
 
         private final HazelcastInstance hazelcastInstance;
@@ -114,7 +115,7 @@ public class LoadBalanced_WhenMembersFailsHighAvailabilityIntegrationTest {
         }
     }
 
-    static class TestLoadBalancer implements Router {
+    public static class TestLoadBalancer implements Router {
 
         private LinkedList<Member> members;
         private Iterator<Member> it;
@@ -129,7 +130,7 @@ public class LoadBalanced_WhenMembersFailsHighAvailabilityIntegrationTest {
             this.it = members.iterator();
         }
 
-        public Member getNext(Method method, Object[] args) {
+        public Target getTarget(Method method, Object[] args) {
             Member next;
             if (it.hasNext()) {
                 next = it.next();
@@ -137,8 +138,7 @@ public class LoadBalanced_WhenMembersFailsHighAvailabilityIntegrationTest {
                 it = members.iterator();
                 next = it.next();
             }
-            return next;
-
+            return new Target(next);
         }
     }
 }

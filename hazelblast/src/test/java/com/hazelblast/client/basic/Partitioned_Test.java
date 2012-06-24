@@ -1,35 +1,38 @@
-package com.hazelblast.client;
+package com.hazelblast.client.basic;
 
 import com.hazelblast.client.annotations.DistributedService;
 import com.hazelblast.client.annotations.PartitionKey;
 import com.hazelblast.client.annotations.Partitioned;
+import com.hazelblast.client.basic.BasicProxyProvider;
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.PartitionAware;
-import org.junit.After;
-import org.junit.Before;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import java.lang.reflect.Field;
+
 import static org.junit.Assert.*;
 
-public class Partitioned_DefaultProxyProviderTest {
+public class Partitioned_Test {
 
-    private HazelcastInstance hazelcastInstance;
+    private static HazelcastInstance hazelcastInstance;
 
-    @Before
-    public void setUp() {
+    @BeforeClass
+    public static void setUp() {
         hazelcastInstance = Hazelcast.newHazelcastInstance(null);
     }
 
-    @After
-    public void tearDown() {
+    @AfterClass
+    public static void tearDown() {
         Hazelcast.shutdownAll();
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void badProxy_partitionedMethodWithoutArguments() {
-        DefaultProxyProvider proxyProvider = new DefaultProxyProvider();
+        BasicProxyProvider proxyProvider = new BasicProxyProvider();
         proxyProvider.getProxy(PartitionedMethodWithoutArguments.class);
     }
 
@@ -41,9 +44,8 @@ public class Partitioned_DefaultProxyProviderTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void badProxy_partitionedMethodWithoutPartitionKeyArgument() {
-        DefaultProxyProvider proxyProvider = new DefaultProxyProvider();
+        BasicProxyProvider proxyProvider = new BasicProxyProvider();
         proxyProvider.getProxy(PartitionedMethodWithoutPartitionKeyArgument.class);
-
     }
 
     @DistributedService
@@ -59,7 +61,7 @@ public class Partitioned_DefaultProxyProviderTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void badProxy_partitionedMethodWithoutExistingProperty() {
-        DefaultProxyProvider proxyProvider = new DefaultProxyProvider();
+        BasicProxyProvider proxyProvider = new BasicProxyProvider();
         proxyProvider.getProxy(PartitionedMethodWithoutExistingProperty.class);
     }
 
@@ -71,7 +73,7 @@ public class Partitioned_DefaultProxyProviderTest {
 
     @Test
     public void partitioned_whenPartitionAwareObjectReturnsNull() {
-        DefaultProxyProvider proxyProvider = new DefaultProxyProvider();
+        BasicProxyProvider proxyProvider = new BasicProxyProvider();
         PartitionedService service = proxyProvider.getProxy(PartitionedService.class);
 
         try {
@@ -84,8 +86,8 @@ public class Partitioned_DefaultProxyProviderTest {
     }
 
     @Test
-    public void partitioned_whenPartitionKeyWithPropertyIsNull() {
-        DefaultProxyProvider proxyProvider = new DefaultProxyProvider();
+    public void whenPartitionKeyWithPropertyIsNull() {
+        BasicProxyProvider proxyProvider = new BasicProxyProvider();
         PartitionedService service = proxyProvider.getProxy(PartitionedService.class);
 
         try {
@@ -97,8 +99,8 @@ public class Partitioned_DefaultProxyProviderTest {
     }
 
     @Test
-    public void partitioned_whenPartitionKeyArgumentWithPropertyReturnsNull() {
-        DefaultProxyProvider proxyProvider = new DefaultProxyProvider();
+    public void whenPartitionKeyArgumentWithPropertyReturnsNull() {
+        BasicProxyProvider proxyProvider = new BasicProxyProvider();
         PartitionedService service = proxyProvider.getProxy(PartitionedService.class);
 
         try {
@@ -111,8 +113,8 @@ public class Partitioned_DefaultProxyProviderTest {
     }
 
     @Test
-    public void partitioned_whenNullPartitionedKeyArgument() {
-        DefaultProxyProvider proxyProvider = new DefaultProxyProvider();
+    public void whenNullPartitionedKeyArgument() {
+        BasicProxyProvider proxyProvider = new BasicProxyProvider();
         PartitionedService service = proxyProvider.getProxy(PartitionedService.class);
         try {
             service.valid(null);
@@ -121,26 +123,48 @@ public class Partitioned_DefaultProxyProviderTest {
         }
     }
 
+    /*
     @Test
-    public void partitioned_normalPartitionKey() {
+    public void normalPartitionKey() {
         StubExecutorService executorService = new StubExecutorService();
         executorService.result = "";
-        DefaultProxyProvider proxyProvider = new DefaultProxyProvider("default", hazelcastInstance, executorService);
+        SmarterProxyProvider proxyProvider = new SmarterProxyProvider("default", hazelcastInstance, executorService);
 
         PartitionedService service = proxyProvider.getProxy(PartitionedService.class);
 
         String arg = "foo";
         service.valid(arg);
 
-        SerializableRemoteMethodInvocationFactory.RemoteMethodInvocation x = (SerializableRemoteMethodInvocationFactory.RemoteMethodInvocation) executorService.callable;
-        assertEquals(arg, x.getPartitionKey());
+        assertTrue(executorService.runnable instanceof DistributedTask);
+        DistributedTask task = (DistributedTask)executorService.runnable;
+
+        com.hazelcast.core.Member member = (com.hazelcast.core.Member) getField(task.getInner(),"member");
+        assertEquals(hazelcastInstance.getCluster().getLocalMember(),member);
+
+        SerializableRemoteMethodInvocationFactory.RemoteMethodInvocation invocation
+                = (SerializableRemoteMethodInvocationFactory.RemoteMethodInvocation) getField(task.getInner(),"callable");
+
+        assertEquals(arg, invocation.getPartitionKey());
+    } */
+
+    private Object getField(Object target, String name){
+        try {
+            Field field = target.getClass().getDeclaredField(name);
+            field.setAccessible(true);
+            return field.get(target);
+        } catch (NoSuchFieldException e) {
+            throw new RuntimeException(e);
+        } catch (IllegalAccessException e) {
+            throw new RuntimeException(e);
+        }
     }
 
+    /*
     @Test
-    public void partitioned_partitionKeyWithProperty() {
+    public void partitionKeyWithProperty() {
         StubExecutorService executorService = new StubExecutorService();
         executorService.result = "";
-        DefaultProxyProvider proxyProvider = new DefaultProxyProvider("default", hazelcastInstance, executorService);
+        SmarterProxyProvider proxyProvider = new SmarterProxyProvider("default", hazelcastInstance, executorService);
 
         PartitionedService service = proxyProvider.getProxy(PartitionedService.class);
 
@@ -148,15 +172,17 @@ public class Partitioned_DefaultProxyProviderTest {
         Person person = new Person(name);
         service.validWithProperty(person);
 
-        SerializableRemoteMethodInvocationFactory.RemoteMethodInvocation x = (SerializableRemoteMethodInvocationFactory.RemoteMethodInvocation) executorService.callable;
-        assertEquals(name, x.getPartitionKey());
-    }
+        SerializableRemoteMethodInvocationFactory.RemoteMethodInvocation invocation
+                = (SerializableRemoteMethodInvocationFactory.RemoteMethodInvocation) executorService.callable;
+        assertEquals(name, invocation.getPartitionKey());
+    }*/
 
+    /*
     @Test
-    public void partitioned_partitionKeyWithPartitionAware() {
+    public void partitionKeyWithPartitionAware() {
         StubExecutorService executorService = new StubExecutorService();
         executorService.result = "";
-        DefaultProxyProvider proxyProvider = new DefaultProxyProvider("default", hazelcastInstance, executorService);
+        SmarterProxyProvider proxyProvider = new SmarterProxyProvider("default", hazelcastInstance, executorService);
 
         PartitionedService service = proxyProvider.getProxy(PartitionedService.class);
 
@@ -166,10 +192,10 @@ public class Partitioned_DefaultProxyProviderTest {
 
         SerializableRemoteMethodInvocationFactory.RemoteMethodInvocation x = (SerializableRemoteMethodInvocationFactory.RemoteMethodInvocation) executorService.callable;
         assertEquals(partitionKey, x.getPartitionKey());
-    }
+    }   */
 
     @DistributedService
-    interface PartitionedService {
+    public interface PartitionedService {
         @Partitioned
         void valid(@PartitionKey Object a);
 
@@ -177,7 +203,7 @@ public class Partitioned_DefaultProxyProviderTest {
         void validWithProperty(@PartitionKey(property = "name") Person a);
     }
 
-    static class Person {
+    public static class Person {
         final String name;
 
         Person(String name) {
@@ -203,7 +229,7 @@ public class Partitioned_DefaultProxyProviderTest {
 
     @Test
     public void test_toString() {
-        DefaultProxyProvider proxyProvider = new DefaultProxyProvider();
+        BasicProxyProvider proxyProvider = new BasicProxyProvider();
         PartitionedService service = proxyProvider.getProxy(PartitionedService.class);
         String s = service.toString();
         System.out.println(s);
@@ -212,7 +238,7 @@ public class Partitioned_DefaultProxyProviderTest {
 
     @Test
     public void test_hashCode() {
-        DefaultProxyProvider proxyProvider = new DefaultProxyProvider();
+        BasicProxyProvider proxyProvider = new BasicProxyProvider();
         PartitionedService service = proxyProvider.getProxy(PartitionedService.class);
         int s = service.hashCode();
 
@@ -220,7 +246,7 @@ public class Partitioned_DefaultProxyProviderTest {
 
     @Test
     public void test_equals() {
-        DefaultProxyProvider proxyProvider = new DefaultProxyProvider();
+        BasicProxyProvider proxyProvider = new BasicProxyProvider();
         PartitionedService service = proxyProvider.getProxy(PartitionedService.class);
 
         assertTrue(service.equals(service));

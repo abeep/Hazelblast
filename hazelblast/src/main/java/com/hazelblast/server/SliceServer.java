@@ -121,7 +121,7 @@ public final class SliceServer {
         //TODO: Improve exception, also the hazelcastInstance should be part of exception
         if (server == null) {
             throw new IllegalStateException(format("No slice found for slice %s@%s on member [%s], available slices %s",
-                    sliceName, hazelcastInstance.getName(), Hazelcast.getCluster().getLocalMember(), serverMap.keySet()));
+                    sliceName, hazelcastInstance.getName(), hazelcastInstance.getCluster().getLocalMember(), serverMap.keySet()));
         }
 
         return server.container;
@@ -164,7 +164,7 @@ public final class SliceServer {
      */
     public static Object executeMethod(HazelcastInstance hazelcastInstance,
                                        String sliceName, String serviceName, String methodName,
-                                       String[] argTypes, Object[] args, Object partitionKey) throws Throwable {
+                                       String[] argTypes, Object[] args, long partitionId) throws Throwable {
         notNull("hazelcastInstance", hazelcastInstance);
         notNull("sliceName", sliceName);
         notNull("serviceName", serviceName);
@@ -175,7 +175,7 @@ public final class SliceServer {
         //should be caught by the proxy and the method call should be retried, now hoping that
 
         SliceContainer container = getContainer(hazelcastInstance, sliceName);
-        return container.executeMethod(serviceName, methodName, argTypes, args, partitionKey);
+        return container.executeMethod(serviceName, methodName, argTypes, args, partitionId);
     }
 
     protected enum Status {Unstarted, Running, Terminating, Terminated}

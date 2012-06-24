@@ -18,7 +18,7 @@ import static java.lang.String.format;
 
 /**
  * The PojoSlice is a {@link com.hazelblast.server.Slice} that contains a single Pojo and all fields that are
- * annotated with {@link ExposeService} will be exposed as service.
+ * annotated with {@link Exposed} will be exposed as service.
  * <p/>
  * If the Pojo implements {@link com.hazelblast.server.SliceLifecycleListener} it will get callbacks for lifecycle events of the Slice.
  * <p/>
