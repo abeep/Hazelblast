@@ -1,52 +1,49 @@
-package com.hazelblast.client;
+package com.hazelblast.client.basic;
 
+
+import com.hazelblast.client.ProxyProvider;
 import com.hazelblast.client.annotations.DistributedService;
 import com.hazelblast.client.annotations.LoadBalanced;
-import com.hazelblast.client.annotations.PartitionKey;
 import com.hazelblast.client.basic.BasicProxyProvider;
-import com.hazelblast.client.router.Router;
-import com.hazelblast.client.router.Target;
 import com.hazelblast.server.SliceServer;
 import com.hazelblast.server.pojoslice.Exposed;
 import com.hazelblast.server.pojoslice.HazelcastInstanceProvider;
 import com.hazelblast.server.pojoslice.PojoSlice;
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
-import org.junit.*;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Ignore;
+import org.junit.Test;
 
-import java.lang.reflect.Method;
 import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class LoadBalanced_DefaultProxyProviderTest {
+public class LoadBalanced_IntegrationTest {
 
-    private BasicProxyProvider proxyProvider;
+    private ProxyProvider proxyProvider;
     private SliceServer server;
     private TestService testServiceMock;
-    private static HazelcastInstance hazelcastInstance;
-
-    @BeforeClass
-    public static void beforeClass() {
-        hazelcastInstance = Hazelcast.newHazelcastInstance(null);
-    }
 
     @Before
     public void setUp() throws InterruptedException {
         testServiceMock = mock(TestService.class);
 
+        HazelcastInstance hazelcastInstance = Hazelcast.newHazelcastInstance(null);
         Pojo pojo = new Pojo(hazelcastInstance);
         pojo.testService = testServiceMock;
-        PojoSlice slice = new PojoSlice(pojo);
+
+        PojoSlice slice = new PojoSlice(pojo,"default");
 
         server = new SliceServer(slice, 100);
         server.start();
 
         Thread.sleep(1000);
 
-        proxyProvider = new BasicProxyProvider(hazelcastInstance);
+        proxyProvider = new BasicProxyProvider( hazelcastInstance);
     }
 
     @After
@@ -55,56 +52,28 @@ public class LoadBalanced_DefaultProxyProviderTest {
         server.shutdown();
         boolean terminated = server.awaitTermination(10, TimeUnit.SECONDS);
         assertTrue("Could not terminate the service within the given timeout", terminated);
-    }
-
-    @AfterClass
-    public static void afterClass(){
         Hazelcast.shutdownAll();
     }
 
-    @Test(expected = IllegalArgumentException.class)
-    public void notUsableLoadBalancer() {
-        BasicProxyProvider proxyProvider = new BasicProxyProvider();
-        proxyProvider.getProxy(LoadBalancedMethodWithInvalidLoadBalancer.class);
-    }
+    @Test
+    public void exceptionUnwrapping() {
+        TestService proxy = proxyProvider.getProxy(TestService.class);
+        String arg = "foo";
+        when(testServiceMock.singleArg(arg)).thenThrow(new MyRuntimeException());
 
-    @DistributedService
-    interface LoadBalancedMethodWithInvalidLoadBalancer {
-        @LoadBalanced(loadBalancer = LoadBalancerWithBadConstructor.class)
-        void method();
-    }
-
-    static class LoadBalancerWithBadConstructor implements Router {
-        public Target getTarget(Method method, Object[] args) {
-            return null;
+        try {
+            proxy.singleArg(arg);
+            fail();
+        } catch (MyRuntimeException expected) {
+            System.err.println("---------------------------------------------------");
+            expected.printStackTrace();
+            System.err.println("---------------------------------------------------");
         }
     }
 
     @Test
-    public void methodWithoutArguments() {
-        BasicProxyProvider proxyProvider = new BasicProxyProvider();
-        LoadBalancedMethodWithoutArguments p = proxyProvider.getProxy(LoadBalancedMethodWithoutArguments.class);
-        assertNotNull(p);
-    }
-
-    @DistributedService
-    interface LoadBalancedMethodWithoutArguments {
-        @LoadBalanced
-        void method();
-    }
-
-    @Test
-    public void methodWithPartitionKeyArgument() {
-        BasicProxyProvider proxyProvider = new BasicProxyProvider();
-        LoadBalancedMethodWithoutPartitionKeyArgument p = proxyProvider.getProxy(LoadBalancedMethodWithoutPartitionKeyArgument.class);
-        assertNotNull(p);
-    }
-
-    @DistributedService
-    interface LoadBalancedMethodWithoutPartitionKeyArgument {
-        @LoadBalanced
-        void method(int arg1);
-    }
+    @Ignore
+    public void whenCallWithReturnValue(){}
 
     @Test
     public void whenCalledWithNonNullArgument() {
@@ -130,12 +99,24 @@ public class LoadBalanced_DefaultProxyProviderTest {
         assertEquals(result, found);
     }
 
-    static public class Pojo implements HazelcastInstanceProvider {
+    @Test
+    public void whenNoArguments() {
+        TestService proxy = proxyProvider.getProxy(TestService.class);
+        String result = "result";
+        when(testServiceMock.noArgs()).thenReturn(result);
+
+        String found = proxy.noArgs();
+
+        assertEquals(result, found);
+    }
+
+    static public class Pojo implements HazelcastInstanceProvider{
         @Exposed
         public TestService testService;
-        private HazelcastInstance hazelcastInstance;
 
-        public Pojo(HazelcastInstance hazelcastInstance) {
+        public final HazelcastInstance hazelcastInstance;
+
+        public Pojo(HazelcastInstance hazelcastInstance){
             this.hazelcastInstance = hazelcastInstance;
         }
 
@@ -145,14 +126,31 @@ public class LoadBalanced_DefaultProxyProviderTest {
     }
 
     static class MyRuntimeException extends RuntimeException {
+        MyRuntimeException() {
+        }
+
+        MyRuntimeException(String message) {
+            super(message);
+        }
+
+        MyRuntimeException(String message, Throwable cause) {
+            super(message, cause);
+        }
+
+        MyRuntimeException(Throwable cause) {
+            super(cause);
+        }
     }
 
     @DistributedService
     interface TestService {
         @LoadBalanced
-        String singleArg(@PartitionKey String arg);
+        String noArgs();
 
         @LoadBalanced
-        String multipleArgs(@PartitionKey String arg, String arg2);
+        String singleArg(String arg);
+
+        @LoadBalanced
+        String multipleArgs(String arg, String arg2);
     }
 }

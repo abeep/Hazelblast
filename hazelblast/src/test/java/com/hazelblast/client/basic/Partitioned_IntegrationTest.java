@@ -1,4 +1,4 @@
-package com.hazelblast.client;
+package com.hazelblast.client.basic;
 
 
 import com.hazelblast.client.annotations.DistributedService;
@@ -22,7 +22,7 @@ import static org.junit.Assert.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class Partitioned_DefaultProxyProviderIntegrationTest {
+public class Partitioned_IntegrationTest {
 
     private BasicProxyProvider proxyProvider;
     private SliceServer server;

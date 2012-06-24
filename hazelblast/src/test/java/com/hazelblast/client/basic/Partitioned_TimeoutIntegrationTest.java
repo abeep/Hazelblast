@@ -1,4 +1,4 @@
-package com.hazelblast.client;
+package com.hazelblast.client.basic;
 
 import com.hazelblast.client.annotations.DistributedService;
 import com.hazelblast.client.annotations.PartitionKey;
@@ -22,7 +22,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
-public class Partitioned_Timeout_ProxyProviderIntegrationTest {
+public class Partitioned_TimeoutIntegrationTest {
     private BasicProxyProvider proxyProvider;
     private SliceServer server;
     private Pojo pojo;

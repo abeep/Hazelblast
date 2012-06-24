@@ -1,4 +1,4 @@
-package com.hazelblast.client;
+package com.hazelblast.client.basic;
 
 import com.hazelblast.client.annotations.DistributedService;
 import com.hazelblast.client.annotations.LoadBalanced;
@@ -14,7 +14,7 @@ import java.util.List;
 
 import static org.junit.Assert.*;
 
-public class DefaultProxyProviderTest {
+public class BasicProxyProviderTest {
 
     private static HazelcastInstance hazelcastInstance;
 

@@ -1,24 +1,30 @@
-package com.hazelblast.client;
+package com.hazelblast.client.basic;
 
 import com.hazelblast.TestUtils;
+import com.hazelblast.client.ProxyProvider;
 import com.hazelblast.client.annotations.DistributedService;
 import com.hazelblast.client.annotations.LoadBalanced;
 import com.hazelblast.client.basic.BasicProxyProvider;
-import com.hazelblast.client.router.RoundRobinLoadBalancer;
-import com.hazelblast.server.Slice;
+import com.hazelblast.client.router.Router;
+import com.hazelblast.client.router.Target;
 import com.hazelblast.server.SliceServer;
 import com.hazelblast.server.pojoslice.Exposed;
 import com.hazelblast.server.pojoslice.HazelcastInstanceProvider;
 import com.hazelblast.server.pojoslice.PojoSlice;
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
+import com.hazelcast.core.Member;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.lang.reflect.Method;
+import java.util.Iterator;
+import java.util.LinkedList;
+
 import static org.junit.Assert.assertEquals;
 
-public class LoadBalancedClusterTest {
+public class LoadBalanced_WhenMembersFailsHighAvailabilityIntegrationTest {
 
     @Before
     public void before() {
@@ -44,37 +50,44 @@ public class LoadBalancedClusterTest {
         SomeServiceImpl service2 = (SomeServiceImpl) slice2.getService("someService");
         SomeServiceImpl service3 = (SomeServiceImpl) slice3.getService("someService");
 
-        SliceServer server1 = build(slice1);
-        SliceServer server2 = build(slice2);
-        SliceServer server3 = build(slice3);
+        SliceServer server1 = new SliceServer(slice1, 1000).start();
+        SliceServer server2 = new SliceServer(slice2, 1000).start();
+        SliceServer server3 = new SliceServer(slice3, 1000).start();
 
         HazelcastInstance clientInstance = TestUtils.newLiteInstance();
 
         ProxyProvider proxyProvider = new BasicProxyProvider(clientInstance);
         SomeService someService = proxyProvider.getProxy(SomeService.class);
 
-        for (int k = 0; k < 3 * 5; k++) {
+        for (int k = 0; k < 100; k++) {
+            System.out.println(k);
             someService.someMethod();
         }
 
-        assertEquals(5, service1.count);
-        assertEquals(5, service2.count);
-        assertEquals(5, service3.count);
+        instance2.getLifecycleService().shutdown();
+
+        for (int k = 0; k < 100; k++) {
+            someService.someMethod();
+        }
+
+        instance1.getLifecycleService().shutdown();
+
+        for (int k = 0; k < 100; k++) {
+            someService.someMethod();
+        }
+
+        int sum = service1.count + service2.count + service3.count;
+        assertEquals(300, sum);
 
         server1.shutdown();
         server2.shutdown();
         server3.shutdown();
     }
 
-    public SliceServer build(Slice slice) {
-        SliceServer server = new SliceServer(slice, 1000);
-        server.start();
-        return server;
-    }
-
     public static class Pojo implements HazelcastInstanceProvider {
         @Exposed
-        public final SomeService someService = new SomeServiceImpl();
+        public SomeService someService = new SomeServiceImpl();
+
         private final HazelcastInstance hazelcastInstance;
 
         public Pojo(HazelcastInstance hazelcastInstance) {
@@ -88,7 +101,8 @@ public class LoadBalancedClusterTest {
 
     @DistributedService
     public static interface SomeService {
-        @LoadBalanced(loadBalancer = RoundRobinLoadBalancer.class)
+
+        @LoadBalanced(loadBalancer = TestLoadBalancer.class)
         void someMethod();
     }
 
@@ -98,6 +112,33 @@ public class LoadBalancedClusterTest {
 
         public void someMethod() {
             count++;
+        }
+    }
+
+    public static class TestLoadBalancer implements Router {
+
+        private LinkedList<Member> members;
+        private Iterator<Member> it;
+
+        public TestLoadBalancer(HazelcastInstance hazelcastInstance) {
+            this.members = new LinkedList();
+            for (Member m : hazelcastInstance.getCluster().getMembers()) {
+                if (!m.isLiteMember()) {
+                    members.add(m);
+                }
+            }
+            this.it = members.iterator();
+        }
+
+        public Target getTarget(Method method, Object[] args) {
+            Member next;
+            if (it.hasNext()) {
+                next = it.next();
+            } else {
+                it = members.iterator();
+                next = it.next();
+            }
+            return new Target(next);
         }
     }
 }

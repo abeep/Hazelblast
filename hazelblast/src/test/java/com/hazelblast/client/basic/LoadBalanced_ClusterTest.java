@@ -1,10 +1,11 @@
-package com.hazelblast.client;
+package com.hazelblast.client.basic;
 
 import com.hazelblast.TestUtils;
+import com.hazelblast.client.ProxyProvider;
 import com.hazelblast.client.annotations.DistributedService;
-import com.hazelblast.client.annotations.PartitionKey;
-import com.hazelblast.client.annotations.Partitioned;
+import com.hazelblast.client.annotations.LoadBalanced;
 import com.hazelblast.client.basic.BasicProxyProvider;
+import com.hazelblast.client.router.RoundRobinLoadBalancer;
 import com.hazelblast.server.Slice;
 import com.hazelblast.server.SliceServer;
 import com.hazelblast.server.pojoslice.Exposed;
@@ -18,7 +19,7 @@ import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
 
-public class PartitionedClusterTest {
+public class LoadBalanced_ClusterTest {
 
     @Before
     public void before() {
@@ -53,14 +54,13 @@ public class PartitionedClusterTest {
         ProxyProvider proxyProvider = new BasicProxyProvider(clientInstance);
         SomeService someService = proxyProvider.getProxy(SomeService.class);
 
-        int callPerInstance = 1000;
-
-        for (int k = 0; k < 3 * callPerInstance; k++) {
-            someService.someMethod(k);
+        for (int k = 0; k < 3 * 5; k++) {
+            someService.someMethod();
         }
 
-        int sum = service1.count + service2.count + service3.count;
-        assertEquals(callPerInstance*3, sum);
+        assertEquals(5, service1.count);
+        assertEquals(5, service2.count);
+        assertEquals(5, service3.count);
 
         server1.shutdown();
         server2.shutdown();
@@ -69,12 +69,13 @@ public class PartitionedClusterTest {
 
     public SliceServer build(Slice slice) {
         SliceServer server = new SliceServer(slice, 1000);
-        return server.start();
+        server.start();
+        return server;
     }
 
     public static class Pojo implements HazelcastInstanceProvider {
         @Exposed
-        public SomeService someService = new SomeServiceImpl();
+        public final SomeService someService = new SomeServiceImpl();
         private final HazelcastInstance hazelcastInstance;
 
         public Pojo(HazelcastInstance hazelcastInstance) {
@@ -88,15 +89,15 @@ public class PartitionedClusterTest {
 
     @DistributedService
     public static interface SomeService {
-        @Partitioned
-        void someMethod(@PartitionKey int x);
+        @LoadBalanced(loadBalancer = RoundRobinLoadBalancer.class)
+        void someMethod();
     }
 
     public static class SomeServiceImpl implements SomeService {
         public int count;
 
 
-        public void someMethod(int x) {
+        public void someMethod() {
             count++;
         }
     }

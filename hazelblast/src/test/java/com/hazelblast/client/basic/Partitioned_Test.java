@@ -1,4 +1,4 @@
-package com.hazelblast.client;
+package com.hazelblast.client.basic;
 
 import com.hazelblast.client.annotations.DistributedService;
 import com.hazelblast.client.annotations.PartitionKey;
@@ -16,7 +16,7 @@ import java.lang.reflect.Field;
 
 import static org.junit.Assert.*;
 
-public class Partitioned_DefaultProxyProviderTest {
+public class Partitioned_Test {
 
     private static HazelcastInstance hazelcastInstance;
 

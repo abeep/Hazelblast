@@ -1,4 +1,4 @@
-package com.hazelblast.client;
+package com.hazelblast.client.basic;
 
 import com.hazelblast.TestUtils;
 import com.hazelblast.client.annotations.DistributedService;
@@ -20,7 +20,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.junit.Assert.*;
 
-public class LoadBalanced_Timeout_ProxyProviderIntegrationTest {
+public class LoadBalanced_TimeoutTest {
     private BasicProxyProvider proxyProvider;
     private SliceServer server;
     private Pojo pojo;
