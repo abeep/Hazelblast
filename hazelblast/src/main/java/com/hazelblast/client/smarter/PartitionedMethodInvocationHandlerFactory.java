@@ -13,14 +13,14 @@ import java.util.List;
 
 import static java.lang.String.format;
 
-public class PartitionedMethodHandler extends RoutedMethodHandler {
+public class PartitionedMethodInvocationHandlerFactory extends RoutedMethodInvocationHandlerFactory {
 
     @Override
-    public Class<? extends Annotation> getAnnotation() {
+    public Class<? extends Annotation> getAnnotationClass() {
         return Partitioned.class;
     }
 
-    public ProxyMethod analyze(Method partitionedMethod) {
+    public MethodInvocationHandler build(Method partitionedMethod) {
         Annotation annotation = partitionedMethod.getAnnotation(Partitioned.class);
 
         Method propertyMethod = null;
@@ -56,7 +56,7 @@ public class PartitionedMethodHandler extends RoutedMethodHandler {
         }
 
         Router router = new PartitionRouter(hazelcastInstance, propertyMethod, propertyField, partitionKeyIndex);
-        return new ProxyMethod(partitionedMethod, partitionKeyIndex, propertyMethod, timeoutMs, interruptOnTimeout, router, this);
+        return new RoutedMethodInvocationHandler(partitionedMethod, timeoutMs, interruptOnTimeout, router);
     }
 
     private static String uppercaseFirstLetter(String s) {

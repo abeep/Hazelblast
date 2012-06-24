@@ -4,9 +4,9 @@ package com.hazelblast.client;
 import com.hazelblast.client.annotations.DistributedService;
 import com.hazelblast.client.annotations.PartitionKey;
 import com.hazelblast.client.annotations.Partitioned;
-import com.hazelblast.client.smarter.SmarterProxyProvider;
+import com.hazelblast.client.smarter.DefaultProxyProvider;
 import com.hazelblast.server.SliceServer;
-import com.hazelblast.server.pojoslice.ExposeService;
+import com.hazelblast.server.pojoslice.Exposed;
 import com.hazelblast.server.pojoslice.HazelcastInstanceProvider;
 import com.hazelblast.server.pojoslice.PojoSlice;
 import com.hazelcast.core.Hazelcast;
@@ -24,7 +24,7 @@ import static org.mockito.Mockito.when;
 
 public class Partitioned_DefaultProxyProviderIntegrationTest {
 
-    private SmarterProxyProvider proxyProvider;
+    private DefaultProxyProvider proxyProvider;
     private SliceServer server;
     private TestService testServiceMock;
 
@@ -41,7 +41,7 @@ public class Partitioned_DefaultProxyProviderIntegrationTest {
 
         Thread.sleep(1000);
 
-        proxyProvider = new SmarterProxyProvider("default", hazelcastInstance);
+        proxyProvider = new DefaultProxyProvider("default", hazelcastInstance);
     }
 
     @After
@@ -100,7 +100,7 @@ public class Partitioned_DefaultProxyProviderIntegrationTest {
 
     static public class Pojo implements HazelcastInstanceProvider{
 
-        @ExposeService
+        @Exposed
         public TestService testService;
 
         private final HazelcastInstance hazelcastInstance;

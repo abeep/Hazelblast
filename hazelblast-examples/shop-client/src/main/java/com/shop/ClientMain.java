@@ -1,7 +1,7 @@
 package com.shop;
 
 import com.hazelblast.client.ProxyProvider;
-import com.hazelblast.client.smarter.SmarterProxyProvider;
+import com.hazelblast.client.smarter.DefaultProxyProvider;
 import com.shop.api.*;
 
 import java.util.UUID;
@@ -9,7 +9,7 @@ import java.util.UUID;
 public class ClientMain {
 
     public static void main(String[] args) {
-        ProxyProvider proxyProvider = new SmarterProxyProvider();
+        ProxyProvider proxyProvider = new DefaultProxyProvider();
         CustomerService customerService = proxyProvider.getProxy(CustomerService.class);
         OrderService orderService = proxyProvider.getProxy(OrderService.class);
 

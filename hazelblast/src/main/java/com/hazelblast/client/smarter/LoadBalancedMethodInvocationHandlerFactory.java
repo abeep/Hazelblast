@@ -12,20 +12,18 @@ import java.lang.reflect.Method;
 
 import static java.lang.String.format;
 
-public class LoadBalancedMethodHandler extends RoutedMethodHandler {
+public class LoadBalancedMethodInvocationHandlerFactory extends RoutedMethodInvocationHandlerFactory {
 
     @Override
-    public Class<? extends Annotation> getAnnotation() {
+    public Class<? extends Annotation> getAnnotationClass() {
         return LoadBalanced.class;
     }
 
-    public ProxyMethod analyze(Method method) {
+    public MethodInvocationHandler build(Method method) {
         LoadBalanced annotation = method.getAnnotation(LoadBalanced.class);
 
         long timeoutMs;
         boolean interruptOnTimeout;
-        int partitionKeyIndex = -1;
-        Method partitionKeyProperty = null;
         Router loadBalancer = null;
         timeoutMs = annotation.timeoutMs();
         interruptOnTimeout = annotation.interruptOnTimeout();
@@ -46,6 +44,6 @@ public class LoadBalancedMethodHandler extends RoutedMethodHandler {
             }
         }
 
-        return new ProxyMethod(method, partitionKeyIndex, partitionKeyProperty, timeoutMs, interruptOnTimeout, loadBalancer, this);
+        return new RoutedMethodInvocationHandler(method, timeoutMs, interruptOnTimeout, loadBalancer);
     }
 }

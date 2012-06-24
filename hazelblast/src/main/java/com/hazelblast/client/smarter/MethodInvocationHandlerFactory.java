@@ -6,25 +6,23 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.concurrent.ExecutorService;
 
-public abstract class ProxyMethodHandler {
+public abstract class MethodInvocationHandlerFactory {
 
-    protected SmarterProxyProvider  proxyProvider;
+    protected DefaultProxyProvider proxyProvider;
     protected ExecutorService executor;
     protected HazelcastInstance hazelcastInstance;
 
-    public void setProxyProvider(SmarterProxyProvider proxyProvider){
+    public void setProxyProvider(DefaultProxyProvider proxyProvider){
         this.proxyProvider = proxyProvider;
         this.executor = proxyProvider.executorService;
         this.hazelcastInstance = proxyProvider.hazelcastInstance;
     }
 
-    public abstract ProxyMethod analyze(Method method);
+    public abstract MethodInvocationHandler build(Method method);
 
-    public abstract Object invoke(Object proxy, ProxyMethod proxyMethod, Object[] args) throws Throwable;
+    public abstract Class<? extends Annotation> getAnnotationClass();
 
-    public abstract Class<? extends Annotation> getAnnotation();
-
-    protected void fixStackTrace(Throwable cause, StackTraceElement[] clientSideStackTrace) {
+    protected static void fixStackTrace(Throwable cause, StackTraceElement[] clientSideStackTrace) {
         StackTraceElement[] serverSideStackTrace = cause.getStackTrace();
         StackTraceElement[] newStackTrace = new StackTraceElement[clientSideStackTrace.length + serverSideStackTrace.length];
         System.arraycopy(serverSideStackTrace, 0, newStackTrace, 0, serverSideStackTrace.length);

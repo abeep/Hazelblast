@@ -5,9 +5,9 @@ import com.hazelblast.client.annotations.DistributedService;
 import com.hazelblast.client.annotations.LoadBalanced;
 import com.hazelblast.client.router.Router;
 import com.hazelblast.client.router.Target;
-import com.hazelblast.client.smarter.SmarterProxyProvider;
+import com.hazelblast.client.smarter.DefaultProxyProvider;
 import com.hazelblast.server.SliceServer;
-import com.hazelblast.server.pojoslice.ExposeService;
+import com.hazelblast.server.pojoslice.Exposed;
 import com.hazelblast.server.pojoslice.HazelcastInstanceProvider;
 import com.hazelblast.server.pojoslice.PojoSlice;
 import com.hazelcast.core.Hazelcast;
@@ -55,7 +55,7 @@ public class LoadBalanced_WhenMembersFailsHighAvailabilityIntegrationTest {
 
         HazelcastInstance clientInstance = TestUtils.newLiteInstance();
 
-        ProxyProvider proxyProvider = new SmarterProxyProvider(clientInstance);
+        ProxyProvider proxyProvider = new DefaultProxyProvider(clientInstance);
         SomeService someService = proxyProvider.getProxy(SomeService.class);
 
         for (int k = 0; k < 100; k++) {
@@ -84,7 +84,7 @@ public class LoadBalanced_WhenMembersFailsHighAvailabilityIntegrationTest {
     }
 
     public static class Pojo implements HazelcastInstanceProvider {
-        @ExposeService
+        @Exposed
         public SomeService someService = new SomeServiceImpl();
 
         private final HazelcastInstance hazelcastInstance;

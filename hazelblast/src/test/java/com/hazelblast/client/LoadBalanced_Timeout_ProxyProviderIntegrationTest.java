@@ -4,11 +4,11 @@ import com.hazelblast.TestUtils;
 import com.hazelblast.client.annotations.DistributedService;
 import com.hazelblast.client.annotations.LoadBalanced;
 import com.hazelblast.client.exceptions.RemoteMethodTimeoutException;
-import com.hazelblast.client.smarter.SmarterProxyProvider;
+import com.hazelblast.client.smarter.DefaultProxyProvider;
 import com.hazelblast.server.SliceServer;
+import com.hazelblast.server.pojoslice.Exposed;
 import com.hazelblast.server.pojoslice.HazelcastInstanceProvider;
 import com.hazelblast.server.pojoslice.PojoSlice;
-import com.hazelblast.server.pojoslice.ExposeService;
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
 import org.junit.After;
@@ -21,7 +21,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import static org.junit.Assert.*;
 
 public class LoadBalanced_Timeout_ProxyProviderIntegrationTest {
-    private SmarterProxyProvider proxyProvider;
+    private DefaultProxyProvider proxyProvider;
     private SliceServer server;
     private Pojo pojo;
 
@@ -39,7 +39,7 @@ public class LoadBalanced_Timeout_ProxyProviderIntegrationTest {
         Thread.sleep(1000);
 
         HazelcastInstance clientInstance = TestUtils.newLiteInstance();
-        proxyProvider = new SmarterProxyProvider("default", clientInstance);
+        proxyProvider = new DefaultProxyProvider("default", clientInstance);
     }
 
     @After
@@ -89,7 +89,7 @@ public class LoadBalanced_Timeout_ProxyProviderIntegrationTest {
 
 
     static public class Pojo implements HazelcastInstanceProvider{
-        @ExposeService
+        @Exposed
         public TestServiceImpl testService = new TestServiceImpl();
 
         private final HazelcastInstance hazelcastInstance;

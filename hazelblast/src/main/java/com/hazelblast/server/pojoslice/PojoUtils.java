@@ -31,7 +31,7 @@ public final class PojoUtils {
     private static void getServiceFields(Class targetClass, Map<String, Field> fields) {
         for (Field field : targetClass.getFields()) {
             if (!fields.containsKey(field.getName())) {
-                ExposeService service = field.getAnnotation(ExposeService.class);
+                Exposed service = field.getAnnotation(Exposed.class);
                 if (service != null) {
                     field.setAccessible(true);
                     fields.put(field.getName(), field);

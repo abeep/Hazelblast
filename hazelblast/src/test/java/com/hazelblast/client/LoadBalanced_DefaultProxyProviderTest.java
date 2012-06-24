@@ -5,14 +5,13 @@ import com.hazelblast.client.annotations.LoadBalanced;
 import com.hazelblast.client.annotations.PartitionKey;
 import com.hazelblast.client.router.Router;
 import com.hazelblast.client.router.Target;
-import com.hazelblast.client.smarter.SmarterProxyProvider;
+import com.hazelblast.client.smarter.DefaultProxyProvider;
 import com.hazelblast.server.SliceServer;
-import com.hazelblast.server.pojoslice.ExposeService;
+import com.hazelblast.server.pojoslice.Exposed;
 import com.hazelblast.server.pojoslice.HazelcastInstanceProvider;
 import com.hazelblast.server.pojoslice.PojoSlice;
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
-import com.hazelcast.core.Member;
 import org.junit.*;
 
 import java.lang.reflect.Method;
@@ -24,7 +23,7 @@ import static org.mockito.Mockito.when;
 
 public class LoadBalanced_DefaultProxyProviderTest {
 
-    private SmarterProxyProvider proxyProvider;
+    private DefaultProxyProvider proxyProvider;
     private SliceServer server;
     private TestService testServiceMock;
     private static HazelcastInstance hazelcastInstance;
@@ -47,7 +46,7 @@ public class LoadBalanced_DefaultProxyProviderTest {
 
         Thread.sleep(1000);
 
-        proxyProvider = new SmarterProxyProvider(hazelcastInstance);
+        proxyProvider = new DefaultProxyProvider(hazelcastInstance);
     }
 
     @After
@@ -65,7 +64,7 @@ public class LoadBalanced_DefaultProxyProviderTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void notUsableLoadBalancer() {
-        SmarterProxyProvider proxyProvider = new SmarterProxyProvider();
+        DefaultProxyProvider proxyProvider = new DefaultProxyProvider();
         proxyProvider.getProxy(LoadBalancedMethodWithInvalidLoadBalancer.class);
     }
 
@@ -83,7 +82,7 @@ public class LoadBalanced_DefaultProxyProviderTest {
 
     @Test
     public void methodWithoutArguments() {
-        SmarterProxyProvider proxyProvider = new SmarterProxyProvider();
+        DefaultProxyProvider proxyProvider = new DefaultProxyProvider();
         LoadBalancedMethodWithoutArguments p = proxyProvider.getProxy(LoadBalancedMethodWithoutArguments.class);
         assertNotNull(p);
     }
@@ -96,7 +95,7 @@ public class LoadBalanced_DefaultProxyProviderTest {
 
     @Test
     public void methodWithPartitionKeyArgument() {
-        SmarterProxyProvider proxyProvider = new SmarterProxyProvider();
+        DefaultProxyProvider proxyProvider = new DefaultProxyProvider();
         LoadBalancedMethodWithoutPartitionKeyArgument p = proxyProvider.getProxy(LoadBalancedMethodWithoutPartitionKeyArgument.class);
         assertNotNull(p);
     }
@@ -132,7 +131,7 @@ public class LoadBalanced_DefaultProxyProviderTest {
     }
 
     static public class Pojo implements HazelcastInstanceProvider {
-        @ExposeService
+        @Exposed
         public TestService testService;
         private HazelcastInstance hazelcastInstance;
 
