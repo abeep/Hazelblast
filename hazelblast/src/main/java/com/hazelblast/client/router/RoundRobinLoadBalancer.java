@@ -39,7 +39,7 @@ public class RoundRobinLoadBalancer implements Router {
         return members.get().size();
     }
 
-    public Member getNext(Method method, Object[] args) {
+    public Target getTarget(Method method, Object[] args) {
         List<Member> memberList = members.get();
         if (memberList.isEmpty()) {
             throw new NoMemberAvailableException(
@@ -55,7 +55,7 @@ public class RoundRobinLoadBalancer implements Router {
         if (logger.isLoggable(Level.FINE)) {
             logger.log(Level.INFO, format("Next request is send to member '%s'", member));
         }
-        return member;
+        return new Target(member);
     }
 
     private void reset() {

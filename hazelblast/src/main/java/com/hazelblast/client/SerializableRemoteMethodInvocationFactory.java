@@ -24,11 +24,11 @@ public final class SerializableRemoteMethodInvocationFactory implements RemoteMe
 
     public final static SerializableRemoteMethodInvocationFactory INSTANCE = new SerializableRemoteMethodInvocationFactory();
 
-    public <T> Callable<T> create(String sliceName, String serviceName, String methodName, Object[] args, String[] argTypes, Object partitionKey) {
+    public <T> Callable<T> create(String sliceName, String serviceName, String methodName, Object[] args, String[] argTypes, long partitionKey) {
         return new RemoteMethodInvocation(sliceName, serviceName, methodName, args, argTypes, partitionKey);
     }
 
-    protected static class RemoteMethodInvocation implements Callable, PartitionAware, Serializable, HazelcastInstanceAware {
+    protected static class RemoteMethodInvocation implements Callable, Serializable, HazelcastInstanceAware {
 
         private transient ILogger logger;
 
@@ -38,16 +38,16 @@ public final class SerializableRemoteMethodInvocationFactory implements RemoteMe
         private final String serviceName;
         private final String methodName;
         private final Object[] args;
-        private final Object partitionKey;
+        private final long partitionId;
         private final String[] argTypes;
         private volatile transient HazelcastInstance hazelcastInstance;
 
-        RemoteMethodInvocation(String sliceName, String serviceName, String methodName, Object[] args, String[] argTypes, Object partitionKey) {
+        RemoteMethodInvocation(String sliceName, String serviceName, String methodName, Object[] args, String[] argTypes, long partitionId) {
             this.sliceName = sliceName;
             this.serviceName = serviceName;
             this.methodName = methodName;
             this.args = args;
-            this.partitionKey = partitionKey;
+            this.partitionId = partitionId;
             this.argTypes = argTypes;
         }
 
@@ -63,7 +63,7 @@ public final class SerializableRemoteMethodInvocationFactory implements RemoteMe
             }
 
             try {
-                Object result = SliceServer.executeMethod(hazelcastInstance, sliceName, serviceName, methodName, argTypes, args, partitionKey);
+                Object result = SliceServer.executeMethod(hazelcastInstance, sliceName, serviceName, methodName, argTypes, args, partitionId);
                 if (logger.isLoggable(Level.FINE)) {
                     //todo: better message
                     logger.log(Level.FINE, format("finished %s.%s in Slice %s", serviceName, methodName, serviceName));
@@ -93,7 +93,7 @@ public final class SerializableRemoteMethodInvocationFactory implements RemoteMe
         }
 
         public Object getPartitionKey() {
-            return partitionKey;
+            return partitionId;
         }
     }
 }

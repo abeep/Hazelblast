@@ -12,7 +12,7 @@ import java.lang.reflect.Method;
  */
 public final class NoOpRouter implements Router {
 
-    public Member getNext(Method method, Object[] args) {
+    public Target getTarget(Method method, Object[] args) {
         throw new UnsupportedOperationException();
     }
 }

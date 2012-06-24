@@ -98,7 +98,7 @@ public final class SmarterProxyProvider implements ProxyProvider {
         if (proxyMethodHandler.proxyProvider != null) {
             throw new IllegalArgumentException("proxyMethodHandler already added to another ProxyProvider");
         }
-        proxyMethodHandler.proxyProvider = this;
+        proxyMethodHandler.setProxyProvider(this);
         return handlers.put(proxyMethodHandler.getAnnotation(), proxyMethodHandler);
     }
 

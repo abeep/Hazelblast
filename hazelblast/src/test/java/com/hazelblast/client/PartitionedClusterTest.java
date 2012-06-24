@@ -6,12 +6,10 @@ import com.hazelblast.client.annotations.PartitionKey;
 import com.hazelblast.client.annotations.Partitioned;
 import com.hazelblast.client.smarter.SmarterProxyProvider;
 import com.hazelblast.server.Slice;
-import com.hazelblast.server.SliceConfig;
 import com.hazelblast.server.SliceServer;
+import com.hazelblast.server.pojoslice.ExposeService;
 import com.hazelblast.server.pojoslice.HazelcastInstanceProvider;
 import com.hazelblast.server.pojoslice.PojoSlice;
-import com.hazelblast.server.pojoslice.PojoSliceFactory;
-import com.hazelblast.server.pojoslice.ExposeService;
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
 import org.junit.After;
@@ -42,6 +40,13 @@ public class PartitionedClusterTest {
         PojoSlice slice2 = new PojoSlice(new Pojo(instance2));
         PojoSlice slice3 = new PojoSlice(new Pojo(instance3));
 
+        //Thread.sleep(20000);
+        //System.out.println("--------------------------------------------------------");
+        //System.out.println("Finished creating slices");
+        //System.out.println(instance1.getCluster().getMembers());
+        //System.out.println("--------------------------------------------------------");
+
+
         SomeServiceImpl service1 = (SomeServiceImpl) slice1.getService("someService");
         SomeServiceImpl service2 = (SomeServiceImpl) slice2.getService("someService");
         SomeServiceImpl service3 = (SomeServiceImpl) slice3.getService("someService");
@@ -50,17 +55,39 @@ public class PartitionedClusterTest {
         SliceServer server2 = build(slice2);
         SliceServer server3 = build(slice3);
 
+        //Thread.sleep(20000);
+        //System.out.println("--------------------------------------------------------");
+        //System.out.println("Finished starting servers");
+        //System.out.println(instance1.getCluster().getMembers());
+        //System.out.println("--------------------------------------------------------");
+
+
         HazelcastInstance clientInstance = TestUtils.newLiteInstance();
 
         ProxyProvider proxyProvider = new SmarterProxyProvider(clientInstance);
         SomeService someService = proxyProvider.getProxy(SomeService.class);
 
-        for (int k = 0; k < 3 * 5; k++) {
+        //Thread.sleep(2000);
+        //System.out.println("--------------------------------------------------------");
+        //System.out.println("Finished starting proxy");
+        //System.out.println(instance1.getCluster().getMembers());
+        //System.out.println("--------------------------------------------------------");
+
+        int callPerInstance = 1000;
+
+        for (int k = 0; k < 3 * callPerInstance; k++) {
             someService.someMethod(k);
         }
 
+        //Thread.sleep(2000);
+        //System.out.println("--------------------------------------------------------");
+        //System.out.println("Finished calling proxy");
+        //System.out.println(instance1.getCluster().getMembers());
+        //System.out.println("--------------------------------------------------------");
+
+
         int sum = service1.count + service2.count + service3.count;
-        assertEquals(15, sum);
+        assertEquals(callPerInstance*3, sum);
 
         server1.shutdown();
         server2.shutdown();

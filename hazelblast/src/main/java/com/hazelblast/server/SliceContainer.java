@@ -222,7 +222,7 @@ final class SliceContainer {
         return changeDetected;
     }
 
-    public Object executeMethod(String serviceName, String methodName, String[] argTypes, Object[] args, Object partitionKey) throws Throwable {
+    public Object executeMethod(String serviceName, String methodName, String[] argTypes, Object[] args, long partitionId) throws Throwable {
         notNull("serviceName", serviceName);
         notNull("methodName", methodName);
 
@@ -232,11 +232,8 @@ final class SliceContainer {
         //was send to this machine, is still there. If it isn't, some kind of exception should be thrown, this exception
         //should be caught by the proxy and the method call should be retried, now hoping that
 
-        if (partitionKey != null) {
-            Partition partition = partitionService.getPartition(partitionKey);
-
-            int partitionId = partition.getPartitionId();
-            if (!managedPartitions.containsKey(partitionId)) {
+        if (partitionId != Long.MIN_VALUE) {
+            if (!managedPartitions.containsKey((int) partitionId)) {
                 //if the partition is not managed by this SliceContainer, we throw an exception that
                 //will be caught by the proxy, and the call will be retried.
                 throw new PartitionMovedException(format("Partition [%s] is not found on member [%s]", partitionId, self));

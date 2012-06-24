@@ -4,6 +4,7 @@ import com.hazelblast.TestUtils;
 import com.hazelblast.client.annotations.DistributedService;
 import com.hazelblast.client.annotations.LoadBalanced;
 import com.hazelblast.client.router.Router;
+import com.hazelblast.client.router.Target;
 import com.hazelblast.client.smarter.SmarterProxyProvider;
 import com.hazelblast.server.SliceServer;
 import com.hazelblast.server.pojoslice.ExposeService;
@@ -128,7 +129,7 @@ public class LoadBalanced_WhenMembersFailsHighAvailabilityIntegrationTest {
             this.it = members.iterator();
         }
 
-        public Member getNext(Method method, Object[] args) {
+        public Target getTarget(Method method, Object[] args) {
             Member next;
             if (it.hasNext()) {
                 next = it.next();
@@ -136,8 +137,7 @@ public class LoadBalanced_WhenMembersFailsHighAvailabilityIntegrationTest {
                 it = members.iterator();
                 next = it.next();
             }
-            return next;
-
+            return new Target(next);
         }
     }
 }

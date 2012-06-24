@@ -1,11 +1,22 @@
 package com.hazelblast.client.smarter;
 
+import com.hazelcast.core.HazelcastInstance;
+
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
+import java.util.concurrent.ExecutorService;
 
 public abstract class ProxyMethodHandler {
 
     protected SmarterProxyProvider  proxyProvider;
+    protected ExecutorService executor;
+    protected HazelcastInstance hazelcastInstance;
+
+    public void setProxyProvider(SmarterProxyProvider proxyProvider){
+        this.proxyProvider = proxyProvider;
+        this.executor = proxyProvider.executorService;
+        this.hazelcastInstance = proxyProvider.hazelcastInstance;
+    }
 
     public abstract ProxyMethod analyze(Method method);
 

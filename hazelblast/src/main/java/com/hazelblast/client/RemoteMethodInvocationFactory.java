@@ -20,11 +20,11 @@ public interface RemoteMethodInvocationFactory {
      * @param serviceName        the name of the service to use.
      * @param methodName         the name of the method
      * @param args               the arguments used to call the method
-     * @param partitionKey       the partition key that determines the correct partition. If the partitionKey is null,
+     * @param partitionId        the partition key that determines the correct partition. If the partitionKey is null,
      *                           any node will do.
      * @param <T>
      * @return the Callable.
      * @throws NullPointerException if sliceName, serviceName, methodName or args is null.
      */
-    <T> Callable<T> create(String sliceName, String serviceName, String methodName, Object[] args, String[] argTypes, Object partitionKey);
+    <T> Callable<T> create(String sliceName, String serviceName, String methodName, Object[] args, String[] argTypes, long partitionId);
 }

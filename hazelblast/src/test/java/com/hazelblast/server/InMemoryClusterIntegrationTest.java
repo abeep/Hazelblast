@@ -41,9 +41,9 @@ public class InMemoryClusterIntegrationTest {
         SliceServer server2 = new SliceServer(slice2, 1000).start();
         SliceServer server3 = new SliceServer(slice3, 1000).start();
 
-        SliceServer.executeMethod(instance1, Slice.DEFAULT_NAME, "SomeService", "someMethod", new String[]{}, new Object[]{}, null);
-        SliceServer.executeMethod(instance2, Slice.DEFAULT_NAME, "SomeService", "someMethod", new String[]{}, new Object[]{}, null);
-        SliceServer.executeMethod(instance2, Slice.DEFAULT_NAME, "SomeService", "someMethod", new String[]{}, new Object[]{}, null);
+        SliceServer.executeMethod(instance1, Slice.DEFAULT_NAME, "SomeService", "someMethod", new String[]{}, new Object[]{}, Long.MIN_VALUE);
+        SliceServer.executeMethod(instance2, Slice.DEFAULT_NAME, "SomeService", "someMethod", new String[]{}, new Object[]{}, Long.MIN_VALUE);
+        SliceServer.executeMethod(instance2, Slice.DEFAULT_NAME, "SomeService", "someMethod", new String[]{}, new Object[]{}, Long.MIN_VALUE);
 
         assertEquals(1, service1.count);
         assertEquals(2, service2.count);

@@ -8,6 +8,7 @@ import java.util.concurrent.*;
 public class StubExecutorService implements ExecutorService {
 
     public Callable callable;
+    public Runnable runnable;
     public Object result;
 
     public void shutdown() {
@@ -61,7 +62,30 @@ public class StubExecutorService implements ExecutorService {
     }
 
     public Future<?> submit(Runnable task) {
-        throw new UnsupportedOperationException();
+         this.runnable = task;
+
+
+        return new Future<Object>() {
+            public boolean cancel(boolean mayInterruptIfRunning) {
+                return false;
+            }
+
+            public boolean isCancelled() {
+                return false;
+            }
+
+            public boolean isDone() {
+                return true;
+            }
+
+            public Object get() throws InterruptedException, ExecutionException {
+                return result;
+            }
+
+            public Object get(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
+                return result;
+            }
+        };
     }
 
     public <T> List<Future<T>> invokeAll(Collection<? extends Callable<T>> tasks) throws InterruptedException {
