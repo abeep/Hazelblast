@@ -4,7 +4,7 @@ package com.hazelblast.client;
 import com.hazelblast.client.annotations.DistributedService;
 import com.hazelblast.client.annotations.PartitionKey;
 import com.hazelblast.client.annotations.Partitioned;
-import com.hazelblast.client.smarter.DefaultProxyProvider;
+import com.hazelblast.client.basic.BasicProxyProvider;
 import com.hazelblast.server.SliceServer;
 import com.hazelblast.server.pojoslice.Exposed;
 import com.hazelblast.server.pojoslice.HazelcastInstanceProvider;
@@ -24,7 +24,7 @@ import static org.mockito.Mockito.when;
 
 public class Partitioned_DefaultProxyProviderIntegrationTest {
 
-    private DefaultProxyProvider proxyProvider;
+    private BasicProxyProvider proxyProvider;
     private SliceServer server;
     private TestService testServiceMock;
 
@@ -41,7 +41,7 @@ public class Partitioned_DefaultProxyProviderIntegrationTest {
 
         Thread.sleep(1000);
 
-        proxyProvider = new DefaultProxyProvider("default", hazelcastInstance);
+        proxyProvider = new BasicProxyProvider("default", hazelcastInstance);
     }
 
     @After

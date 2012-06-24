@@ -1,9 +1,7 @@
-package com.hazelblast.client.smarter;
+package com.hazelblast.client.basic;
 
 
 import com.hazelblast.client.ProxyProvider;
-import com.hazelblast.client.RemoteMethodInvocationFactory;
-import com.hazelblast.client.SerializableRemoteMethodInvocationFactory;
 import com.hazelblast.client.annotations.DistributedService;
 import com.hazelblast.server.Slice;
 import com.hazelcast.core.Cluster;
@@ -23,14 +21,14 @@ import java.util.concurrent.ExecutorService;
 import static com.hazelblast.utils.Arguments.notNull;
 import static java.lang.String.format;
 
-public final class DefaultProxyProvider implements ProxyProvider {
+public final class BasicProxyProvider implements ProxyProvider {
 
     protected final ILogger logger;
     protected final HazelcastInstance hazelcastInstance;
     protected final ExecutorService executorService;
     protected final Cluster cluster;
     protected final String sliceName;
-    protected volatile RemoteMethodInvocationFactory remoteMethodInvocationFactory = SerializableRemoteMethodInvocationFactory.INSTANCE;
+    protected volatile DistributedMethodInvocationFactory distributedMethodInvocationFactory = SerializableDistributedMethodInvocationFactory.INSTANCE;
 
     private final LocalMethodInvocationHandlerFactory localMethodInvocationHandlerFactory = new LocalMethodInvocationHandlerFactory();
     private final ConcurrentMap<Class, Object> proxies = new ConcurrentHashMap<Class, Object>();
@@ -40,11 +38,11 @@ public final class DefaultProxyProvider implements ProxyProvider {
     /**
      * Creates a new ProxyProvider that connects to the 'default' Slice.
      */
-    public DefaultProxyProvider() {
+    public BasicProxyProvider() {
         this(Slice.DEFAULT_NAME, Hazelcast.getDefaultInstance());
     }
 
-    public DefaultProxyProvider(HazelcastInstance hazelcastInstance) {
+    public BasicProxyProvider(HazelcastInstance hazelcastInstance) {
         this(Slice.DEFAULT_NAME, hazelcastInstance);
     }
 
@@ -55,7 +53,7 @@ public final class DefaultProxyProvider implements ProxyProvider {
      * @param hazelcastInstance the HazelcastInstance
      * @throws NullPointerException if sliceName or executorService is null.
      */
-    public DefaultProxyProvider(String sliceName, HazelcastInstance hazelcastInstance) {
+    public BasicProxyProvider(String sliceName, HazelcastInstance hazelcastInstance) {
         this(notNull("sliceName", sliceName),
                 notNull("hazelcastInstance", hazelcastInstance),
                 hazelcastInstance.getExecutorService());
@@ -69,12 +67,12 @@ public final class DefaultProxyProvider implements ProxyProvider {
      * @param executorService   the executor service used. Make sure it belongs to the hazelcastInstance.
      * @throws NullPointerException if sliceName, hazelcastInstance or executorService is null.
      */
-    public DefaultProxyProvider(String sliceName, HazelcastInstance hazelcastInstance, ExecutorService executorService) {
+    public BasicProxyProvider(String sliceName, HazelcastInstance hazelcastInstance, ExecutorService executorService) {
         this.sliceName = notNull("sliceName", sliceName);
         this.hazelcastInstance = notNull("hazelcastInstance", hazelcastInstance);
         this.executorService = notNull("executorService", executorService);
         this.cluster = hazelcastInstance.getCluster();
-        this.logger = hazelcastInstance.getLoggingService().getLogger(DefaultProxyProvider.class.getName());
+        this.logger = hazelcastInstance.getLoggingService().getLogger(BasicProxyProvider.class.getName());
         registerMethodInvocationHandlerFactory(new LoadBalancedMethodInvocationHandlerFactory());
         registerMethodInvocationHandlerFactory(new PartitionedMethodInvocationHandlerFactory());
 
@@ -159,8 +157,8 @@ public final class DefaultProxyProvider implements ProxyProvider {
      *
      * @return the RemoteMethodInvocationFactory.
      */
-    public RemoteMethodInvocationFactory getRemoteMethodInvocationFactory() {
-        return remoteMethodInvocationFactory;
+    public DistributedMethodInvocationFactory getDistributedMethodInvocationFactory() {
+        return distributedMethodInvocationFactory;
     }
 
     /**
@@ -168,11 +166,11 @@ public final class DefaultProxyProvider implements ProxyProvider {
      * <p/>
      * A volatile field is used to store the RemoteMethodInvocationFactory.
      *
-     * @param remoteMethodInvocationFactory the new RemoteMethodInvocationFactory.
+     * @param distributedMethodInvocationFactory the new RemoteMethodInvocationFactory.
      * @throws NullPointerException if remoteMethodInvocationFactory is null.
      */
-    public void setRemoteMethodInvocationFactory(RemoteMethodInvocationFactory remoteMethodInvocationFactory) {
-        this.remoteMethodInvocationFactory = notNull("remoteMethodInvocationFactory", remoteMethodInvocationFactory);
+    public void setDistributedMethodInvocationFactory(DistributedMethodInvocationFactory distributedMethodInvocationFactory) {
+        this.distributedMethodInvocationFactory = notNull("remoteMethodInvocationFactory", distributedMethodInvocationFactory);
     }
 
 

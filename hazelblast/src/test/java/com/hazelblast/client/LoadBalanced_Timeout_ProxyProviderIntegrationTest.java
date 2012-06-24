@@ -3,8 +3,8 @@ package com.hazelblast.client;
 import com.hazelblast.TestUtils;
 import com.hazelblast.client.annotations.DistributedService;
 import com.hazelblast.client.annotations.LoadBalanced;
+import com.hazelblast.client.basic.BasicProxyProvider;
 import com.hazelblast.client.exceptions.RemoteMethodTimeoutException;
-import com.hazelblast.client.smarter.DefaultProxyProvider;
 import com.hazelblast.server.SliceServer;
 import com.hazelblast.server.pojoslice.Exposed;
 import com.hazelblast.server.pojoslice.HazelcastInstanceProvider;
@@ -21,7 +21,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import static org.junit.Assert.*;
 
 public class LoadBalanced_Timeout_ProxyProviderIntegrationTest {
-    private DefaultProxyProvider proxyProvider;
+    private BasicProxyProvider proxyProvider;
     private SliceServer server;
     private Pojo pojo;
 
@@ -39,7 +39,7 @@ public class LoadBalanced_Timeout_ProxyProviderIntegrationTest {
         Thread.sleep(1000);
 
         HazelcastInstance clientInstance = TestUtils.newLiteInstance();
-        proxyProvider = new DefaultProxyProvider("default", clientInstance);
+        proxyProvider = new BasicProxyProvider("default", clientInstance);
     }
 
     @After

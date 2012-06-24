@@ -1,4 +1,4 @@
-package com.hazelblast.client.smarter;
+package com.hazelblast.client.basic;
 
 import com.hazelcast.core.HazelcastInstance;
 
@@ -8,11 +8,11 @@ import java.util.concurrent.ExecutorService;
 
 public abstract class MethodInvocationHandlerFactory {
 
-    protected DefaultProxyProvider proxyProvider;
+    protected BasicProxyProvider proxyProvider;
     protected ExecutorService executor;
     protected HazelcastInstance hazelcastInstance;
 
-    public void setProxyProvider(DefaultProxyProvider proxyProvider){
+    public void setProxyProvider(BasicProxyProvider proxyProvider){
         this.proxyProvider = proxyProvider;
         this.executor = proxyProvider.executorService;
         this.hazelcastInstance = proxyProvider.hazelcastInstance;

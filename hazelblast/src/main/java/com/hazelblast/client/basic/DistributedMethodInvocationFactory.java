@@ -1,4 +1,4 @@
-package com.hazelblast.client;
+package com.hazelblast.client.basic;
 
 import java.util.concurrent.Callable;
 
@@ -11,7 +11,7 @@ import java.util.concurrent.Callable;
  *
  * @author Peter Veentjer.
  */
-public interface RemoteMethodInvocationFactory {
+public interface DistributedMethodInvocationFactory {
 
     /**
      * Creates a Callable that created in the ProxyProvider and send to a remote machine where it is executed.

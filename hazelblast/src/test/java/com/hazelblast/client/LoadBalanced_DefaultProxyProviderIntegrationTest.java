@@ -3,7 +3,7 @@ package com.hazelblast.client;
 
 import com.hazelblast.client.annotations.DistributedService;
 import com.hazelblast.client.annotations.LoadBalanced;
-import com.hazelblast.client.smarter.DefaultProxyProvider;
+import com.hazelblast.client.basic.BasicProxyProvider;
 import com.hazelblast.server.SliceServer;
 import com.hazelblast.server.pojoslice.Exposed;
 import com.hazelblast.server.pojoslice.HazelcastInstanceProvider;
@@ -42,7 +42,7 @@ public class LoadBalanced_DefaultProxyProviderIntegrationTest {
 
         Thread.sleep(1000);
 
-        proxyProvider = new DefaultProxyProvider( hazelcastInstance);
+        proxyProvider = new BasicProxyProvider( hazelcastInstance);
     }
 
     @After

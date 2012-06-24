@@ -1,4 +1,4 @@
-package com.hazelblast.client.smarter;
+package com.hazelblast.client.basic;
 
 import com.hazelblast.client.exceptions.RemoteMethodTimeoutException;
 import com.hazelblast.client.router.Router;
@@ -77,7 +77,7 @@ public abstract class RoutedMethodInvocationHandlerFactory extends MethodInvocat
         private Object doInvoke(Object[] args) throws Throwable {
             Future future;
             if (router == null) {
-                Callable callable = proxyProvider.remoteMethodInvocationFactory.create(
+                Callable callable = proxyProvider.distributedMethodInvocationFactory.create(
                         proxyProvider.sliceName,
                         method.getDeclaringClass().getSimpleName(),
                         method.getName(),
@@ -93,7 +93,7 @@ public abstract class RoutedMethodInvocationHandlerFactory extends MethodInvocat
                     throw new MemberLeftException();
                 }
 
-                Callable callable = proxyProvider.remoteMethodInvocationFactory.create(
+                Callable callable = proxyProvider.distributedMethodInvocationFactory.create(
                         proxyProvider.sliceName,
                         method.getDeclaringClass().getSimpleName(),
                         method.getName(),

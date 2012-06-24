@@ -3,8 +3,8 @@ package com.hazelblast.client;
 import com.hazelblast.TestUtils;
 import com.hazelblast.client.annotations.DistributedService;
 import com.hazelblast.client.annotations.LoadBalanced;
+import com.hazelblast.client.basic.BasicProxyProvider;
 import com.hazelblast.client.router.RoundRobinLoadBalancer;
-import com.hazelblast.client.smarter.DefaultProxyProvider;
 import com.hazelblast.server.Slice;
 import com.hazelblast.server.SliceServer;
 import com.hazelblast.server.pojoslice.Exposed;
@@ -50,7 +50,7 @@ public class LoadBalancedClusterTest {
 
         HazelcastInstance clientInstance = TestUtils.newLiteInstance();
 
-        ProxyProvider proxyProvider = new DefaultProxyProvider(clientInstance);
+        ProxyProvider proxyProvider = new BasicProxyProvider(clientInstance);
         SomeService someService = proxyProvider.getProxy(SomeService.class);
 
         for (int k = 0; k < 3 * 5; k++) {

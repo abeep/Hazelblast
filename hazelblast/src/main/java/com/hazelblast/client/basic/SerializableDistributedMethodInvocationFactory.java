@@ -1,10 +1,9 @@
-package com.hazelblast.client;
+package com.hazelblast.client.basic;
 
 import com.hazelblast.server.exceptions.PartitionMovedException;
 import com.hazelblast.server.SliceServer;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.HazelcastInstanceAware;
-import com.hazelcast.core.PartitionAware;
 import com.hazelcast.logging.ILogger;
 
 import java.io.Serializable;
@@ -19,16 +18,15 @@ import static java.lang.String.format;
  *
  * @author Peter Veentjer.
  */
-public final class SerializableRemoteMethodInvocationFactory implements RemoteMethodInvocationFactory {
+public final class SerializableDistributedMethodInvocationFactory implements DistributedMethodInvocationFactory {
 
-
-    public final static SerializableRemoteMethodInvocationFactory INSTANCE = new SerializableRemoteMethodInvocationFactory();
+    public final static SerializableDistributedMethodInvocationFactory INSTANCE = new SerializableDistributedMethodInvocationFactory();
 
     public <T> Callable<T> create(String sliceName, String serviceName, String methodName, Object[] args, String[] argTypes, long partitionKey) {
-        return new RemoteMethodInvocation(sliceName, serviceName, methodName, args, argTypes, partitionKey);
+        return new DistributedMethodInvocation(sliceName, serviceName, methodName, args, argTypes, partitionKey);
     }
 
-    protected static class RemoteMethodInvocation implements Callable, Serializable, HazelcastInstanceAware {
+    protected static class DistributedMethodInvocation implements Callable, Serializable, HazelcastInstanceAware {
 
         private transient ILogger logger;
 
@@ -42,7 +40,7 @@ public final class SerializableRemoteMethodInvocationFactory implements RemoteMe
         private final String[] argTypes;
         private volatile transient HazelcastInstance hazelcastInstance;
 
-        RemoteMethodInvocation(String sliceName, String serviceName, String methodName, Object[] args, String[] argTypes, long partitionId) {
+        DistributedMethodInvocation(String sliceName, String serviceName, String methodName, Object[] args, String[] argTypes, long partitionId) {
             this.sliceName = sliceName;
             this.serviceName = serviceName;
             this.methodName = methodName;
@@ -53,7 +51,7 @@ public final class SerializableRemoteMethodInvocationFactory implements RemoteMe
 
         public void setHazelcastInstance(HazelcastInstance hazelcastInstance) {
             this.hazelcastInstance = hazelcastInstance;
-            this.logger = hazelcastInstance.getLoggingService().getLogger(RemoteMethodInvocation.class.getName());
+            this.logger = hazelcastInstance.getLoggingService().getLogger(DistributedMethodInvocation.class.getName());
         }
 
         public Object call() throws Exception {

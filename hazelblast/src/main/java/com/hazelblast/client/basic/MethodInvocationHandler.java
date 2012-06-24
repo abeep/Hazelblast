@@ -1,4 +1,4 @@
-package com.hazelblast.client.smarter;
+package com.hazelblast.client.basic;
 
 public interface MethodInvocationHandler {
 

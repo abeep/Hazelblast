@@ -1,4 +1,4 @@
-package com.hazelblast.client.smarter;
+package com.hazelblast.client.basic;
 
 import com.hazelblast.client.annotations.LoadBalanced;
 import com.hazelblast.client.router.NoOpRouter;

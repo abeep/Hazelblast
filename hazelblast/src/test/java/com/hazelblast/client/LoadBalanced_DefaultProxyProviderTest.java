@@ -3,9 +3,9 @@ package com.hazelblast.client;
 import com.hazelblast.client.annotations.DistributedService;
 import com.hazelblast.client.annotations.LoadBalanced;
 import com.hazelblast.client.annotations.PartitionKey;
+import com.hazelblast.client.basic.BasicProxyProvider;
 import com.hazelblast.client.router.Router;
 import com.hazelblast.client.router.Target;
-import com.hazelblast.client.smarter.DefaultProxyProvider;
 import com.hazelblast.server.SliceServer;
 import com.hazelblast.server.pojoslice.Exposed;
 import com.hazelblast.server.pojoslice.HazelcastInstanceProvider;
@@ -23,7 +23,7 @@ import static org.mockito.Mockito.when;
 
 public class LoadBalanced_DefaultProxyProviderTest {
 
-    private DefaultProxyProvider proxyProvider;
+    private BasicProxyProvider proxyProvider;
     private SliceServer server;
     private TestService testServiceMock;
     private static HazelcastInstance hazelcastInstance;
@@ -46,7 +46,7 @@ public class LoadBalanced_DefaultProxyProviderTest {
 
         Thread.sleep(1000);
 
-        proxyProvider = new DefaultProxyProvider(hazelcastInstance);
+        proxyProvider = new BasicProxyProvider(hazelcastInstance);
     }
 
     @After
@@ -64,7 +64,7 @@ public class LoadBalanced_DefaultProxyProviderTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void notUsableLoadBalancer() {
-        DefaultProxyProvider proxyProvider = new DefaultProxyProvider();
+        BasicProxyProvider proxyProvider = new BasicProxyProvider();
         proxyProvider.getProxy(LoadBalancedMethodWithInvalidLoadBalancer.class);
     }
 
@@ -82,7 +82,7 @@ public class LoadBalanced_DefaultProxyProviderTest {
 
     @Test
     public void methodWithoutArguments() {
-        DefaultProxyProvider proxyProvider = new DefaultProxyProvider();
+        BasicProxyProvider proxyProvider = new BasicProxyProvider();
         LoadBalancedMethodWithoutArguments p = proxyProvider.getProxy(LoadBalancedMethodWithoutArguments.class);
         assertNotNull(p);
     }
@@ -95,7 +95,7 @@ public class LoadBalanced_DefaultProxyProviderTest {
 
     @Test
     public void methodWithPartitionKeyArgument() {
-        DefaultProxyProvider proxyProvider = new DefaultProxyProvider();
+        BasicProxyProvider proxyProvider = new BasicProxyProvider();
         LoadBalancedMethodWithoutPartitionKeyArgument p = proxyProvider.getProxy(LoadBalancedMethodWithoutPartitionKeyArgument.class);
         assertNotNull(p);
     }

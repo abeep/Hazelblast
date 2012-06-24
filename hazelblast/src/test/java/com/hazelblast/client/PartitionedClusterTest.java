@@ -4,7 +4,7 @@ import com.hazelblast.TestUtils;
 import com.hazelblast.client.annotations.DistributedService;
 import com.hazelblast.client.annotations.PartitionKey;
 import com.hazelblast.client.annotations.Partitioned;
-import com.hazelblast.client.smarter.DefaultProxyProvider;
+import com.hazelblast.client.basic.BasicProxyProvider;
 import com.hazelblast.server.Slice;
 import com.hazelblast.server.SliceServer;
 import com.hazelblast.server.pojoslice.Exposed;
@@ -50,7 +50,7 @@ public class PartitionedClusterTest {
 
         HazelcastInstance clientInstance = TestUtils.newLiteInstance();
 
-        ProxyProvider proxyProvider = new DefaultProxyProvider(clientInstance);
+        ProxyProvider proxyProvider = new BasicProxyProvider(clientInstance);
         SomeService someService = proxyProvider.getProxy(SomeService.class);
 
         int callPerInstance = 1000;

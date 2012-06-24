@@ -3,7 +3,7 @@ package com.hazelblast.client;
 import com.hazelblast.client.annotations.DistributedService;
 import com.hazelblast.client.annotations.PartitionKey;
 import com.hazelblast.client.annotations.Partitioned;
-import com.hazelblast.client.smarter.DefaultProxyProvider;
+import com.hazelblast.client.basic.BasicProxyProvider;
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.PartitionAware;
@@ -32,7 +32,7 @@ public class Partitioned_DefaultProxyProviderTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void badProxy_partitionedMethodWithoutArguments() {
-        DefaultProxyProvider proxyProvider = new DefaultProxyProvider();
+        BasicProxyProvider proxyProvider = new BasicProxyProvider();
         proxyProvider.getProxy(PartitionedMethodWithoutArguments.class);
     }
 
@@ -44,7 +44,7 @@ public class Partitioned_DefaultProxyProviderTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void badProxy_partitionedMethodWithoutPartitionKeyArgument() {
-        DefaultProxyProvider proxyProvider = new DefaultProxyProvider();
+        BasicProxyProvider proxyProvider = new BasicProxyProvider();
         proxyProvider.getProxy(PartitionedMethodWithoutPartitionKeyArgument.class);
     }
 
@@ -61,7 +61,7 @@ public class Partitioned_DefaultProxyProviderTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void badProxy_partitionedMethodWithoutExistingProperty() {
-        DefaultProxyProvider proxyProvider = new DefaultProxyProvider();
+        BasicProxyProvider proxyProvider = new BasicProxyProvider();
         proxyProvider.getProxy(PartitionedMethodWithoutExistingProperty.class);
     }
 
@@ -73,7 +73,7 @@ public class Partitioned_DefaultProxyProviderTest {
 
     @Test
     public void partitioned_whenPartitionAwareObjectReturnsNull() {
-        DefaultProxyProvider proxyProvider = new DefaultProxyProvider();
+        BasicProxyProvider proxyProvider = new BasicProxyProvider();
         PartitionedService service = proxyProvider.getProxy(PartitionedService.class);
 
         try {
@@ -87,7 +87,7 @@ public class Partitioned_DefaultProxyProviderTest {
 
     @Test
     public void whenPartitionKeyWithPropertyIsNull() {
-        DefaultProxyProvider proxyProvider = new DefaultProxyProvider();
+        BasicProxyProvider proxyProvider = new BasicProxyProvider();
         PartitionedService service = proxyProvider.getProxy(PartitionedService.class);
 
         try {
@@ -100,7 +100,7 @@ public class Partitioned_DefaultProxyProviderTest {
 
     @Test
     public void whenPartitionKeyArgumentWithPropertyReturnsNull() {
-        DefaultProxyProvider proxyProvider = new DefaultProxyProvider();
+        BasicProxyProvider proxyProvider = new BasicProxyProvider();
         PartitionedService service = proxyProvider.getProxy(PartitionedService.class);
 
         try {
@@ -114,7 +114,7 @@ public class Partitioned_DefaultProxyProviderTest {
 
     @Test
     public void whenNullPartitionedKeyArgument() {
-        DefaultProxyProvider proxyProvider = new DefaultProxyProvider();
+        BasicProxyProvider proxyProvider = new BasicProxyProvider();
         PartitionedService service = proxyProvider.getProxy(PartitionedService.class);
         try {
             service.valid(null);
@@ -229,7 +229,7 @@ public class Partitioned_DefaultProxyProviderTest {
 
     @Test
     public void test_toString() {
-        DefaultProxyProvider proxyProvider = new DefaultProxyProvider();
+        BasicProxyProvider proxyProvider = new BasicProxyProvider();
         PartitionedService service = proxyProvider.getProxy(PartitionedService.class);
         String s = service.toString();
         System.out.println(s);
@@ -238,7 +238,7 @@ public class Partitioned_DefaultProxyProviderTest {
 
     @Test
     public void test_hashCode() {
-        DefaultProxyProvider proxyProvider = new DefaultProxyProvider();
+        BasicProxyProvider proxyProvider = new BasicProxyProvider();
         PartitionedService service = proxyProvider.getProxy(PartitionedService.class);
         int s = service.hashCode();
 
@@ -246,7 +246,7 @@ public class Partitioned_DefaultProxyProviderTest {
 
     @Test
     public void test_equals() {
-        DefaultProxyProvider proxyProvider = new DefaultProxyProvider();
+        BasicProxyProvider proxyProvider = new BasicProxyProvider();
         PartitionedService service = proxyProvider.getProxy(PartitionedService.class);
 
         assertTrue(service.equals(service));
