@@ -17,7 +17,7 @@ import static java.lang.String.format;
  * A {@link Router} that uses partitioning to do the routing. So it inspects some argument of the method call, and
  * based on that argument the right node is selected.
  * <p/>
- * This router is used in combinaton with the {@link com.hazelblast.client.annotations.Partitioned} annotation.
+ * This router is used in combination with the {@link com.hazelblast.client.annotations.Partitioned} annotation.
  *
  * @author Peter Veentjer.
  */

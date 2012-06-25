@@ -166,7 +166,8 @@ public final class BasicProxyProvider implements ProxyProvider {
      * <p/>
      * A volatile field is used to store the RemoteMethodInvocationFactory.
      *
-     * @param distributedMethodInvocationFactory the new RemoteMethodInvocationFactory.
+     * @param distributedMethodInvocationFactory
+     *         the new RemoteMethodInvocationFactory.
      * @throws NullPointerException if remoteMethodInvocationFactory is null.
      */
     public void setDistributedMethodInvocationFactory(DistributedMethodInvocationFactory distributedMethodInvocationFactory) {

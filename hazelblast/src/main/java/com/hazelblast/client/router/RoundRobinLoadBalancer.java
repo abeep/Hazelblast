@@ -43,17 +43,20 @@ public class RoundRobinLoadBalancer implements Router {
         List<Member> memberList = members.get();
         if (memberList.isEmpty()) {
             throw new NoMemberAvailableException(
-                    format("RoundRobinLoadBalancer: There are no members in the cluster of Hazelcast instance [%s]",hazelcastInstance.getName()));
+                    format("RoundRobinLoadBalancer: There are no real members in the cluster of Hazelcast instance [%s]", hazelcastInstance.getName()));
         }
 
         int count = counter.getAndIncrement();
-        if (count < 0) {
+
+        if (count == Integer.MIN_VALUE) {
+            count = 0;
+        } else if (count < 0) {
             count = -count;
         }
 
         Member member = memberList.get(count % memberList.size());
         if (logger.isLoggable(Level.FINE)) {
-            logger.log(Level.INFO, format("Next request is send to member '%s'", member));
+            logger.log(Level.FINE, format("Next request is send to member '%s'", member));
         }
         return new Target(member);
     }
@@ -66,8 +69,8 @@ public class RoundRobinLoadBalancer implements Router {
             }
         }
 
-        if (logger.isLoggable(Level.INFO)) {
-            logger.log(Level.INFO, format("The following members are part of the cluster %s", memberList));
+        if (logger.isLoggable(Level.FINE)) {
+            logger.log(Level.FINE, format("The following members are part of the cluster %s", memberList));
         }
 
         members.set(memberList);

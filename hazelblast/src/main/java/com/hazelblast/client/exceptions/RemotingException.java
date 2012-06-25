@@ -6,7 +6,7 @@ package com.hazelblast.client.exceptions;
  *
  * @author Peter Veentjer.
  */
-public class RemotingException extends RuntimeException{
+public class RemotingException extends RuntimeException {
 
     static final long serialVersionUID = 1;
 

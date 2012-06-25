@@ -1,7 +1,7 @@
 package com.hazelblast.client.basic;
 
-import com.hazelblast.server.exceptions.PartitionMovedException;
 import com.hazelblast.server.SliceServer;
+import com.hazelblast.server.exceptions.PartitionMovedException;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.HazelcastInstanceAware;
 import com.hazelcast.logging.ILogger;

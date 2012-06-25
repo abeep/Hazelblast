@@ -1,7 +1,5 @@
 package com.hazelblast.client.router;
 
-import com.hazelcast.core.Member;
-
 import java.lang.reflect.Method;
 
 /**

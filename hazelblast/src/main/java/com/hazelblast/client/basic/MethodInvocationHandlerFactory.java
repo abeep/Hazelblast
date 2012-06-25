@@ -12,7 +12,7 @@ public abstract class MethodInvocationHandlerFactory {
     protected ExecutorService executor;
     protected HazelcastInstance hazelcastInstance;
 
-    public void setProxyProvider(BasicProxyProvider proxyProvider){
+    public void setProxyProvider(BasicProxyProvider proxyProvider) {
         this.proxyProvider = proxyProvider;
         this.executor = proxyProvider.executorService;
         this.hazelcastInstance = proxyProvider.hazelcastInstance;

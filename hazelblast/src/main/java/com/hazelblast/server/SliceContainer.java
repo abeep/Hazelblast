@@ -11,7 +11,10 @@ import com.hazelcast.partition.PartitionService;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.logging.Level;
@@ -30,7 +33,7 @@ final class SliceContainer {
     private final ILogger logger;
 
     private final Slice slice;
-    private final ConcurrentMap<Integer,Partition> managedPartitions = new ConcurrentHashMap<Integer,Partition>();
+    private final ConcurrentMap<Integer, Partition> managedPartitions = new ConcurrentHashMap<Integer, Partition>();
 
     private final PartitionService partitionService;
     private final Member self;
@@ -40,7 +43,7 @@ final class SliceContainer {
     /**
      * Creates a new SliceContainer with the given Slice.
      *
-     * @param slice     the Slice contained in this SliceContainer.
+     * @param slice the Slice contained in this SliceContainer.
      * @throws NullPointerException if slice is null
      */
     SliceContainer(Slice slice) {
@@ -53,8 +56,8 @@ final class SliceContainer {
         }
 
         self = hazelcastInstance.getCluster().getLocalMember();
-        if(self.isLiteMember()){
-            throw new IllegalStateException(format("Can't create a SliceContainer using lite member [%s]",self));
+        if (self.isLiteMember()) {
+            throw new IllegalStateException(format("Can't create a SliceContainer using lite member [%s]", self));
         }
 
         partitionService = hazelcastInstance.getPartitionService();
@@ -217,7 +220,7 @@ final class SliceContainer {
             }
 
             //by adding the partition to the managed partitions, external calls are allowed to be executed again.
-            managedPartitions.put(partition.getPartitionId(),partition);
+            managedPartitions.put(partition.getPartitionId(), partition);
         }
         return changeDetected;
     }
@@ -232,7 +235,7 @@ final class SliceContainer {
         //was send to this machine, is still there. If it isn't, some kind of exception should be thrown, this exception
         //should be caught by the proxy and the method call should be retried, now hoping that
 
-        if (partitionId >=0) {
+        if (partitionId >= 0) {
             if (!managedPartitions.containsKey(partitionId)) {
                 //if the partition is not managed by this SliceContainer, we throw an exception that
                 //will be caught by the proxy, and the call will be retried.

@@ -1,6 +1,5 @@
 package com.hazelblast.server;
 
-import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.logging.ILogger;
 import org.apache.commons.cli.*;

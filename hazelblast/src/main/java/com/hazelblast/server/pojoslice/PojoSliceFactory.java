@@ -41,7 +41,7 @@ public final class PojoSliceFactory implements SliceFactory {
         try {
             pojoConstructor = pojoClazz.getConstructor();
         } catch (NoSuchMethodException e) {
-            throw new IllegalArgumentException(format("Can't find no-argument constructor on class '%s'",pojoClazz.getName()));
+            throw new IllegalArgumentException(format("Can't find no-argument constructor on class '%s'", pojoClazz.getName()));
         }
     }
 
@@ -50,7 +50,7 @@ public final class PojoSliceFactory implements SliceFactory {
      * is being used to create the  {@link com.hazelblast.server.Slice}.
      */
     public PojoSliceFactory() {
-         String pojoClassName = System.getProperty(POJO_SLICE_CLASS);
+        String pojoClassName = System.getProperty(POJO_SLICE_CLASS);
         if (logger.isLoggable(Level.FINE)) {
             logger.log(Level.FINE, format("Using pojoSlice.class = '%s' from System.getProperty(%s)", pojoClassName, POJO_SLICE_CLASS));
         }
@@ -70,7 +70,7 @@ public final class PojoSliceFactory implements SliceFactory {
     }
 
     public PojoSlice create(SliceConfig sliceConfig) {
-         try {
+        try {
             Object pojo = pojoConstructor.newInstance();
             return new PojoSlice(pojo, sliceConfig);
         } catch (InstantiationException e) {

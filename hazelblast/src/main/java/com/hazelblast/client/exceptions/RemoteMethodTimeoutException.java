@@ -12,9 +12,9 @@ public class RemoteMethodTimeoutException extends RemotingException {
      * Constructs a RemoteMethodTimeoutException.
      *
      * @param message the message.
-     * @param cause  the cause of the exception.
+     * @param cause   the cause of the exception.
      */
     public RemoteMethodTimeoutException(String message, Throwable cause) {
-        super(message,cause);
+        super(message, cause);
     }
 }

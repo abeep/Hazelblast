@@ -8,21 +8,21 @@ import com.hazelcast.partition.Partition;
  * responsible for running a complete vertical complete and you can just add more machines for more capacity.
  * <p/>
  * In Spring terminology this could be compared to an application-context.
- *
+ * <p/>
  * A Slice has lifecycle hooks that are called when it is started and stopped and when partitions are added/removed
  * from the slice.
  * <p/>
  * The following lifecycle methods will never be called concurrently:
  * <ol>
- *     <li>{@link #onStart()}</li>
- *     <li>{@link #onStop()}</li>
- *     <li>{@link #onPartitionAdded(Partition)}</li>
- *     <li>{@link #onPartitionRemoved(Partition)}}</li>
+ * <li>{@link #onStart()}</li>
+ * <li>{@link #onStop()}</li>
+ * <li>{@link #onPartitionAdded(Partition)}</li>
+ * <li>{@link #onPartitionRemoved(Partition)}}</li>
  * </ol>
  *
  * @author Peter Veentjer.
  */
-public interface Slice extends SliceLifecycleListener, SlicePartitionListener{
+public interface Slice extends SliceLifecycleListener, SlicePartitionListener {
 
     String DEFAULT_NAME = "default";
 

@@ -16,7 +16,7 @@ import java.lang.annotation.Target;
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
-public @interface LoadBalanced{
+public @interface LoadBalanced {
 
     /**
      * The maximum time to wait for a call to complete.
