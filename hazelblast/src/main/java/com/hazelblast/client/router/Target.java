@@ -2,6 +2,11 @@ package com.hazelblast.client.router;
 
 import com.hazelcast.core.Member;
 
+/**
+ * The result of a call to {@link Router#getTarget(java.lang.reflect.Method, Object[])}.
+ *
+ * @author Peter Veentjer.
+ */
 public class Target {
 
     private final Member member;

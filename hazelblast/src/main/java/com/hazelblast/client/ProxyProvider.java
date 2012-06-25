@@ -9,7 +9,8 @@ import com.hazelcast.core.HazelcastInstance;
  * JVM multiple Slices can run in parallel. By providing a sliceName in this ProxyProvider, you can
  * control which Slice on the server side is going to be called.
  * <p/>
- * It is best to create a single instance of the ProxyProvider and to reuse it. The ProxyProvider is thread-safe.
+ * It is best to create a single instance of the ProxyProvider and to reuse it. The ProxyProvider implementations
+ * are required to be thread-safe.
  * <p/>
  * Because the proxy is cached, the guarantee is given that always the same instance for a given interface is returned.
  *

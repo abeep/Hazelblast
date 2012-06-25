@@ -5,7 +5,7 @@ package com.hazelblast.client.exceptions;
  *
  * @author Peter Veentjer.
  */
-public class RemoteMethodTimeoutException extends RemotingException {
+public class DistributedMethodTimeoutException extends RemotingException {
     static final long serialVersionUID = 1;
 
     /**
@@ -14,7 +14,7 @@ public class RemoteMethodTimeoutException extends RemotingException {
      * @param message the message.
      * @param cause   the cause of the exception.
      */
-    public RemoteMethodTimeoutException(String message, Throwable cause) {
+    public DistributedMethodTimeoutException(String message, Throwable cause) {
         super(message, cause);
     }
 }

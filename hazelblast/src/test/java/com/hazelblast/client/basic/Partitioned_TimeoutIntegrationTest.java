@@ -3,8 +3,7 @@ package com.hazelblast.client.basic;
 import com.hazelblast.client.annotations.DistributedService;
 import com.hazelblast.client.annotations.PartitionKey;
 import com.hazelblast.client.annotations.Partitioned;
-import com.hazelblast.client.basic.BasicProxyProvider;
-import com.hazelblast.client.exceptions.RemoteMethodTimeoutException;
+import com.hazelblast.client.exceptions.DistributedMethodTimeoutException;
 import com.hazelblast.server.SliceServer;
 import com.hazelblast.server.pojoslice.Exposed;
 import com.hazelblast.server.pojoslice.HazelcastInstanceProvider;
@@ -64,7 +63,7 @@ public class Partitioned_TimeoutIntegrationTest {
         try {
             testService.fiveSecondTimeoutAndInterruptible("somepartition",6000);
             fail();
-        } catch (RemoteMethodTimeoutException expected) {
+        } catch (DistributedMethodTimeoutException expected) {
 
         }
         Thread.sleep(2000);
@@ -79,7 +78,7 @@ public class Partitioned_TimeoutIntegrationTest {
         try {
             testService.fiveSecondTimeoutNotInterruptible("somepartition",10000);
             fail();
-        } catch (RemoteMethodTimeoutException expected) {
+        } catch (DistributedMethodTimeoutException expected) {
 
         }
         Thread.sleep(10000);

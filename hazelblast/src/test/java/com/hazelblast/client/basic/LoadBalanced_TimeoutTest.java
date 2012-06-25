@@ -3,8 +3,7 @@ package com.hazelblast.client.basic;
 import com.hazelblast.TestUtils;
 import com.hazelblast.client.annotations.DistributedService;
 import com.hazelblast.client.annotations.LoadBalanced;
-import com.hazelblast.client.basic.BasicProxyProvider;
-import com.hazelblast.client.exceptions.RemoteMethodTimeoutException;
+import com.hazelblast.client.exceptions.DistributedMethodTimeoutException;
 import com.hazelblast.server.SliceServer;
 import com.hazelblast.server.pojoslice.Exposed;
 import com.hazelblast.server.pojoslice.HazelcastInstanceProvider;
@@ -13,6 +12,7 @@ import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.util.concurrent.TimeUnit;
@@ -64,7 +64,7 @@ public class LoadBalanced_TimeoutTest {
         try {
             testService.fiveSecondTimeoutAndInterruptible(6000);
             fail();
-        } catch (RemoteMethodTimeoutException expected) {
+        } catch (DistributedMethodTimeoutException expected) {
 
         }
         Thread.sleep(2000);
@@ -79,7 +79,7 @@ public class LoadBalanced_TimeoutTest {
         try {
             testService.fiveSecondTimeoutNotInterruptible(10000);
             fail();
-        } catch (RemoteMethodTimeoutException expected) {
+        } catch (DistributedMethodTimeoutException expected) {
 
         }
         Thread.sleep(10000);

@@ -1,5 +1,6 @@
 package com.hazelblast.server;
 
+import com.hazelblast.server.exceptions.PartitionMovedException;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.logging.ILogger;
 import org.apache.commons.cli.*;
@@ -119,7 +120,7 @@ public final class SliceServer {
 
         //TODO: Improve exception, also the hazelcastInstance should be part of exception
         if (server == null) {
-            throw new IllegalStateException(format("No slice found for slice %s@%s on member [%s], available slices %s",
+            throw new PartitionMovedException(format("No slice found for slice %s@%s on member [%s], available slices %s",
                     sliceName, hazelcastInstance.getName(), hazelcastInstance.getCluster().getLocalMember(), serverMap.keySet()));
         }
 

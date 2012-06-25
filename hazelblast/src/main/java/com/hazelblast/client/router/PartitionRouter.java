@@ -78,7 +78,7 @@ public class PartitionRouter implements Router {
         if (partitionKey instanceof PartitionAware) {
             partitionKey = ((PartitionAware) partitionKey).getPartitionKey();
             if (partitionKey == null) {
-                throw new IllegalArgumentException(format("PartitionAware class '%s' returned null as partitionkey.", arg.getClass().getName()));
+                throw new NullPointerException(format("PartitionAware class '%s' returned null as partitionkey.", arg.getClass().getName()));
             }
         }
 

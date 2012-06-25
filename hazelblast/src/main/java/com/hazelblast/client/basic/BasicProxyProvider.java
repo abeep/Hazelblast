@@ -21,6 +21,18 @@ import java.util.concurrent.ExecutorService;
 import static com.hazelblast.utils.Arguments.notNull;
 import static java.lang.String.format;
 
+/**
+ * A 'basic' {@link ProxyProvider} implementation. It relies on the {@link Proxy} to create a proxy for a given
+ * {@link DistributedService}.
+ * <p/>
+ * The {@link InvocationHandler} is nothing more than a simple container, where for each method of the distributed service,
+ * there is a {@link MethodInvocationHandler}. So when a call comes in on the InvocationHandler, the correct
+ * MethodInvocationHandler is looked up, and the call if forwarded to this instance.
+ * <p/>
+ * This ProxyProvider implementation is very customizable, one can add/remove/replace MethodInvocationHandlerFactories
+ * that process certain annotations. If you want to add support for a new annotation (or change the behavior of an
+ * existing annotation) just write a custom MethodInvocationHandlerFactory and register it with this {@link BasicProxyProvider}.
+ */
 public final class BasicProxyProvider implements ProxyProvider {
 
     protected final ILogger logger;
@@ -28,9 +40,10 @@ public final class BasicProxyProvider implements ProxyProvider {
     protected final ExecutorService executorService;
     protected final Cluster cluster;
     protected final String sliceName;
-    protected volatile DistributedMethodInvocationFactory distributedMethodInvocationFactory = SerializableDistributedMethodInvocationFactory.INSTANCE;
-
-    private final LocalMethodInvocationHandlerFactory localMethodInvocationHandlerFactory = new LocalMethodInvocationHandlerFactory();
+    protected volatile DistributedMethodInvocationFactory distributedMethodInvocationFactory
+            = SerializableDistributedMethodInvocationFactory.INSTANCE;
+    private final LocalMethodInvocationHandlerFactory localMethodInvocationHandlerFactory
+            = new LocalMethodInvocationHandlerFactory();
     private final ConcurrentMap<Class, Object> proxies = new ConcurrentHashMap<Class, Object>();
     private final ConcurrentMap<Class<? extends Annotation>, MethodInvocationHandlerFactory> methodInvocationHandlerFactories
             = new ConcurrentHashMap<Class<? extends Annotation>, MethodInvocationHandlerFactory>();
@@ -42,6 +55,12 @@ public final class BasicProxyProvider implements ProxyProvider {
         this(Slice.DEFAULT_NAME, Hazelcast.getDefaultInstance());
     }
 
+    /**
+     * Creates a new ProxyProvider.
+     *
+     * @param hazelcastInstance the HazelcastInstance used.
+     * @throws NullPointerException if hazelcastInstance is null.
+     */
     public BasicProxyProvider(HazelcastInstance hazelcastInstance) {
         this(Slice.DEFAULT_NAME, hazelcastInstance);
     }
@@ -51,7 +70,7 @@ public final class BasicProxyProvider implements ProxyProvider {
      *
      * @param sliceName         the Slice to connect to.
      * @param hazelcastInstance the HazelcastInstance
-     * @throws NullPointerException if sliceName or executorService is null.
+     * @throws NullPointerException if sliceName or hazelcastInstance is null.
      */
     public BasicProxyProvider(String sliceName, HazelcastInstance hazelcastInstance) {
         this(notNull("sliceName", sliceName),
@@ -174,7 +193,6 @@ public final class BasicProxyProvider implements ProxyProvider {
         this.distributedMethodInvocationFactory = notNull("remoteMethodInvocationFactory", distributedMethodInvocationFactory);
     }
 
-
     public <T> T getProxy(Class<T> distributedServiceClass) {
         notNull("distributedServiceClass", distributedServiceClass);
 
@@ -210,7 +228,9 @@ public final class BasicProxyProvider implements ProxyProvider {
 
             for (Method method : interfaze.getMethods()) {
                 Annotation annotation = getRegisteredAnnotations(method);
-                MethodInvocationHandlerFactory invocationHandlerFactory = annotation == null ? new LocalMethodInvocationHandlerFactory() : methodInvocationHandlerFactories.get(annotation.annotationType());
+                MethodInvocationHandlerFactory invocationHandlerFactory = annotation == null
+                        ? new LocalMethodInvocationHandlerFactory()
+                        : methodInvocationHandlerFactories.get(annotation.annotationType());
                 MethodInvocationHandler methodInvocationHandler = invocationHandlerFactory.build(method);
                 methodHandlers.put(method, methodInvocationHandler);
             }
