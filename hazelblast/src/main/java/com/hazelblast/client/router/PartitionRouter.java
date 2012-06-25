@@ -2,9 +2,7 @@ package com.hazelblast.client.router;
 
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.Member;
-import com.hazelcast.core.MemberLeftException;
 import com.hazelcast.core.PartitionAware;
-import com.hazelcast.logging.ILogger;
 import com.hazelcast.partition.Partition;
 import com.hazelcast.partition.PartitionService;
 
@@ -15,22 +13,27 @@ import java.lang.reflect.Method;
 import static com.hazelblast.utils.Arguments.notNull;
 import static java.lang.String.format;
 
+/**
+ * A {@link Router} that uses partitioning to do the routing. So it inspects some argument of the method call, and
+ * based on that argument the right node is selected.
+ * <p/>
+ * This router is used in combinaton with the {@link com.hazelblast.client.annotations.Partitioned} annotation.
+ *
+ * @author Peter Veentjer.
+ */
 public class PartitionRouter implements Router {
-
-    private final ILogger logger;
 
     private final Method propertyMethod;
     private final Field propertyField;
-    private final int partitionKeyArgIndex;
+    private final int partitionKeyIndex;
     private final PartitionService partitionService;
 
-    public PartitionRouter(HazelcastInstance hazelcastInstance, Method propertyMethod, Field propertyField, int partitionKeyArgIndex) {
+    public PartitionRouter(HazelcastInstance hazelcastInstance, Method propertyMethod, Field propertyField, int partitionKeyIndex) {
         notNull("hazelcastInstance", hazelcastInstance);
-        this.logger = hazelcastInstance.getLoggingService().getLogger(RoundRobinLoadBalancer.class.getName());
         this.partitionService = hazelcastInstance.getPartitionService();
         this.propertyMethod = propertyMethod;
         this.propertyField = propertyField;
-        this.partitionKeyArgIndex = partitionKeyArgIndex;
+        this.partitionKeyIndex = partitionKeyIndex;
     }
 
     public Target getTarget(Method method, Object[] args) throws Throwable {
@@ -41,9 +44,9 @@ public class PartitionRouter implements Router {
     }
 
     private Object getPartitionKey(Method method, Object[] args) throws Throwable {
-        Object arg = args[partitionKeyArgIndex];
+        Object arg = args[partitionKeyIndex];
         if (arg == null) {
-            throw new NullPointerException(format("The @PartitionKey argument of partitioned method '%s' can't be null", method));
+            throw new NullPointerException(format("The partitionkey argument of partitioned method '%s' can't be null", method));
         }
 
         Object partitionKey;
@@ -51,29 +54,21 @@ public class PartitionRouter implements Router {
             try {
                 partitionKey = propertyMethod.invoke(arg);
                 if (partitionKey == null) {
-                    //todo: improve message
-                    throw new NullPointerException(
-                            format("The @PartitionKey argument of type '%s' used in partitioned method '%s' can't return null for '%s'",
-                                    args[partitionKeyArgIndex].getClass().getName(), method, propertyMethod));
-
+                    throw new NullPointerException(format("Method '%s' that is used to determine the partitionkey, can't return null.", propertyMethod));
                 }
             } catch (InvocationTargetException e) {
                 throw e.getTargetException();
             } catch (IllegalAccessException e) {
-                throw new IllegalArgumentException(format("[%s] The @PartitionKey.property method '%s' failed to be invoked",
-                        method, propertyMethod), e);
+                throw new IllegalArgumentException(format("Method '%s' that is used to determine the partitionkey, failed to be invoked.", propertyMethod), e);
             }
         } else if (propertyField != null) {
             try {
                 partitionKey = propertyField.get(arg);
-
-                //todo: improve message
                 if (partitionKey == null) {
-                    throw new NullPointerException();
+                    throw new NullPointerException(format("Field '%s' that is used to determine the partitionkey, can't return null.", propertyField));
                 }
             } catch (IllegalAccessException e) {
-                //todo: improve message
-                throw new NullPointerException();
+                throw new IllegalArgumentException(format("Field '%s' that is used to determine the partitionkey, failed to be accessed.", propertyField), e);
             }
         } else {
             partitionKey = arg;
@@ -83,8 +78,7 @@ public class PartitionRouter implements Router {
         if (partitionKey instanceof PartitionAware) {
             partitionKey = ((PartitionAware) partitionKey).getPartitionKey();
             if (partitionKey == null) {
-                //todo:
-                throw new NullPointerException();
+                throw new IllegalArgumentException(format("PartitionAware class '%s' returned null as partitionkey.", arg.getClass().getName()));
             }
         }
 
