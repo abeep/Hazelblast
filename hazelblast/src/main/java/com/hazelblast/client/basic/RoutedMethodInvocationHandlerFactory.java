@@ -83,7 +83,7 @@ public abstract class RoutedMethodInvocationHandlerFactory extends MethodInvocat
                         method.getName(),
                         args,
                         argTypes,
-                        Long.MIN_VALUE);
+                        -1);
 
                 future = executor.submit(callable);
             } else {

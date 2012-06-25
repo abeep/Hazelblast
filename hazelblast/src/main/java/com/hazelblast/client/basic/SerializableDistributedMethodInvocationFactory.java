@@ -22,7 +22,7 @@ public final class SerializableDistributedMethodInvocationFactory implements Dis
 
     public final static SerializableDistributedMethodInvocationFactory INSTANCE = new SerializableDistributedMethodInvocationFactory();
 
-    public <T> Callable<T> create(String sliceName, String serviceName, String methodName, Object[] args, String[] argTypes, long partitionKey) {
+    public <T> Callable<T> create(String sliceName, String serviceName, String methodName, Object[] args, String[] argTypes, int partitionKey) {
         return new DistributedMethodInvocation(sliceName, serviceName, methodName, args, argTypes, partitionKey);
     }
 
@@ -36,11 +36,11 @@ public final class SerializableDistributedMethodInvocationFactory implements Dis
         private final String serviceName;
         private final String methodName;
         private final Object[] args;
-        private final long partitionId;
+        private final int partitionId;
         private final String[] argTypes;
         private volatile transient HazelcastInstance hazelcastInstance;
 
-        DistributedMethodInvocation(String sliceName, String serviceName, String methodName, Object[] args, String[] argTypes, long partitionId) {
+        DistributedMethodInvocation(String sliceName, String serviceName, String methodName, Object[] args, String[] argTypes, int partitionId) {
             this.sliceName = sliceName;
             this.serviceName = serviceName;
             this.methodName = methodName;

@@ -26,5 +26,5 @@ public interface DistributedMethodInvocationFactory {
      * @return the Callable.
      * @throws NullPointerException if sliceName, serviceName, methodName or args is null.
      */
-    <T> Callable<T> create(String sliceName, String serviceName, String methodName, Object[] args, String[] argTypes, long partitionId);
+    <T> Callable<T> create(String sliceName, String serviceName, String methodName, Object[] args, String[] argTypes, int partitionId);
 }

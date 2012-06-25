@@ -164,7 +164,7 @@ public final class SliceServer {
      */
     public static Object executeMethod(HazelcastInstance hazelcastInstance,
                                        String sliceName, String serviceName, String methodName,
-                                       String[] argTypes, Object[] args, long partitionId) throws Throwable {
+                                       String[] argTypes, Object[] args, int partitionId) throws Throwable {
         notNull("hazelcastInstance", hazelcastInstance);
         notNull("sliceName", sliceName);
         notNull("serviceName", serviceName);

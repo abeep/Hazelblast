@@ -5,14 +5,14 @@ import com.hazelcast.core.Member;
 public class Target {
 
     private final Member member;
-    private final long partitionId;
+    private final int partitionId;
 
     public Target(Member member){
         this.member =member;
-        partitionId = Long.MIN_VALUE;
+        partitionId = -1;
     }
 
-    public Target(Member member, long partitionId) {
+    public Target(Member member, int partitionId) {
         this.member = member;
         this.partitionId = partitionId;
     }
@@ -21,7 +21,7 @@ public class Target {
         return member;
     }
 
-    public long getPartitionId() {
+    public int getPartitionId() {
         return partitionId;
     }
 }
