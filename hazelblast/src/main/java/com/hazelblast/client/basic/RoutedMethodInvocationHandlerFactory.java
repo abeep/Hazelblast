@@ -6,6 +6,7 @@ import com.hazelblast.client.router.Target;
 import com.hazelblast.server.exceptions.NoMemberAvailableException;
 import com.hazelblast.server.exceptions.PartitionMovedException;
 import com.hazelcast.core.DistributedTask;
+import com.hazelcast.core.HazelcastInstanceAware;
 import com.hazelcast.core.MemberLeftException;
 import com.hazelcast.logging.ILogger;
 
@@ -15,6 +16,14 @@ import java.util.logging.Level;
 
 import static java.lang.String.format;
 
+
+/**
+ * A {@link MethodInvocationHandler} specially made for dealing with routed calls, so calls that make use of the
+ * {@link Router}. A partitioned calls routs on partitions and a loadbalanced call routes based on load, so they
+ * both share this routing aspects. This class contains the logic for executing loadbalanced and partitioned calls.
+ *
+ * @author Peter Veentjer.
+ */
 public abstract class RoutedMethodInvocationHandlerFactory extends MethodInvocationHandlerFactory {
 
     public class RoutedMethodInvocationHandler implements MethodInvocationHandler {
@@ -64,6 +73,7 @@ public abstract class RoutedMethodInvocationHandlerFactory extends MethodInvocat
                     Object result;
                     try {
                         if (router == null) {
+                            //if no router is available, we'll let the executor decide if it wants to apply load balancing
                             Callable callable = proxyProvider.distributedMethodInvocationFactory.create(
                                     proxyProvider.sliceName,
                                     method.getDeclaringClass().getSimpleName(),
@@ -74,20 +84,31 @@ public abstract class RoutedMethodInvocationHandlerFactory extends MethodInvocat
 
                             future = executor.submit(callable);
                         } else {
+                            //a router was found, so we'll use the result of this router to figure out to which machine
+                            //the task is send.
+
                             Target target = router.getTarget(method, args);
 
                             if (target.getMember() == null) {
                                 throw new MemberLeftException();
                             }
 
-                            Callable callable = proxyProvider.distributedMethodInvocationFactory.create(
+                            final Callable callable = proxyProvider.distributedMethodInvocationFactory.create(
                                     proxyProvider.sliceName,
                                     method.getDeclaringClass().getSimpleName(),
                                     method.getName(),
                                     args,
                                     argTypes,
                                     target.getPartitionId());
-                            future = executor.submit(new DistributedTask(callable, target.getMember()));
+
+                            if (target.getMember().equals(hazelcastInstance.getCluster().getLocalMember())) {
+                                if (callable instanceof HazelcastInstanceAware) {
+                                    ((HazelcastInstanceAware) callable).setHazelcastInstance(hazelcastInstance);
+                                }
+                                future = new CallerRunsFuture(callable);
+                            } else {
+                                future = executor.submit(new DistributedTask(callable, target.getMember()));
+                            }
                         }
 
                         if (timeoutNs == Long.MAX_VALUE) {
@@ -166,6 +187,42 @@ public abstract class RoutedMethodInvocationHandlerFactory extends MethodInvocat
             long ms = sleepPeriodNs / (1000 * 1000);
             Thread.sleep(ms, ns);
             return spendNs + sleepPeriodNs;
+        }
+
+        private class CallerRunsFuture implements Future {
+            private final Callable callable;
+
+            public CallerRunsFuture(Callable callable) {
+                this.callable = callable;
+            }
+
+            public boolean cancel(boolean mayInterruptIfRunning) {
+                throw new UnsupportedOperationException();
+            }
+
+            public boolean isCancelled() {
+                throw new UnsupportedOperationException();
+            }
+
+            public boolean isDone() {
+                throw new UnsupportedOperationException();
+            }
+
+            public Object get() throws InterruptedException, ExecutionException {
+                try {
+                    return callable.call();
+                } catch (Exception e) {
+                    throw new ExecutionException(e);
+                }
+            }
+
+            public Object get(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
+                try {
+                    return callable.call();
+                } catch (Exception e) {
+                    throw new ExecutionException(e);
+                }
+            }
         }
     }
 }

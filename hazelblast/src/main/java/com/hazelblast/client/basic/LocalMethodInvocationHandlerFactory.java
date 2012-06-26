@@ -5,6 +5,12 @@ import java.lang.reflect.Method;
 
 import static java.lang.String.format;
 
+/**
+ * The {@link MethodInvocationHandlerFactory} is responsible for producing {@link MethodInvocationHandler} for the
+ * toString/hashCode/equals methods.
+ *
+ * @author Peter Veentjer.
+ */
 public class LocalMethodInvocationHandlerFactory extends MethodInvocationHandlerFactory {
 
     @Override

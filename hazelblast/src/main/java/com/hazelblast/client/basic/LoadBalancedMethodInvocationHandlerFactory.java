@@ -12,6 +12,12 @@ import java.lang.reflect.Method;
 
 import static java.lang.String.format;
 
+
+/**
+ * A {@link MethodInvocationHandlerFactory} responsible for dealing with load balanced methods.
+ *
+ * @author  Peter Veentjer.
+ */
 public class LoadBalancedMethodInvocationHandlerFactory extends RoutedMethodInvocationHandlerFactory {
 
     @Override
