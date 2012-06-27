@@ -1,6 +1,7 @@
 package com.hazelblast.client.annotations;
 
 import com.hazelblast.client.router.NoOpRouter;
+import com.hazelblast.client.router.RoundRobinLoadBalancer;
 import com.hazelblast.client.router.Router;
 
 import java.lang.annotation.ElementType;
@@ -37,5 +38,5 @@ public @interface LoadBalanced {
      *
      * @return the Router class.
      */
-    Class<? extends Router> loadBalancer() default NoOpRouter.class;
+    Class<? extends Router> loadBalancer() default RoundRobinLoadBalancer.class;
 }
