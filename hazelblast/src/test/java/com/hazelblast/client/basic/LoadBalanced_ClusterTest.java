@@ -54,13 +54,24 @@ public class LoadBalanced_ClusterTest {
         ProxyProvider proxyProvider = new BasicProxyProvider(clientInstance);
         SomeService someService = proxyProvider.getProxy(SomeService.class);
 
-        for (int k = 0; k < 3 * 5; k++) {
+        int countPerPartition = 10000;
+
+        long startMs = System.currentTimeMillis();
+        System.out.println("Starting");
+        for (int k = 0; k < 3 * countPerPartition; k++) {
             someService.someMethod();
+
+            if(k%1000==0){
+                System.out.printf("at %s\n",k);
+            }
         }
 
-        assertEquals(5, service1.count);
-        assertEquals(5, service2.count);
-        assertEquals(5, service3.count);
+        long durationMs = System.currentTimeMillis()-startMs;
+        System.out.printf("Finished in %s ms\n",durationMs);
+
+        assertEquals(countPerPartition, service1.count);
+        assertEquals(countPerPartition, service2.count);
+        assertEquals(countPerPartition, service3.count);
 
         server1.shutdown();
         server2.shutdown();

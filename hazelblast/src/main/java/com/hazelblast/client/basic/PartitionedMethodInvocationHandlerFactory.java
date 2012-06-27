@@ -13,6 +13,12 @@ import java.util.List;
 
 import static java.lang.String.format;
 
+/**
+ * A {@link MethodInvocationHandlerFactory} that deals with Partitioned methods. THe only thing this implementation does
+ * is analyzing the partitioned method, but forward all logic for actual execution to the {@link RoutedMethodInvocationHandlerFactory}.
+ *
+ * @author Peter Veentjer.
+ */
 public class PartitionedMethodInvocationHandlerFactory extends RoutedMethodInvocationHandlerFactory {
 
     @Override
@@ -28,10 +34,10 @@ public class PartitionedMethodInvocationHandlerFactory extends RoutedMethodInvoc
         Partitioned partitionedAnnotation = (Partitioned) annotation;
         boolean interruptOnTimeout = partitionedAnnotation.interruptOnTimeout();
         long timeoutMs = partitionedAnnotation.timeoutMs();
-        PartitionKeyInfo partitionKeyInfo = getPartitionKeyInfo(partitionedMethod);
-        int partitionKeyIndex = partitionKeyInfo.index;
+        PartitionKeyMetaData partitionKeyMetaData = getPartitionKeyMetaData(partitionedMethod);
+        int partitionKeyIndex = partitionKeyMetaData.index;
 
-        String propertyName = partitionKeyInfo.property;
+        String propertyName = partitionKeyMetaData.property;
         if (propertyName != null) {
             Class argType = partitionedMethod.getParameterTypes()[partitionKeyIndex];
             propertyMethod = getMethod(partitionedMethod, argType, propertyName);
@@ -49,7 +55,8 @@ public class PartitionedMethodInvocationHandlerFactory extends RoutedMethodInvoc
                     propertyField = argType.getDeclaredField(propertyName);
                 } catch (NoSuchFieldException e) {
                     throw new IllegalArgumentException(
-                            format("Property '%s' of the the @PartitionKey argument of method '%s', doesn't point to an existing method or field", propertyMethod, partitionedMethod));
+                            format("Property '%s' of the the @PartitionKey argument of method '%s', doesn't point to an " +
+                                    "existing method or field", propertyMethod, partitionedMethod));
 
                 }
             }
@@ -70,7 +77,9 @@ public class PartitionedMethodInvocationHandlerFactory extends RoutedMethodInvoc
             Method propertyMethod = argType.getDeclaredMethod(name);
             propertyMethod.setAccessible(true);
             if (propertyMethod.getReturnType().equals(Void.class)) {
-                throw new IllegalArgumentException(format("The property method '%s' of the the @PartitionKey argument of method '%s', can't return void", propertyMethod, partitionedMethod));
+                throw new IllegalArgumentException(
+                        format("The property method '%s' of the the @PartitionKey argument of method '%s', can't return void",
+                                propertyMethod, partitionedMethod));
             }
             return propertyMethod;
         } catch (NoSuchMethodException e) {
@@ -78,35 +87,35 @@ public class PartitionedMethodInvocationHandlerFactory extends RoutedMethodInvoc
         }
     }
 
-    private PartitionKeyInfo getPartitionKeyInfo(Method method) {
+    private PartitionKeyMetaData getPartitionKeyMetaData(Method method) {
         if (method.getParameterTypes().length == 0) {
             throw new IllegalArgumentException(format("@Partitioned method '%s', should have a least 1 argument to use as @PartitionKey.", method));
         }
 
-        List<PartitionKeyInfo> partitionKeyInfoList = getPartitionKeyIndex(method);
-        if (partitionKeyInfoList.isEmpty()) {
+        List<PartitionKeyMetaData> partitionKeyMetaDataList = getPartitionKeyIndex(method);
+        if (partitionKeyMetaDataList.isEmpty()) {
             throw new IllegalArgumentException(format("@PartitionedMethod '%s' has no argument with the @PartitionKey annotation", method));
         }
 
-        if (partitionKeyInfoList.size() > 1) {
+        if (partitionKeyMetaDataList.size() > 1) {
             throw new IllegalArgumentException(format("@PartitionedMethod '%s' has too many arguments with the @PartitionKey annotation", method));
         }
 
-        return partitionKeyInfoList.get(0);
+        return partitionKeyMetaDataList.get(0);
     }
 
-    static class PartitionKeyInfo {
+    static class PartitionKeyMetaData {
         final int index;
         final String property;
 
-        PartitionKeyInfo(int index, String property) {
+        PartitionKeyMetaData(int index, String property) {
             this.index = index;
             this.property = property;
         }
     }
 
-    private static List<PartitionKeyInfo> getPartitionKeyIndex(Method method) {
-        List<PartitionKeyInfo> result = new LinkedList<PartitionKeyInfo>();
+    private static List<PartitionKeyMetaData> getPartitionKeyIndex(Method method) {
+        List<PartitionKeyMetaData> result = new LinkedList<PartitionKeyMetaData>();
 
         Annotation[][] annotations = method.getParameterAnnotations();
 
@@ -117,7 +126,7 @@ public class PartitionedMethodInvocationHandlerFactory extends RoutedMethodInvoc
                 if (annotation instanceof PartitionKey) {
                     PartitionKey partitionKey = (PartitionKey) annotation;
                     String property = partitionKey.property();
-                    result.add(new PartitionKeyInfo(argIndex, property.isEmpty() ? null : property));
+                    result.add(new PartitionKeyMetaData(argIndex, property.isEmpty() ? null : property));
                 }
             }
         }

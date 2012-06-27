@@ -6,6 +6,11 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.concurrent.ExecutorService;
 
+/**
+ * The {@link MethodInvocationHandlerFactory} is responsible for creating {@link MethodInvocationHandler}.
+ *
+ * @author Peter Veentjer.
+ */
 public abstract class MethodInvocationHandlerFactory {
 
     protected BasicProxyProvider proxyProvider;

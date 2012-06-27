@@ -18,7 +18,7 @@ import java.lang.reflect.Method;
 public interface Router {
 
     /**
-     * Gets the next member that can be used to send a message to.
+     * Gets the next Target that can be used to send a message to.
      *
      * @param method the method that is called
      * @param args   the arguments of the method being called.

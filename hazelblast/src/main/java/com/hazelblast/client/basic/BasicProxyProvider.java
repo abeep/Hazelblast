@@ -40,10 +40,11 @@ public final class BasicProxyProvider implements ProxyProvider {
     protected final ExecutorService executorService;
     protected final Cluster cluster;
     protected final String sliceName;
+    protected volatile boolean optimizeLocalCalls = true;
     protected volatile DistributedMethodInvocationFactory distributedMethodInvocationFactory
             = SerializableDistributedMethodInvocationFactory.INSTANCE;
-    private final LocalMethodInvocationHandlerFactory localMethodInvocationHandlerFactory
-            = new LocalMethodInvocationHandlerFactory();
+    private final ToStringEqualsHashCodeInvocationHandlerFactory toStringEqualsHashCodeInvocationHandlerFactory
+            = new ToStringEqualsHashCodeInvocationHandlerFactory();
     private final ConcurrentMap<Class, Object> proxies = new ConcurrentHashMap<Class, Object>();
     private final ConcurrentMap<Class<? extends Annotation>, MethodInvocationHandlerFactory> methodInvocationHandlerFactories
             = new ConcurrentHashMap<Class<? extends Annotation>, MethodInvocationHandlerFactory>();
@@ -119,6 +120,32 @@ public final class BasicProxyProvider implements ProxyProvider {
         }
         factory.setProxyProvider(this);
         return methodInvocationHandlerFactories.put(factory.getAnnotationClass(), factory);
+    }
+
+    /**
+     * Returns true if local calls are going to be optimized, false otherwise.
+     *
+     * @return true if local calls are going to be optimized.
+     * @see #setOptimizeLocalCalls(boolean)
+     */
+    public boolean getOptimizeLocalCalls() {
+        return optimizeLocalCalls;
+    }
+
+    /**
+     * Sets the local call optimization. By default this is set to true.
+     *
+     * Local means that the HazelcastInstance of this ProxyProvider is the same HazelcastInstance as the HazelcastInstance
+     * of the {@link com.hazelblast.server.SliceServer} that it going to process the call. So serialisation/deserialisation
+     * of the arguments (and some other metadata) and the HazelcastExecutor is skipped completely, and the call is
+     * executed on the calling thread.
+     * <p/>
+     * The main drawback is that the timeout option is not obeyed.
+     *
+     * @param optimizeLocalCalls if local calls should be optimized or not.
+     */
+    public void setOptimizeLocalCalls(boolean optimizeLocalCalls) {
+        this.optimizeLocalCalls = optimizeLocalCalls;
     }
 
     /**
@@ -229,7 +256,7 @@ public final class BasicProxyProvider implements ProxyProvider {
             for (Method method : interfaze.getMethods()) {
                 Annotation annotation = getRegisteredAnnotations(method);
                 MethodInvocationHandlerFactory invocationHandlerFactory = annotation == null
-                        ? new LocalMethodInvocationHandlerFactory()
+                        ? new ToStringEqualsHashCodeInvocationHandlerFactory()
                         : methodInvocationHandlerFactories.get(annotation.annotationType());
                 MethodInvocationHandler methodInvocationHandler = invocationHandlerFactory.build(method);
                 methodHandlers.put(method, methodInvocationHandler);
@@ -238,13 +265,13 @@ public final class BasicProxyProvider implements ProxyProvider {
 
         try {
             Method equalsMethod = Object.class.getMethod("equals", Object.class);
-            methodHandlers.put(equalsMethod, localMethodInvocationHandlerFactory.build(equalsMethod));
+            methodHandlers.put(equalsMethod, toStringEqualsHashCodeInvocationHandlerFactory.build(equalsMethod));
 
             Method toStringMethod = Object.class.getMethod("toString");
-            methodHandlers.put(toStringMethod, localMethodInvocationHandlerFactory.build(toStringMethod));
+            methodHandlers.put(toStringMethod, toStringEqualsHashCodeInvocationHandlerFactory.build(toStringMethod));
 
             Method hashCodeMethod = Object.class.getMethod("hashCode");
-            methodHandlers.put(hashCodeMethod, localMethodInvocationHandlerFactory.build(hashCodeMethod));
+            methodHandlers.put(hashCodeMethod, toStringEqualsHashCodeInvocationHandlerFactory.build(hashCodeMethod));
         } catch (NoSuchMethodException e) {
             throw new RuntimeException("should not happen!", e);
         }

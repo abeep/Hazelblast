@@ -6,6 +6,8 @@ import com.hazelblast.client.router.Target;
 import com.hazelblast.server.exceptions.NoMemberAvailableException;
 import com.hazelblast.server.exceptions.PartitionMovedException;
 import com.hazelcast.core.DistributedTask;
+import com.hazelcast.core.HazelcastInstanceAware;
+import com.hazelcast.core.Member;
 import com.hazelcast.core.MemberLeftException;
 import com.hazelcast.logging.ILogger;
 
@@ -15,6 +17,14 @@ import java.util.logging.Level;
 
 import static java.lang.String.format;
 
+
+/**
+ * A {@link MethodInvocationHandler} specially made for dealing with routed calls, so calls that make use of the
+ * {@link Router}. A partitioned calls routs on partitions and a loadbalanced call routes based on load, so they
+ * both share this routing aspects. This class contains the logic for executing loadbalanced and partitioned calls.
+ *
+ * @author Peter Veentjer.
+ */
 public abstract class RoutedMethodInvocationHandlerFactory extends MethodInvocationHandlerFactory {
 
     public class RoutedMethodInvocationHandler implements MethodInvocationHandler {
@@ -24,12 +34,14 @@ public abstract class RoutedMethodInvocationHandlerFactory extends MethodInvocat
         private final Router router;
         private final boolean interruptOnTimeout;
         private final ILogger logger;
+        private final Member localMember;
 
         public RoutedMethodInvocationHandler(Method method,
                                              long timeoutMs,
                                              boolean interruptOnTimeout,
                                              Router router) {
             this.logger = hazelcastInstance.getLoggingService().getLogger(RoutedMethodInvocationHandler.class.getName());
+            this.localMember = hazelcastInstance.getCluster().getLocalMember();
             this.method = method;
             if (timeoutMs == Long.MAX_VALUE) {
                 this.timeoutNs = Long.MAX_VALUE;
@@ -48,10 +60,11 @@ public abstract class RoutedMethodInvocationHandlerFactory extends MethodInvocat
 
         public Object invoke(Object proxy, Object[] args) throws Throwable {
             if (logger.isLoggable(Level.FINE)) {
-                logger.log(Level.FINE, "Starting " + method);
+                logger.log(Level.FINE, format("Starting method '%s'", method));
             }
 
             long spendNs = 0;
+
             for (; ; ) {
                 long startTimeNs = System.nanoTime();
 
@@ -63,7 +76,9 @@ public abstract class RoutedMethodInvocationHandlerFactory extends MethodInvocat
 
                     Object result;
                     try {
+                        boolean optimizeLocalCall;
                         if (router == null) {
+                             //if no router is available, we'll let the executor decide if it wants to apply load balancing
                             Callable callable = proxyProvider.distributedMethodInvocationFactory.create(
                                     proxyProvider.sliceName,
                                     method.getDeclaringClass().getSimpleName(),
@@ -72,25 +87,41 @@ public abstract class RoutedMethodInvocationHandlerFactory extends MethodInvocat
                                     argTypes,
                                     -1);
 
+                            optimizeLocalCall = false;
+
                             future = executor.submit(callable);
                         } else {
+                            //a router was found, so we'll use the result of this router to figure out to which machine
+                            //the task is send.
+
                             Target target = router.getTarget(method, args);
 
                             if (target.getMember() == null) {
+                                //just retry the call.
                                 throw new MemberLeftException();
                             }
 
-                            Callable callable = proxyProvider.distributedMethodInvocationFactory.create(
+                            final Callable callable = proxyProvider.distributedMethodInvocationFactory.create(
                                     proxyProvider.sliceName,
                                     method.getDeclaringClass().getSimpleName(),
                                     method.getName(),
                                     args,
                                     argTypes,
                                     target.getPartitionId());
-                            future = executor.submit(new DistributedTask(callable, target.getMember()));
+
+
+                            optimizeLocalCall = target.getMember().equals(localMember) && proxyProvider.optimizeLocalCalls;
+                            if (optimizeLocalCall) {
+                                if (callable instanceof HazelcastInstanceAware) {
+                                    ((HazelcastInstanceAware) callable).setHazelcastInstance(hazelcastInstance);
+                                }
+                                future = new CallerRunsFuture(callable);
+                            } else {
+                                future = executor.submit(new DistributedTask(callable, target.getMember()));
+                            }
                         }
 
-                        if (timeoutNs == Long.MAX_VALUE) {
+                        if (timeoutNs == Long.MAX_VALUE || optimizeLocalCall) {
                             result = future.get();
                         } else {
                             result = future.get(timeoutNs - spendNs, TimeUnit.NANOSECONDS);
@@ -100,7 +131,7 @@ public abstract class RoutedMethodInvocationHandlerFactory extends MethodInvocat
                     }
 
                     if (logger.isLoggable(Level.FINE)) {
-                        logger.log(Level.FINE, format("Completed '%s' in %s ms", method, TimeUnit.NANOSECONDS.toMillis(spendNs)));
+                        logger.log(Level.FINE, format("Completed method '%s' in %s ms", method, TimeUnit.NANOSECONDS.toMillis(spendNs)));
                     }
 
                     return result;
@@ -109,7 +140,7 @@ public abstract class RoutedMethodInvocationHandlerFactory extends MethodInvocat
                         future.cancel(true);
                     }
                     throw new DistributedMethodTimeoutException(
-                            format("Method '%s' failed to complete in %s ms", method.toString(), TimeUnit.NANOSECONDS.toMillis(timeoutNs)), e);
+                            format("Failed to complete method '%s' in %s ms", method.toString(), TimeUnit.NANOSECONDS.toMillis(timeoutNs)), e);
                 } catch (Exception e) {
                     if (isWorthRetrying(e)) {
                         spendNs = sleep(spendNs, timeoutNs);
@@ -166,6 +197,42 @@ public abstract class RoutedMethodInvocationHandlerFactory extends MethodInvocat
             long ms = sleepPeriodNs / (1000 * 1000);
             Thread.sleep(ms, ns);
             return spendNs + sleepPeriodNs;
+        }
+
+        private class CallerRunsFuture implements Future {
+            private final Callable callable;
+
+            public CallerRunsFuture(Callable callable) {
+                this.callable = callable;
+            }
+
+            public boolean cancel(boolean mayInterruptIfRunning) {
+                throw new UnsupportedOperationException();
+            }
+
+            public boolean isCancelled() {
+                throw new UnsupportedOperationException();
+            }
+
+            public boolean isDone() {
+                throw new UnsupportedOperationException();
+            }
+
+            public Object get() throws InterruptedException, ExecutionException {
+                try {
+                    return callable.call();
+                } catch (Exception e) {
+                    throw new ExecutionException(e);
+                }
+            }
+
+            public Object get(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
+                try {
+                    return callable.call();
+                } catch (Exception e) {
+                    throw new ExecutionException(e);
+                }
+            }
         }
     }
 }

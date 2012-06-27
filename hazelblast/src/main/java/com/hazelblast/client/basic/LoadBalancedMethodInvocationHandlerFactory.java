@@ -12,6 +12,12 @@ import java.lang.reflect.Method;
 
 import static java.lang.String.format;
 
+
+/**
+ * A {@link MethodInvocationHandlerFactory} responsible for dealing with load balanced methods.
+ *
+ * @author  Peter Veentjer.
+ */
 public class LoadBalancedMethodInvocationHandlerFactory extends RoutedMethodInvocationHandlerFactory {
 
     @Override
@@ -28,19 +34,19 @@ public class LoadBalancedMethodInvocationHandlerFactory extends RoutedMethodInvo
         timeoutMs = annotation.timeoutMs();
         interruptOnTimeout = annotation.interruptOnTimeout();
 
-        Class<? extends Router> loadBalancerClass = annotation.loadBalancer();
-        if (!loadBalancerClass.equals(NoOpRouter.class)) {
+        Class<? extends Router> routerClass = annotation.loadBalancer();
+        if (!routerClass.equals(NoOpRouter.class)) {
             try {
-                Constructor<? extends Router> constructor = loadBalancerClass.getConstructor(HazelcastInstance.class);
+                Constructor<? extends Router> constructor = routerClass.getConstructor(HazelcastInstance.class);
                 loadBalancer = constructor.newInstance(hazelcastInstance);
             } catch (InstantiationException e) {
-                throw new IllegalArgumentException(format("Failed to instantiate Router class '%s'", loadBalancerClass.getName()), e);
+                throw new IllegalArgumentException(format("Failed to instantiate Router class '%s'", routerClass.getName()), e);
             } catch (IllegalAccessException e) {
-                throw new IllegalArgumentException(format("Failed to instantiate Router class '%s'", loadBalancerClass.getName()), e);
+                throw new IllegalArgumentException(format("Failed to instantiate Router class '%s'", routerClass.getName()), e);
             } catch (NoSuchMethodException e) {
-                throw new IllegalArgumentException(format("Failed to instantiate Router class '%s'", loadBalancerClass.getName()), e);
+                throw new IllegalArgumentException(format("Failed to instantiate Router class '%s'", routerClass.getName()), e);
             } catch (InvocationTargetException e) {
-                throw new IllegalArgumentException(format("Failed to instantiate Router class '%s'", loadBalancerClass.getName()), e);
+                throw new IllegalArgumentException(format("Failed to instantiate Router class '%s'", routerClass.getName()), e);
             }
         }
 

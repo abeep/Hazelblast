@@ -5,11 +5,17 @@ import java.lang.reflect.Method;
 
 import static java.lang.String.format;
 
-public class LocalMethodInvocationHandlerFactory extends MethodInvocationHandlerFactory {
+/**
+ * A {@link MethodInvocationHandlerFactory} that is responsible for producing {@link MethodInvocationHandler} for the
+ * toString/hashCode/equals methods.
+ *
+ * @author Peter Veentjer.
+ */
+public class ToStringEqualsHashCodeInvocationHandlerFactory extends MethodInvocationHandlerFactory {
 
     @Override
     public Class<? extends Annotation> getAnnotationClass() {
-        return null;
+        throw new UnsupportedOperationException();
     }
 
     public MethodInvocationHandler build(Method method) {
