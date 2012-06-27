@@ -39,6 +39,7 @@ public class Partitioned_TimeoutIntegrationTest {
         Thread.sleep(1000);
 
         proxyProvider = new BasicProxyProvider(hazelcastInstance);
+        proxyProvider.setOptimizeLocalCalls(false);
     }
 
     @After

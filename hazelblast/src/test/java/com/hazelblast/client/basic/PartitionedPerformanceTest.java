@@ -1,11 +1,9 @@
 package com.hazelblast.client.basic;
 
-import com.hazelblast.client.ProxyProvider;
+import com.hazelblast.TestUtils;
 import com.hazelblast.client.annotations.DistributedService;
-import com.hazelblast.client.annotations.LoadBalanced;
 import com.hazelblast.client.annotations.PartitionKey;
 import com.hazelblast.client.annotations.Partitioned;
-import com.hazelblast.client.router.RoundRobinLoadBalancer;
 import com.hazelblast.server.SliceServer;
 import com.hazelblast.server.pojoslice.Exposed;
 import com.hazelblast.server.pojoslice.HazelcastInstanceProvider;
@@ -16,12 +14,17 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.util.concurrent.atomic.AtomicBoolean;
+
 
 public class PartitionedPerformanceTest {
+
+    private AtomicBoolean run;
 
     @Before
     public void before() {
         Hazelcast.shutdownAll();
+        run = new AtomicBoolean(true);
     }
 
     @After
@@ -30,32 +33,43 @@ public class PartitionedPerformanceTest {
     }
 
     @Test
-    public void test() throws Throwable {
+    public void whenOptimizeLocalCalls() throws Throwable {
+        test(true);
+    }
+
+    @Test
+    public void whenNotOptimizeLocalCalls() throws Throwable {
+        test(false);
+    }
+
+    public void test(boolean optimized) throws Throwable {
         HazelcastInstance instance = Hazelcast.newHazelcastInstance(null);
 
         PojoSlice slice = new PojoSlice(new Pojo(instance));
 
         new SliceServer(slice).start();
 
-        ProxyProvider proxyProvider = new BasicProxyProvider(instance);
+        BasicProxyProvider proxyProvider = new BasicProxyProvider(instance);
+        proxyProvider.setOptimizeLocalCalls(optimized);
         SomeService someService = proxyProvider.getProxy(SomeService.class);
+        //do an initial call to make sure everything is up and running.
+        someService.someMethod("foo");
 
-        System.out.println("Starting");
+        System.out.printf("Starting with optimizeLocalCalls: %s\n", optimized);
+        TestUtils.scheduleSetFalse(run, 30 * 1000);
         long startMs = System.currentTimeMillis();
-        long callCount = 100 * 1000;
 
-        for (int k = 0; k < callCount; k++) {
+        long count = 0;
+        while (run.get()) {
+            count++;
             someService.someMethod("foo");
-            if (k % 1000 == 0) {
-                System.out.printf("at %s\n",k);
-            }
         }
 
         long durationMs = System.currentTimeMillis() - startMs;
         System.out.printf("Finished in %s ms\n", durationMs);
-
-        double callsPerSecond = (callCount * 1000d) / durationMs;
-        System.out.println("Performance is " + callsPerSecond+" calls per second");
+        System.out.printf("Total number of calls: %s\n", count);
+        double callsPerSecond = (count * 1000d) / durationMs;
+        System.out.printf("Performance is %s calls per second\n", callsPerSecond);
     }
 
     public static class Pojo implements HazelcastInstanceProvider {

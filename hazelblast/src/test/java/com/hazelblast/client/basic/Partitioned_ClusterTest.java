@@ -1,11 +1,9 @@
 package com.hazelblast.client.basic;
 
 import com.hazelblast.TestUtils;
-import com.hazelblast.client.ProxyProvider;
 import com.hazelblast.client.annotations.DistributedService;
 import com.hazelblast.client.annotations.PartitionKey;
 import com.hazelblast.client.annotations.Partitioned;
-import com.hazelblast.client.basic.BasicProxyProvider;
 import com.hazelblast.server.Slice;
 import com.hazelblast.server.SliceServer;
 import com.hazelblast.server.pojoslice.Exposed;
@@ -32,10 +30,19 @@ public class Partitioned_ClusterTest {
     }
 
     @Test
-    public void test() throws Throwable {
-        HazelcastInstance instance1 = Hazelcast.newHazelcastInstance(null);
-        HazelcastInstance instance2 = Hazelcast.newHazelcastInstance(null);
-        HazelcastInstance instance3 = Hazelcast.newHazelcastInstance(null);
+    public void whenOptimizeLocalCall() throws Throwable {
+        test(true);
+    }
+
+    @Test
+    public void whenNotOptimizeLocalCall() throws Throwable {
+        test(true);
+    }
+
+    public void test(boolean optimize) throws Throwable {
+        HazelcastInstance instance1 = TestUtils.newServerInstance();
+        HazelcastInstance instance2 = TestUtils.newServerInstance();
+        HazelcastInstance instance3 = TestUtils.newServerInstance();
 
         PojoSlice slice1 = new PojoSlice(new Pojo(instance1));
         PojoSlice slice2 = new PojoSlice(new Pojo(instance2));
@@ -49,9 +56,11 @@ public class Partitioned_ClusterTest {
         SliceServer server2 = build(slice2);
         SliceServer server3 = build(slice3);
 
-        HazelcastInstance clientInstance = TestUtils.newLiteInstance();
+        HazelcastInstance clientInstance = optimize ? instance1 : TestUtils.newLiteInstance();
 
-        ProxyProvider proxyProvider = new BasicProxyProvider(clientInstance);
+        BasicProxyProvider proxyProvider = new BasicProxyProvider(clientInstance);
+        proxyProvider.setOptimizeLocalCalls(optimize);
+
         SomeService someService = proxyProvider.getProxy(SomeService.class);
 
         int callPerInstance = 1000;
@@ -61,7 +70,7 @@ public class Partitioned_ClusterTest {
         }
 
         int sum = service1.count + service2.count + service3.count;
-        assertEquals(callPerInstance*3, sum);
+        assertEquals(callPerInstance * 3, sum);
 
         server1.shutdown();
         server2.shutdown();

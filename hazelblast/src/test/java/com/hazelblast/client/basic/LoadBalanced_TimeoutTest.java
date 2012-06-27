@@ -40,6 +40,7 @@ public class LoadBalanced_TimeoutTest {
 
         HazelcastInstance clientInstance = TestUtils.newLiteInstance();
         proxyProvider = new BasicProxyProvider("default", clientInstance);
+        proxyProvider.setOptimizeLocalCalls(false);
     }
 
     @After
