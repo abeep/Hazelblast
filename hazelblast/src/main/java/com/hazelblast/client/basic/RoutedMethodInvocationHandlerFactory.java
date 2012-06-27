@@ -7,6 +7,7 @@ import com.hazelblast.server.exceptions.NoMemberAvailableException;
 import com.hazelblast.server.exceptions.PartitionMovedException;
 import com.hazelcast.core.DistributedTask;
 import com.hazelcast.core.HazelcastInstanceAware;
+import com.hazelcast.core.Member;
 import com.hazelcast.core.MemberLeftException;
 import com.hazelcast.logging.ILogger;
 
@@ -33,12 +34,14 @@ public abstract class RoutedMethodInvocationHandlerFactory extends MethodInvocat
         private final Router router;
         private final boolean interruptOnTimeout;
         private final ILogger logger;
+        private final Member localMember;
 
         public RoutedMethodInvocationHandler(Method method,
                                              long timeoutMs,
                                              boolean interruptOnTimeout,
                                              Router router) {
             this.logger = hazelcastInstance.getLoggingService().getLogger(RoutedMethodInvocationHandler.class.getName());
+            this.localMember = hazelcastInstance.getCluster().getLocalMember();
             this.method = method;
             if (timeoutMs == Long.MAX_VALUE) {
                 this.timeoutNs = Long.MAX_VALUE;
@@ -57,10 +60,11 @@ public abstract class RoutedMethodInvocationHandlerFactory extends MethodInvocat
 
         public Object invoke(Object proxy, Object[] args) throws Throwable {
             if (logger.isLoggable(Level.FINE)) {
-                logger.log(Level.FINE, "Starting " + method);
+                logger.log(Level.FINE, format("Starting method '%s'", method));
             }
 
             long spendNs = 0;
+
             for (; ; ) {
                 long startTimeNs = System.nanoTime();
 
@@ -72,8 +76,9 @@ public abstract class RoutedMethodInvocationHandlerFactory extends MethodInvocat
 
                     Object result;
                     try {
+                        boolean optimizeLocalCall;
                         if (router == null) {
-                            //if no router is available, we'll let the executor decide if it wants to apply load balancing
+                             //if no router is available, we'll let the executor decide if it wants to apply load balancing
                             Callable callable = proxyProvider.distributedMethodInvocationFactory.create(
                                     proxyProvider.sliceName,
                                     method.getDeclaringClass().getSimpleName(),
@@ -81,6 +86,8 @@ public abstract class RoutedMethodInvocationHandlerFactory extends MethodInvocat
                                     args,
                                     argTypes,
                                     -1);
+
+                            optimizeLocalCall = false;
 
                             future = executor.submit(callable);
                         } else {
@@ -90,6 +97,7 @@ public abstract class RoutedMethodInvocationHandlerFactory extends MethodInvocat
                             Target target = router.getTarget(method, args);
 
                             if (target.getMember() == null) {
+                                //just retry the call.
                                 throw new MemberLeftException();
                             }
 
@@ -101,7 +109,9 @@ public abstract class RoutedMethodInvocationHandlerFactory extends MethodInvocat
                                     argTypes,
                                     target.getPartitionId());
 
-                            if (target.getMember().equals(hazelcastInstance.getCluster().getLocalMember())) {
+
+                            optimizeLocalCall = target.getMember().equals(localMember) && proxyProvider.optimizeLocalCalls;
+                            if (optimizeLocalCall) {
                                 if (callable instanceof HazelcastInstanceAware) {
                                     ((HazelcastInstanceAware) callable).setHazelcastInstance(hazelcastInstance);
                                 }
@@ -111,7 +121,7 @@ public abstract class RoutedMethodInvocationHandlerFactory extends MethodInvocat
                             }
                         }
 
-                        if (timeoutNs == Long.MAX_VALUE) {
+                        if (timeoutNs == Long.MAX_VALUE || optimizeLocalCall) {
                             result = future.get();
                         } else {
                             result = future.get(timeoutNs - spendNs, TimeUnit.NANOSECONDS);
@@ -121,7 +131,7 @@ public abstract class RoutedMethodInvocationHandlerFactory extends MethodInvocat
                     }
 
                     if (logger.isLoggable(Level.FINE)) {
-                        logger.log(Level.FINE, format("Completed '%s' in %s ms", method, TimeUnit.NANOSECONDS.toMillis(spendNs)));
+                        logger.log(Level.FINE, format("Completed method '%s' in %s ms", method, TimeUnit.NANOSECONDS.toMillis(spendNs)));
                     }
 
                     return result;
@@ -130,7 +140,7 @@ public abstract class RoutedMethodInvocationHandlerFactory extends MethodInvocat
                         future.cancel(true);
                     }
                     throw new DistributedMethodTimeoutException(
-                            format("Method '%s' failed to complete in %s ms", method.toString(), TimeUnit.NANOSECONDS.toMillis(timeoutNs)), e);
+                            format("Failed to complete method '%s' in %s ms", method.toString(), TimeUnit.NANOSECONDS.toMillis(timeoutNs)), e);
                 } catch (Exception e) {
                     if (isWorthRetrying(e)) {
                         spendNs = sleep(spendNs, timeoutNs);

@@ -13,8 +13,7 @@ public class Target {
     private final int partitionId;
 
     public Target(Member member) {
-        this.member = member;
-        partitionId = -1;
+        this(member, -1);
     }
 
     public Target(Member member, int partitionId) {

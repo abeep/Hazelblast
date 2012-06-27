@@ -31,22 +31,22 @@ public class PartitionedPerformanceTest {
 
     @Test
     public void test() throws Throwable {
-        HazelcastInstance instance1 = Hazelcast.newHazelcastInstance(null);
+        HazelcastInstance instance = Hazelcast.newHazelcastInstance(null);
 
-        PojoSlice slice1 = new PojoSlice(new Pojo(instance1));
+        PojoSlice slice = new PojoSlice(new Pojo(instance));
 
-        new SliceServer(slice1).start();
+        new SliceServer(slice).start();
 
-        ProxyProvider proxyProvider = new BasicProxyProvider(instance1);
+        ProxyProvider proxyProvider = new BasicProxyProvider(instance);
         SomeService someService = proxyProvider.getProxy(SomeService.class);
 
         System.out.println("Starting");
         long startMs = System.currentTimeMillis();
-        long callCount = 10000 * 1000;
+        long callCount = 100 * 1000;
 
         for (int k = 0; k < callCount; k++) {
             someService.someMethod("foo");
-            if (k % 100000 == 0) {
+            if (k % 1000 == 0) {
                 System.out.printf("at %s\n",k);
             }
         }
