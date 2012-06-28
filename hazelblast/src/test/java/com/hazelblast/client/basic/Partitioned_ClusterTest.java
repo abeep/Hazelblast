@@ -59,7 +59,7 @@ public class Partitioned_ClusterTest {
         HazelcastInstance clientInstance = optimize ? instance1 : TestUtils.newLiteInstance();
 
         BasicProxyProvider proxyProvider = new BasicProxyProvider(clientInstance);
-        proxyProvider.setOptimizeLocalCalls(optimize);
+        proxyProvider.setLocalCallOptimizationEnabled(optimize);
 
         SomeService someService = proxyProvider.getProxy(SomeService.class);
 

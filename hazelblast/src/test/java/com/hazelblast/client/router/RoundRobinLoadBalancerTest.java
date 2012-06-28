@@ -140,7 +140,7 @@ public class RoundRobinLoadBalancerTest {
 
     @Test
     public void multipleMembers() throws Throwable {
-        HazelcastInstance[] instances = new HazelcastInstance[5];
+        HazelcastInstance[] instances = new HazelcastInstance[3];
         for (int k = 0; k < instances.length; k++) {
             instances[k] = newNormalInstance();
         }

@@ -1,9 +1,10 @@
 package com.hazelblast.client.basic;
 
+import com.hazelblast.client.StubExecutorService;
 import com.hazelblast.client.annotations.DistributedService;
 import com.hazelblast.client.annotations.PartitionKey;
 import com.hazelblast.client.annotations.Partitioned;
-import com.hazelblast.client.basic.BasicProxyProvider;
+import com.hazelcast.core.DistributedTask;
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.PartitionAware;
@@ -22,6 +23,7 @@ public class Partitioned_Test {
 
     @BeforeClass
     public static void setUp() {
+        Hazelcast.shutdownAll();
         hazelcastInstance = Hazelcast.newHazelcastInstance(null);
     }
 
@@ -123,12 +125,12 @@ public class Partitioned_Test {
         }
     }
 
-    /*
     @Test
     public void normalPartitionKey() {
         StubExecutorService executorService = new StubExecutorService();
         executorService.result = "";
-        SmarterProxyProvider proxyProvider = new SmarterProxyProvider("default", hazelcastInstance, executorService);
+        BasicProxyProvider proxyProvider = new BasicProxyProvider("default", hazelcastInstance, executorService);
+        proxyProvider.setLocalCallOptimizationEnabled(false);
 
         PartitionedService service = proxyProvider.getProxy(PartitionedService.class);
 
@@ -136,18 +138,19 @@ public class Partitioned_Test {
         service.valid(arg);
 
         assertTrue(executorService.runnable instanceof DistributedTask);
-        DistributedTask task = (DistributedTask)executorService.runnable;
+        DistributedTask task = (DistributedTask) executorService.runnable;
 
-        com.hazelcast.core.Member member = (com.hazelcast.core.Member) getField(task.getInner(),"member");
-        assertEquals(hazelcastInstance.getCluster().getLocalMember(),member);
+        com.hazelcast.core.Member member = (com.hazelcast.core.Member) getField(task.getInner(), "member");
+        assertEquals(hazelcastInstance.getCluster().getLocalMember(), member);
 
-        SerializableRemoteMethodInvocationFactory.RemoteMethodInvocation invocation
-                = (SerializableRemoteMethodInvocationFactory.RemoteMethodInvocation) getField(task.getInner(),"callable");
+        SerializableDistributedMethodInvocationFactory.DistributedMethodInvocation invocation
+                = (SerializableDistributedMethodInvocationFactory.DistributedMethodInvocation) getField(task.getInner(), "callable");
 
-        assertEquals(arg, invocation.getPartitionKey());
-    } */
+        int expectedPartitionId = hazelcastInstance.getPartitionService().getPartition(arg).getPartitionId();
+        assertEquals(expectedPartitionId, invocation.getPartitionId());
+    }
 
-    private Object getField(Object target, String name){
+    private Object getField(Object target, String name) {
         try {
             Field field = target.getClass().getDeclaredField(name);
             field.setAccessible(true);
@@ -159,12 +162,12 @@ public class Partitioned_Test {
         }
     }
 
-    /*
     @Test
     public void partitionKeyWithProperty() {
         StubExecutorService executorService = new StubExecutorService();
         executorService.result = "";
-        SmarterProxyProvider proxyProvider = new SmarterProxyProvider("default", hazelcastInstance, executorService);
+        BasicProxyProvider proxyProvider = new BasicProxyProvider("default", hazelcastInstance, executorService);
+        proxyProvider.setLocalCallOptimizationEnabled(false);
 
         PartitionedService service = proxyProvider.getProxy(PartitionedService.class);
 
@@ -172,17 +175,22 @@ public class Partitioned_Test {
         Person person = new Person(name);
         service.validWithProperty(person);
 
-        SerializableRemoteMethodInvocationFactory.RemoteMethodInvocation invocation
-                = (SerializableRemoteMethodInvocationFactory.RemoteMethodInvocation) executorService.callable;
-        assertEquals(name, invocation.getPartitionKey());
-    }*/
+        assertTrue(executorService.runnable instanceof DistributedTask);
+        DistributedTask task = (DistributedTask) executorService.runnable;
 
-    /*
+        SerializableDistributedMethodInvocationFactory.DistributedMethodInvocation invocation
+                = (SerializableDistributedMethodInvocationFactory.DistributedMethodInvocation) getField(task.getInner(), "callable");
+
+        int expectedPartitionId = hazelcastInstance.getPartitionService().getPartition(name).getPartitionId();
+        assertEquals(expectedPartitionId, invocation.getPartitionId());
+    }
+
     @Test
     public void partitionKeyWithPartitionAware() {
         StubExecutorService executorService = new StubExecutorService();
         executorService.result = "";
-        SmarterProxyProvider proxyProvider = new SmarterProxyProvider("default", hazelcastInstance, executorService);
+        BasicProxyProvider proxyProvider = new BasicProxyProvider("default", hazelcastInstance, executorService);
+        proxyProvider.setLocalCallOptimizationEnabled(false);
 
         PartitionedService service = proxyProvider.getProxy(PartitionedService.class);
 
@@ -190,9 +198,15 @@ public class Partitioned_Test {
         PartitionAwareObject person = new PartitionAwareObject(partitionKey);
         service.valid(person);
 
-        SerializableRemoteMethodInvocationFactory.RemoteMethodInvocation x = (SerializableRemoteMethodInvocationFactory.RemoteMethodInvocation) executorService.callable;
-        assertEquals(partitionKey, x.getPartitionKey());
-    }   */
+        assertTrue(executorService.runnable instanceof DistributedTask);
+        DistributedTask task = (DistributedTask) executorService.runnable;
+
+        SerializableDistributedMethodInvocationFactory.DistributedMethodInvocation invocation
+                = (SerializableDistributedMethodInvocationFactory.DistributedMethodInvocation) getField(task.getInner(), "callable");
+
+        int expectedPartitionId = hazelcastInstance.getPartitionService().getPartition("peter").getPartitionId();
+        assertEquals(expectedPartitionId, invocation.getPartitionId());
+    }
 
     @DistributedService
     public interface PartitionedService {

@@ -50,12 +50,12 @@ public class PartitionedPerformanceTest {
         new SliceServer(slice).start();
 
         BasicProxyProvider proxyProvider = new BasicProxyProvider(instance);
-        proxyProvider.setOptimizeLocalCalls(optimized);
+        proxyProvider.setLocalCallOptimizationEnabled(optimized);
         SomeService someService = proxyProvider.getProxy(SomeService.class);
         //do an initial call to make sure everything is up and running.
         someService.someMethod("foo");
 
-        System.out.printf("Starting with optimizeLocalCalls: %s\n", optimized);
+        System.out.printf("Starting with localCallOptimizationEnabled: %s\n", optimized);
         TestUtils.scheduleSetFalse(run, 30 * 1000);
         long startMs = System.currentTimeMillis();
 

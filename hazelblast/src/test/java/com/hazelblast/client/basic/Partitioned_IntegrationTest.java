@@ -1,104 +1,66 @@
 package com.hazelblast.client.basic;
 
 
+import com.hazelblast.TestUtils;
 import com.hazelblast.client.annotations.DistributedService;
 import com.hazelblast.client.annotations.PartitionKey;
 import com.hazelblast.client.annotations.Partitioned;
-import com.hazelblast.client.basic.BasicProxyProvider;
 import com.hazelblast.server.SliceServer;
 import com.hazelblast.server.pojoslice.Exposed;
 import com.hazelblast.server.pojoslice.HazelcastInstanceProvider;
 import com.hazelblast.server.pojoslice.PojoSlice;
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
+import com.hazelcast.core.InstanceEvent;
+import com.hazelcast.core.InstanceListener;
+import org.junit.*;
 
-import java.util.concurrent.TimeUnit;
-
-import static org.junit.Assert.*;
+import static com.hazelblast.TestUtils.assertContainsText;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class Partitioned_IntegrationTest {
 
+    private static HazelcastInstance hazelcastInstance;
+
+    @BeforeClass
+    public static void beforeClass() {
+        Hazelcast.shutdownAll();
+
+        hazelcastInstance = Hazelcast.newHazelcastInstance(null);
+    }
+
+    @AfterClass
+    public static void afterClass() {
+        Hazelcast.shutdownAll();
+    }
+
     private BasicProxyProvider proxyProvider;
     private SliceServer server;
     private TestService testServiceMock;
 
+    @After
+    public void tearDown() throws InterruptedException {
+        TestUtils.shutdownAll(server);
+    }
+
     @Before
     public void setUp() throws InterruptedException {
-        testServiceMock = mock(TestService.class);
-        HazelcastInstance hazelcastInstance = Hazelcast.newHazelcastInstance(null);
+         testServiceMock = mock(TestService.class);
 
         Pojo pojo = new Pojo(hazelcastInstance);
         pojo.testService = testServiceMock;
         PojoSlice slice = new PojoSlice(pojo);
-        server = new SliceServer(slice, 100);
-        server.start();
-
-        Thread.sleep(1000);
+        server = new SliceServer(slice, 100).start();
 
         proxyProvider = new BasicProxyProvider("default", hazelcastInstance);
+        proxyProvider.setLocalCallOptimizationEnabled(false);
     }
 
-    @After
-    public void tearDown() throws InterruptedException {
-        if (server == null) return;
-        server.shutdown();
-        boolean terminated = server.awaitTermination(10, TimeUnit.SECONDS);
-        assertTrue("Could not terminate the servce within the given timeout", terminated);
-        Hazelcast.shutdownAll();
-    }
-
-
-    @Test
-      @Ignore
-      public void whenCallWithReturnValue(){}
-
-    @Test
-    public void exceptionUnwrapping() {
-        TestService proxy = proxyProvider.getProxy(TestService.class);
-        String arg = "foo";
-        when(testServiceMock.singleArg(arg)).thenThrow(new MyRuntimeException());
-
-        try {
-            proxy.singleArg(arg);
-            fail();
-        } catch (MyRuntimeException expected) {
-            System.err.println("---------------------------------------------------");
-            expected.printStackTrace();
-            System.err.println("---------------------------------------------------");
-        }
-    }
-
-    @Test
-    public void whenCalledWithNonNullArgument() {
-        TestService proxy = proxyProvider.getProxy(TestService.class);
-        String arg = "foo";
-        String result = "result";
-
-        when(testServiceMock.singleArg(arg)).thenReturn(result);
-
-        String found = proxy.singleArg(arg);
-        assertEquals(result, found);
-    }
-
-    @Test
-    public void whenCalledWithNullArgument() {
-        TestService proxy = proxyProvider.getProxy(TestService.class);
-        String arg = "foo";
-        String result = "result";
-        when(testServiceMock.multipleArgs(arg, null)).thenReturn(result);
-
-        String found = proxy.multipleArgs(arg, null);
-
-        assertEquals(result, found);
-    }
-
-    static public class Pojo implements HazelcastInstanceProvider{
+    static public class Pojo implements HazelcastInstanceProvider {
 
         @Exposed
         public TestService testService;
@@ -125,4 +87,52 @@ public class Partitioned_IntegrationTest {
         @Partitioned
         String multipleArgs(@PartitionKey String arg, String arg2);
     }
+
+    // ==================================== tests =================================================
+
+    @Test
+    public void exceptionUnwrapping() {
+        TestService proxy = proxyProvider.getProxy(TestService.class);
+        String arg = "foo";
+        when(testServiceMock.singleArg(arg)).thenThrow(new MyRuntimeException());
+
+        Throwable t = null;
+        try {
+            proxy.singleArg(arg);
+            fail();
+        } catch (MyRuntimeException expected) {
+            t = expected;
+
+            System.err.println("---------------------------------------------------");
+            expected.printStackTrace();
+            System.err.println("---------------------------------------------------");
+        }
+
+        assertContainsText(TestUtils.toString(t), "------End remote and begin local stracktrace ------");
+    }
+
+    @Test
+    public void whenCalledWithNonNullArgument() {
+        TestService proxy = proxyProvider.getProxy(TestService.class);
+        String arg = "foo";
+        String result = "result";
+
+        when(testServiceMock.singleArg(eq(arg))).thenReturn(result);
+
+        String found = proxy.singleArg(arg);
+        assertEquals(result, found);
+    }
+
+    @Test
+    public void whenCalledWithNullArgument() {
+        TestService proxy = proxyProvider.getProxy(TestService.class);
+        String arg = "foo";
+        String result = "result";
+        when(testServiceMock.multipleArgs(arg, null)).thenReturn(result);
+
+        String found = proxy.multipleArgs(arg, null);
+
+        assertEquals(result, found);
+    }
+
 }

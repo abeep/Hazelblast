@@ -1,5 +1,6 @@
 package com.hazelblast.client.basic;
 
+import com.hazelblast.TestUtils;
 import com.hazelblast.client.annotations.DistributedService;
 import com.hazelblast.client.annotations.PartitionKey;
 import com.hazelblast.client.annotations.Partitioned;
@@ -10,45 +11,48 @@ import com.hazelblast.server.pojoslice.HazelcastInstanceProvider;
 import com.hazelblast.server.pojoslice.PojoSlice;
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.*;
 
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.Assert.*;
 
 public class Partitioned_TimeoutIntegrationTest {
+
+    private static HazelcastInstance hazelcastInstance;
+
+    @BeforeClass
+    public static void beforeClass() {
+        Hazelcast.shutdownAll();
+        hazelcastInstance = Hazelcast.newHazelcastInstance(null);
+    }
+
+    @AfterClass
+    public static void afterClass(){
+        Hazelcast.shutdownAll();
+    }
+
     private BasicProxyProvider proxyProvider;
     private SliceServer server;
     private Pojo pojo;
 
     @Before
     public void setUp() throws InterruptedException {
-        HazelcastInstance hazelcastInstance = Hazelcast.newHazelcastInstance(null);
-
         pojo = new Pojo(hazelcastInstance);
         PojoSlice slice = new PojoSlice(pojo);
 
-        server = new SliceServer(slice,100);
+        server = new SliceServer(slice, 100);
         server.start();
 
         Thread.sleep(1000);
 
         proxyProvider = new BasicProxyProvider(hazelcastInstance);
-        proxyProvider.setOptimizeLocalCalls(false);
+        proxyProvider.setLocalCallOptimizationEnabled(false);
     }
 
     @After
     public void tearDown() throws InterruptedException {
-        if (server == null) return;
-        server.shutdown();
-        boolean terminated = server.awaitTermination(10, TimeUnit.SECONDS);
-        assertTrue("Could not terminate the servce within the given timeout", terminated);
-        Hazelcast.shutdownAll();
+        TestUtils.shutdownAll(server);
     }
 
     @Test
@@ -62,7 +66,7 @@ public class Partitioned_TimeoutIntegrationTest {
         TestService testService = proxyProvider.getProxy(TestService.class);
 
         try {
-            testService.fiveSecondTimeoutAndInterruptible("somepartition",6000);
+            testService.fiveSecondTimeoutAndInterruptible("somepartition", 6000);
             fail();
         } catch (DistributedMethodTimeoutException expected) {
 
@@ -77,7 +81,7 @@ public class Partitioned_TimeoutIntegrationTest {
         TestService testService = proxyProvider.getProxy(TestService.class);
 
         try {
-            testService.fiveSecondTimeoutNotInterruptible("somepartition",10000);
+            testService.fiveSecondTimeoutNotInterruptible("somepartition", 10000);
             fail();
         } catch (DistributedMethodTimeoutException expected) {
 
@@ -86,7 +90,6 @@ public class Partitioned_TimeoutIntegrationTest {
 
         assertFalse(pojo.testService.interrupted.get());
     }
-
 
     static public class Pojo implements HazelcastInstanceProvider {
         @Exposed

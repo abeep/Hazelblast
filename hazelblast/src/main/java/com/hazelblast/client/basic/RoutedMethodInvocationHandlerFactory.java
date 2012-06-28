@@ -110,7 +110,7 @@ public abstract class RoutedMethodInvocationHandlerFactory extends MethodInvocat
                                     target.getPartitionId());
 
 
-                            optimizeLocalCall = target.getMember().equals(localMember) && proxyProvider.optimizeLocalCalls;
+                            optimizeLocalCall = target.getMember().equals(localMember) && proxyProvider.localCallOptimizationEnabled;
                             if (optimizeLocalCall) {
                                 if (callable instanceof HazelcastInstanceAware) {
                                     ((HazelcastInstanceAware) callable).setHazelcastInstance(hazelcastInstance);
@@ -142,6 +142,10 @@ public abstract class RoutedMethodInvocationHandlerFactory extends MethodInvocat
                     throw new DistributedMethodTimeoutException(
                             format("Failed to complete method '%s' in %s ms", method.toString(), TimeUnit.NANOSECONDS.toMillis(timeoutNs)), e);
                 } catch (Exception e) {
+                    if(logger.isLoggable(Level.FINE)){
+                        logger.log(Level.FINE, format("Executing of method '%s' throw an exception",method),e);
+                    }
+
                     if (isWorthRetrying(e)) {
                         spendNs = sleep(spendNs, timeoutNs);
                     } else {

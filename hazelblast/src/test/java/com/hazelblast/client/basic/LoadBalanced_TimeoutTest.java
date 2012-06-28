@@ -10,27 +10,36 @@ import com.hazelblast.server.pojoslice.HazelcastInstanceProvider;
 import com.hazelblast.server.pojoslice.PojoSlice;
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.*;
 
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.junit.Assert.*;
 
 public class LoadBalanced_TimeoutTest {
+
+    private static HazelcastInstance serverInstance;
+    private static HazelcastInstance clientInstance;
+
+    @BeforeClass
+    public static void beforeClass() {
+        Hazelcast.shutdownAll();
+        serverInstance = TestUtils.newServerInstance();
+        clientInstance = TestUtils.newLiteInstance();
+    }
+
+    @AfterClass
+    public static void afterClass() {
+        Hazelcast.shutdownAll();
+    }
+
     private BasicProxyProvider proxyProvider;
     private SliceServer server;
     private Pojo pojo;
 
     @Before
     public void setUp() throws InterruptedException {
-        Hazelcast.shutdownAll();
-
-        HazelcastInstance hazelcastInstance = Hazelcast.newHazelcastInstance(null);
-        pojo = new Pojo(hazelcastInstance);
+        pojo = new Pojo(serverInstance);
         PojoSlice slice = new PojoSlice(pojo);
 
         server = new SliceServer(slice, 100);
@@ -38,18 +47,13 @@ public class LoadBalanced_TimeoutTest {
 
         Thread.sleep(1000);
 
-        HazelcastInstance clientInstance = TestUtils.newLiteInstance();
         proxyProvider = new BasicProxyProvider("default", clientInstance);
-        proxyProvider.setOptimizeLocalCalls(false);
+        proxyProvider.setLocalCallOptimizationEnabled(false);
     }
 
     @After
     public void tearDown() throws InterruptedException {
-        if (server == null) return;
-        server.shutdown();
-        boolean terminated = server.awaitTermination(10, TimeUnit.SECONDS);
-        assertTrue("Could not terminate the servce within the given timeout", terminated);
-        Hazelcast.shutdownAll();
+        TestUtils.shutdownAll(server);
     }
 
     @Test
@@ -89,7 +93,7 @@ public class LoadBalanced_TimeoutTest {
     }
 
 
-    static public class Pojo implements HazelcastInstanceProvider{
+    static public class Pojo implements HazelcastInstanceProvider {
         @Exposed
         public TestServiceImpl testService = new TestServiceImpl();
 

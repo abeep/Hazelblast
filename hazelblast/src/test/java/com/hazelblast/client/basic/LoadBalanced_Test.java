@@ -1,5 +1,6 @@
 package com.hazelblast.client.basic;
 
+import com.hazelblast.TestUtils;
 import com.hazelblast.client.annotations.DistributedService;
 import com.hazelblast.client.annotations.LoadBalanced;
 import com.hazelblast.client.annotations.PartitionKey;
@@ -51,10 +52,7 @@ public class LoadBalanced_Test {
 
     @After
     public void tearDown() throws InterruptedException {
-        if (server == null) return;
-        server.shutdown();
-        boolean terminated = server.awaitTermination(10, TimeUnit.SECONDS);
-        assertTrue("Could not terminate the service within the given timeout", terminated);
+        TestUtils.shutdownAll(server);
     }
 
     @AfterClass

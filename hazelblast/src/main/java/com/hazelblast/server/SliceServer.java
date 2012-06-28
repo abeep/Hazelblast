@@ -127,15 +127,15 @@ public final class SliceServer {
         return server.container;
     }
 
-    private static Slice buildSlice(String factoryClassName, SliceConfig sliceConfig) {
-        System.out.printf("Creating slice [%s] using sliceFactory [%s]\n", sliceConfig.name, factoryClassName);
+    private static Slice buildSlice(String sliceFactoryClassName, SliceConfig sliceConfig) {
+        System.out.printf("Creating slice [%s] using sliceFactory [%s]\n", sliceConfig.name, sliceFactoryClassName);
 
         ClassLoader classLoader = SliceServer.class.getClassLoader();
         Class<SliceFactory> factoryClass;
         try {
-            factoryClass = (Class<SliceFactory>) classLoader.loadClass(factoryClassName);
+            factoryClass = (Class<SliceFactory>) classLoader.loadClass(sliceFactoryClassName);
         } catch (ClassNotFoundException e) {
-            throw new RuntimeException(format("Failed to load the sliceFactory class [%s]", factoryClassName), e);
+            throw new RuntimeException(format("Failed to load the sliceFactory class [%s]", sliceFactoryClassName), e);
         }
 
         try {

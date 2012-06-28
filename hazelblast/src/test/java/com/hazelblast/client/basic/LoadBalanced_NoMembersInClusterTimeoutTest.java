@@ -1,5 +1,6 @@
 package com.hazelblast.client.basic;
 
+import com.hazelblast.TestUtils;
 import com.hazelblast.client.ProxyProvider;
 import com.hazelblast.client.annotations.DistributedService;
 import com.hazelblast.client.annotations.LoadBalanced;
@@ -44,11 +45,7 @@ public class LoadBalanced_NoMembersInClusterTimeoutTest {
 
     @After
     public void after() throws InterruptedException {
-        if(sliceServer!=null){
-            sliceServer.shutdown();
-            boolean terminated = sliceServer.awaitTermination(60, TimeUnit.SECONDS);
-            assertTrue("slice server didn't terminate within given timeout",terminated);
-        }
+        TestUtils.shutdownAll(sliceServer);
     }
 
     @Test

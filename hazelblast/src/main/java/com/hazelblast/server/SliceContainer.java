@@ -110,6 +110,14 @@ final class SliceContainer {
         try {
             slice.onStop();
 
+            //we need to release all the locks we own.
+            for (ILock lock : partitionLockMap.values()) {
+                lock.unlock();
+            }
+
+            partitionLockMap.clear();
+            managedPartitions.clear();
+
             if (logger.isLoggable(Level.INFO)) {
                 long durationMs = System.currentTimeMillis() - startMs;
                 logger.log(Level.INFO, format("[%s] Slice.onStop() finished in [%s] ms", slice.getName(), durationMs));

@@ -1,30 +1,38 @@
 package com.hazelblast.client.basic;
 
 
-import com.hazelblast.client.ProxyProvider;
+import com.hazelblast.TestUtils;
 import com.hazelblast.client.annotations.DistributedService;
 import com.hazelblast.client.annotations.LoadBalanced;
-import com.hazelblast.client.basic.BasicProxyProvider;
 import com.hazelblast.server.SliceServer;
 import com.hazelblast.server.pojoslice.Exposed;
 import com.hazelblast.server.pojoslice.HazelcastInstanceProvider;
 import com.hazelblast.server.pojoslice.PojoSlice;
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.*;
 
-import java.util.concurrent.TimeUnit;
-
+import static com.hazelblast.TestUtils.assertContainsText;
 import static org.junit.Assert.*;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.*;
 
 public class LoadBalanced_IntegrationTest {
 
-    private ProxyProvider proxyProvider;
+    private static HazelcastInstance hazelcastInstance;
+
+    @BeforeClass
+    public static void beforeClass() {
+        Hazelcast.shutdownAll();
+        hazelcastInstance = TestUtils.newServerInstance();
+    }
+
+    @AfterClass
+    public static void afterClass() {
+        Hazelcast.shutdownAll();
+    }
+
+    private BasicProxyProvider proxyProvider;
     private SliceServer server;
     private TestService testServiceMock;
 
@@ -32,91 +40,107 @@ public class LoadBalanced_IntegrationTest {
     public void setUp() throws InterruptedException {
         testServiceMock = mock(TestService.class);
 
-        HazelcastInstance hazelcastInstance = Hazelcast.newHazelcastInstance(null);
         Pojo pojo = new Pojo(hazelcastInstance);
         pojo.testService = testServiceMock;
 
-        PojoSlice slice = new PojoSlice(pojo,"default");
+        PojoSlice slice = new PojoSlice(pojo);
+        server = new SliceServer(slice, 100).start();
 
-        server = new SliceServer(slice, 100);
-        server.start();
-
-        Thread.sleep(1000);
-
-        proxyProvider = new BasicProxyProvider( hazelcastInstance);
+        proxyProvider = new BasicProxyProvider(hazelcastInstance);
+        proxyProvider.setLocalCallOptimizationEnabled(false);
     }
 
     @After
     public void tearDown() throws InterruptedException {
-        if (server == null) return;
-        server.shutdown();
-        boolean terminated = server.awaitTermination(10, TimeUnit.SECONDS);
-        assertTrue("Could not terminate the service within the given timeout", terminated);
-        Hazelcast.shutdownAll();
+        TestUtils.shutdownAll(server);
     }
 
     @Test
     public void exceptionUnwrapping() {
         TestService proxy = proxyProvider.getProxy(TestService.class);
-        String arg = "foo";
-        when(testServiceMock.singleArg(arg)).thenThrow(new MyRuntimeException());
+        doThrow(new MyRuntimeException()).when(testServiceMock).noArgs();
 
+        Throwable t = null;
         try {
-            proxy.singleArg(arg);
+            proxy.noArgs();
             fail();
         } catch (MyRuntimeException expected) {
+            t = expected;
+
             System.err.println("---------------------------------------------------");
             expected.printStackTrace();
             System.err.println("---------------------------------------------------");
         }
-    }
 
-    @Test
-    @Ignore
-    public void whenCallWithReturnValue(){}
+        assertContainsText(TestUtils.toString(t), "------End remote and begin local stracktrace ------");
+    }
 
     @Test
     public void whenCalledWithNonNullArgument() {
         TestService proxy = proxyProvider.getProxy(TestService.class);
         String arg = "foo";
-        String result = "result";
 
-        when(testServiceMock.singleArg(arg)).thenReturn(result);
+        proxy.singleArg(arg);
 
-        String found = proxy.singleArg(arg);
-        assertEquals(result, found);
+        verify(testServiceMock, times(1)).singleArg(eq(arg));
     }
 
     @Test
     public void whenCalledWithNullArgument() {
         TestService proxy = proxyProvider.getProxy(TestService.class);
         String arg = "foo";
-        String result = "result";
-        when(testServiceMock.multipleArgs(arg, null)).thenReturn(result);
 
-        String found = proxy.multipleArgs(arg, null);
+        proxy.multipleArgs(arg, null);
 
-        assertEquals(result, found);
+        verify(testServiceMock, times(1)).multipleArgs(eq(arg), eq((String) null));
     }
 
     @Test
     public void whenNoArguments() {
         TestService proxy = proxyProvider.getProxy(TestService.class);
-        String result = "result";
-        when(testServiceMock.noArgs()).thenReturn(result);
 
-        String found = proxy.noArgs();
+        proxy.noArgs();
 
-        assertEquals(result, found);
+        verify(testServiceMock, times(1)).noArgs();
     }
 
-    static public class Pojo implements HazelcastInstanceProvider{
+    @Test
+    public void whenPrimitiveReturn() {
+        TestService testService = proxyProvider.getProxy(TestService.class);
+        int expected = 10;
+
+        when(testServiceMock.primitiveReturn()).thenReturn(expected);
+
+        int result = testService.primitiveReturn();
+        assertEquals(expected, result);
+    }
+
+    @Test
+    public void whenNullReturn() {
+        TestService testService = proxyProvider.getProxy(TestService.class);
+        when(testServiceMock.objectReturn()).thenReturn(null);
+
+        Object result = testService.objectReturn();
+        assertNull(result);
+    }
+
+    @Test
+    public void whenObjectReturn() {
+        TestService testService = proxyProvider.getProxy(TestService.class);
+        String expected = "Foo";
+        when(testServiceMock.objectReturn()).thenReturn(expected);
+
+        Object result = testService.objectReturn();
+        assertEquals(expected, result);
+    }
+
+    static public class Pojo implements HazelcastInstanceProvider {
         @Exposed
         public TestService testService;
 
         public final HazelcastInstance hazelcastInstance;
 
-        public Pojo(HazelcastInstance hazelcastInstance){
+        public Pojo(HazelcastInstance hazelcastInstance) {
             this.hazelcastInstance = hazelcastInstance;
         }
 
@@ -128,29 +152,24 @@ public class LoadBalanced_IntegrationTest {
     static class MyRuntimeException extends RuntimeException {
         MyRuntimeException() {
         }
-
-        MyRuntimeException(String message) {
-            super(message);
-        }
-
-        MyRuntimeException(String message, Throwable cause) {
-            super(message, cause);
-        }
-
-        MyRuntimeException(Throwable cause) {
-            super(cause);
-        }
     }
 
     @DistributedService
     interface TestService {
-        @LoadBalanced
-        String noArgs();
 
         @LoadBalanced
-        String singleArg(String arg);
+        void noArgs();
 
         @LoadBalanced
-        String multipleArgs(String arg, String arg2);
+        void singleArg(String arg);
+
+        @LoadBalanced
+        void multipleArgs(String arg, String arg2);
+
+        @LoadBalanced
+        Object objectReturn();
+
+        @LoadBalanced
+        int primitiveReturn();
     }
 }

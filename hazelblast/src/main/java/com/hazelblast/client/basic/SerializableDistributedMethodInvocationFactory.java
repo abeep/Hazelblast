@@ -90,7 +90,7 @@ public final class SerializableDistributedMethodInvocationFactory implements Dis
             }
         }
 
-        public Object getPartitionKey() {
+        public Object getPartitionId() {
             return partitionId;
         }
     }

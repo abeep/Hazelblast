@@ -40,7 +40,7 @@ public final class BasicProxyProvider implements ProxyProvider {
     protected final ExecutorService executorService;
     protected final Cluster cluster;
     protected final String sliceName;
-    protected volatile boolean optimizeLocalCalls = true;
+    protected volatile boolean localCallOptimizationEnabled = true;
     protected volatile DistributedMethodInvocationFactory distributedMethodInvocationFactory
             = SerializableDistributedMethodInvocationFactory.INSTANCE;
     private final ToStringEqualsHashCodeInvocationHandlerFactory toStringEqualsHashCodeInvocationHandlerFactory
@@ -126,10 +126,10 @@ public final class BasicProxyProvider implements ProxyProvider {
      * Returns true if local calls are going to be optimized, false otherwise.
      *
      * @return true if local calls are going to be optimized.
-     * @see #setOptimizeLocalCalls(boolean)
+     * @see #setLocalCallOptimizationEnabled(boolean)
      */
-    public boolean getOptimizeLocalCalls() {
-        return optimizeLocalCalls;
+    public boolean isLocalCallOptimizationEnabled() {
+        return localCallOptimizationEnabled;
     }
 
     /**
@@ -142,10 +142,10 @@ public final class BasicProxyProvider implements ProxyProvider {
      * <p/>
      * The main drawback is that the timeout option is not obeyed.
      *
-     * @param optimizeLocalCalls if local calls should be optimized or not.
+     * @param localCallOptimizationEnabled if local calls should be optimized or not.
      */
-    public void setOptimizeLocalCalls(boolean optimizeLocalCalls) {
-        this.optimizeLocalCalls = optimizeLocalCalls;
+    public void setLocalCallOptimizationEnabled(boolean localCallOptimizationEnabled) {
+        this.localCallOptimizationEnabled = localCallOptimizationEnabled;
     }
 
     /**
