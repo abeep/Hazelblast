@@ -1,9 +1,9 @@
-package com.hazelblast.client.basic;
+package com.hazelblast.client.impl;
 
 /**
  * A handler for method invocations.
  *
- * When the proxy is generated in the {@link BasicProxyProvider} it returns a {@link java.lang.reflect.InvocationHandler}.
+ * When the proxy is generated in the {@link ProxyProviderImpl} it returns a {@link java.lang.reflect.InvocationHandler}.
  * For every callable method on this interface, it will contain a {@link MethodInvocationHandler} that executes the
  * actual call.
  *

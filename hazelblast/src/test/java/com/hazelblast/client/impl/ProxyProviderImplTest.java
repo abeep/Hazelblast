@@ -1,9 +1,8 @@
-package com.hazelblast.client.basic;
+package com.hazelblast.client.impl;
 
 import com.hazelblast.client.annotations.DistributedService;
 import com.hazelblast.client.annotations.LoadBalanced;
 import com.hazelblast.client.annotations.Partitioned;
-import com.hazelblast.client.basic.BasicProxyProvider;
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
 import org.junit.AfterClass;
@@ -14,7 +13,7 @@ import java.util.List;
 
 import static org.junit.Assert.*;
 
-public class BasicProxyProviderTest {
+public class ProxyProviderImplTest {
 
     private static HazelcastInstance hazelcastInstance;
 
@@ -30,42 +29,42 @@ public class BasicProxyProviderTest {
 
     @Test(expected = NullPointerException.class)
     public void constructor_whenNullSliceName() {
-        new BasicProxyProvider(null, hazelcastInstance);
+        new ProxyProviderImpl(null, hazelcastInstance);
     }
 
     @Test(expected = NullPointerException.class)
     public void constructor_whenNullExecutorService() {
-        new BasicProxyProvider("foo", null);
+        new ProxyProviderImpl("foo", null);
     }
 
     @Test(expected = NullPointerException.class)
     public void getProxy_whenNull() {
-        BasicProxyProvider proxyProvider = new BasicProxyProvider();
+        ProxyProviderImpl proxyProvider = new ProxyProviderImpl();
         proxyProvider.getProxy(null);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void getProxy_whenNotInterface() {
-        BasicProxyProvider proxyProvider = new BasicProxyProvider();
+        ProxyProviderImpl proxyProvider = new ProxyProviderImpl();
         proxyProvider.getProxy(String.class);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void getProxy_whenNotRemoteInterface() {
-        BasicProxyProvider proxyProvider = new BasicProxyProvider();
+        ProxyProviderImpl proxyProvider = new ProxyProviderImpl();
         proxyProvider.getProxy(List.class);
     }
 
     @Test
     public void getProxy_whenSuccess() {
-        BasicProxyProvider proxyProvider = new BasicProxyProvider();
+        ProxyProviderImpl proxyProvider = new ProxyProviderImpl();
         DummyRemoteService service = proxyProvider.getProxy(DummyRemoteService.class);
         assertNotNull(service);
     }
 
     @Test
     public void whenSameProxyAskedMultipleTimes_thenSameInstanceIsReturned() {
-        BasicProxyProvider proxyProvider = new BasicProxyProvider();
+        ProxyProviderImpl proxyProvider = new ProxyProviderImpl();
         DummyRemoteService service1 = proxyProvider.getProxy(DummyRemoteService.class);
         DummyRemoteService service2 = proxyProvider.getProxy(DummyRemoteService.class);
         assertSame(service1, service2);
@@ -73,7 +72,7 @@ public class BasicProxyProviderTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void badProxy_remoteInterfaceExtendingNonRemoteInterface() {
-        BasicProxyProvider proxyProvider = new BasicProxyProvider();
+        ProxyProviderImpl proxyProvider = new ProxyProviderImpl();
         proxyProvider.getProxy(RemoteInterfaceExtendingNonRemoteInterface.class);
     }
 
@@ -86,7 +85,7 @@ public class BasicProxyProviderTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void badProxy_methodsWithMultipleAnnotations() {
-        BasicProxyProvider proxyProvider = new BasicProxyProvider();
+        ProxyProviderImpl proxyProvider = new ProxyProviderImpl();
         proxyProvider.getProxy(MethodWithMultipleAnnotations.class);
     }
 
@@ -99,7 +98,7 @@ public class BasicProxyProviderTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void badProxy_remoteMethodAnnotationMissing() {
-        BasicProxyProvider proxyProvider = new BasicProxyProvider();
+        ProxyProviderImpl proxyProvider = new ProxyProviderImpl();
         proxyProvider.getProxy(RemoteAnnotationMissing.class);
     }
 
@@ -115,7 +114,7 @@ public class BasicProxyProviderTest {
 
     @Test
     public void test_toString() {
-        BasicProxyProvider proxyProvider = new BasicProxyProvider();
+        ProxyProviderImpl proxyProvider = new ProxyProviderImpl();
         DummyRemoteService service = proxyProvider.getProxy(DummyRemoteService.class);
         String s = service.toString();
         System.out.println(s);
@@ -124,7 +123,7 @@ public class BasicProxyProviderTest {
 
     @Test
     public void test_hashCode() {
-        BasicProxyProvider proxyProvider = new BasicProxyProvider();
+        ProxyProviderImpl proxyProvider = new ProxyProviderImpl();
         DummyRemoteService service = proxyProvider.getProxy(DummyRemoteService.class);
         int s = service.hashCode();
 
@@ -132,7 +131,7 @@ public class BasicProxyProviderTest {
 
     @Test
     public void test_equals() {
-        BasicProxyProvider proxyProvider = new BasicProxyProvider();
+        ProxyProviderImpl proxyProvider = new ProxyProviderImpl();
         DummyRemoteService service = proxyProvider.getProxy(DummyRemoteService.class);
 
         assertTrue(service.equals(service));

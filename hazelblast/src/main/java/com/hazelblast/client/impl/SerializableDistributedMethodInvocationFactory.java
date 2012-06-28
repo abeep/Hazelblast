@@ -1,4 +1,4 @@
-package com.hazelblast.client.basic;
+package com.hazelblast.client.impl;
 
 import com.hazelblast.server.SliceServer;
 import com.hazelblast.server.exceptions.PartitionMovedException;

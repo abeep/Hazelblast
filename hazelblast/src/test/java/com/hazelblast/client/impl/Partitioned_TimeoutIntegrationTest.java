@@ -1,4 +1,4 @@
-package com.hazelblast.client.basic;
+package com.hazelblast.client.impl;
 
 import com.hazelblast.TestUtils;
 import com.hazelblast.client.annotations.DistributedService;
@@ -32,7 +32,7 @@ public class Partitioned_TimeoutIntegrationTest {
         Hazelcast.shutdownAll();
     }
 
-    private BasicProxyProvider proxyProvider;
+    private ProxyProviderImpl proxyProvider;
     private SliceServer server;
     private Pojo pojo;
 
@@ -46,7 +46,7 @@ public class Partitioned_TimeoutIntegrationTest {
 
         Thread.sleep(1000);
 
-        proxyProvider = new BasicProxyProvider(hazelcastInstance);
+        proxyProvider = new ProxyProviderImpl(hazelcastInstance);
         proxyProvider.setLocalCallOptimizationEnabled(false);
     }
 

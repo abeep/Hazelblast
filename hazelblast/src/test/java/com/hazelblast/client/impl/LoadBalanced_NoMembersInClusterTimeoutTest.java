@@ -1,4 +1,4 @@
-package com.hazelblast.client.basic;
+package com.hazelblast.client.impl;
 
 import com.hazelblast.TestUtils;
 import com.hazelblast.client.ProxyProvider;
@@ -15,7 +15,6 @@ import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
 import org.junit.*;
 
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static com.hazelblast.TestUtils.newLiteInstance;
@@ -50,7 +49,7 @@ public class LoadBalanced_NoMembersInClusterTimeoutTest {
 
     @Test
     public void whenNoMemberInClusterThenTimeout() {
-        ProxyProvider proxyProvider = new BasicProxyProvider(liteMember);
+        ProxyProvider proxyProvider = new ProxyProviderImpl(liteMember);
         TestService testService = proxyProvider.getProxy(TestService.class);
 
         try {
@@ -63,7 +62,7 @@ public class LoadBalanced_NoMembersInClusterTimeoutTest {
 
     @Test
     public void whenNoMemberStartsAfterSomeTime_thenCallIsExecuted() {
-        ProxyProvider proxyProvider = new BasicProxyProvider(liteMember);
+        ProxyProvider proxyProvider = new ProxyProviderImpl(liteMember);
         TestService testService = proxyProvider.getProxy(TestService.class);
 
         new Thread(new StartSliceServerTask(10000)).start();

@@ -1,4 +1,4 @@
-package com.hazelblast.client.basic;
+package com.hazelblast.client.impl;
 
 import com.hazelblast.TestUtils;
 import com.hazelblast.client.annotations.DistributedService;
@@ -33,7 +33,7 @@ public class LoadBalanced_TimeoutTest {
         Hazelcast.shutdownAll();
     }
 
-    private BasicProxyProvider proxyProvider;
+    private ProxyProviderImpl proxyProvider;
     private SliceServer server;
     private Pojo pojo;
 
@@ -47,7 +47,7 @@ public class LoadBalanced_TimeoutTest {
 
         Thread.sleep(1000);
 
-        proxyProvider = new BasicProxyProvider("default", clientInstance);
+        proxyProvider = new ProxyProviderImpl("default", clientInstance);
         proxyProvider.setLocalCallOptimizationEnabled(false);
     }
 

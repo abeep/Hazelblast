@@ -1,10 +1,9 @@
-package com.hazelblast.client.basic;
+package com.hazelblast.client.impl;
 
 import com.hazelblast.TestUtils;
 import com.hazelblast.client.ProxyProvider;
 import com.hazelblast.client.annotations.DistributedService;
 import com.hazelblast.client.annotations.LoadBalanced;
-import com.hazelblast.client.basic.BasicProxyProvider;
 import com.hazelblast.client.router.RoundRobinLoadBalancer;
 import com.hazelblast.server.Slice;
 import com.hazelblast.server.SliceServer;
@@ -19,7 +18,7 @@ import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
 
-public class LoadBalanced_ClusterTest {
+public class LoadBalanced_InMemoryClusterTest {
 
     @Before
     public void before() {
@@ -51,7 +50,7 @@ public class LoadBalanced_ClusterTest {
 
         HazelcastInstance clientInstance = TestUtils.newLiteInstance();
 
-        ProxyProvider proxyProvider = new BasicProxyProvider(clientInstance);
+        ProxyProvider proxyProvider = new ProxyProviderImpl(clientInstance);
         SomeService someService = proxyProvider.getProxy(SomeService.class);
 
         int countPerPartition = 10000;

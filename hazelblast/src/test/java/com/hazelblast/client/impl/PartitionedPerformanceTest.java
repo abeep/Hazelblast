@@ -1,4 +1,4 @@
-package com.hazelblast.client.basic;
+package com.hazelblast.client.impl;
 
 import com.hazelblast.TestUtils;
 import com.hazelblast.client.annotations.DistributedService;
@@ -49,7 +49,7 @@ public class PartitionedPerformanceTest {
 
         new SliceServer(slice).start();
 
-        BasicProxyProvider proxyProvider = new BasicProxyProvider(instance);
+        ProxyProviderImpl proxyProvider = new ProxyProviderImpl(instance);
         proxyProvider.setLocalCallOptimizationEnabled(optimized);
         SomeService someService = proxyProvider.getProxy(SomeService.class);
         //do an initial call to make sure everything is up and running.

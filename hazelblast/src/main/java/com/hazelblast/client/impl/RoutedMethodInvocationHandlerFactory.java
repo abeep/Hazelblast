@@ -1,4 +1,4 @@
-package com.hazelblast.client.basic;
+package com.hazelblast.client.impl;
 
 import com.hazelblast.client.exceptions.DistributedMethodTimeoutException;
 import com.hazelblast.client.router.Router;

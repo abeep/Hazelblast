@@ -1,4 +1,4 @@
-package com.hazelblast.client.basic;
+package com.hazelblast.client.impl;
 
 import com.hazelblast.TestUtils;
 import com.hazelblast.client.annotations.DistributedService;
@@ -17,7 +17,7 @@ import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
 
-public class Partitioned_ClusterTest {
+public class Partitioned_InMemoryClusterTest {
 
     @Before
     public void before() {
@@ -58,7 +58,7 @@ public class Partitioned_ClusterTest {
 
         HazelcastInstance clientInstance = optimize ? instance1 : TestUtils.newLiteInstance();
 
-        BasicProxyProvider proxyProvider = new BasicProxyProvider(clientInstance);
+        ProxyProviderImpl proxyProvider = new ProxyProviderImpl(clientInstance);
         proxyProvider.setLocalCallOptimizationEnabled(optimize);
 
         SomeService someService = proxyProvider.getProxy(SomeService.class);

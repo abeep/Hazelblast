@@ -1,4 +1,4 @@
-package com.hazelblast.client.basic;
+package com.hazelblast.client.impl;
 
 
 import com.hazelblast.TestUtils;
@@ -32,7 +32,7 @@ public class LoadBalanced_IntegrationTest {
         Hazelcast.shutdownAll();
     }
 
-    private BasicProxyProvider proxyProvider;
+    private ProxyProviderImpl proxyProvider;
     private SliceServer server;
     private TestService testServiceMock;
 
@@ -46,7 +46,7 @@ public class LoadBalanced_IntegrationTest {
         PojoSlice slice = new PojoSlice(pojo);
         server = new SliceServer(slice, 100).start();
 
-        proxyProvider = new BasicProxyProvider(hazelcastInstance);
+        proxyProvider = new ProxyProviderImpl(hazelcastInstance);
         proxyProvider.setLocalCallOptimizationEnabled(false);
     }
 

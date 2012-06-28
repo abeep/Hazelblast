@@ -1,4 +1,4 @@
-package com.hazelblast.client.basic;
+package com.hazelblast.client.impl;
 
 
 import com.hazelblast.TestUtils;
@@ -11,8 +11,6 @@ import com.hazelblast.server.pojoslice.HazelcastInstanceProvider;
 import com.hazelblast.server.pojoslice.PojoSlice;
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
-import com.hazelcast.core.InstanceEvent;
-import com.hazelcast.core.InstanceListener;
 import org.junit.*;
 
 import static com.hazelblast.TestUtils.assertContainsText;
@@ -38,7 +36,7 @@ public class Partitioned_IntegrationTest {
         Hazelcast.shutdownAll();
     }
 
-    private BasicProxyProvider proxyProvider;
+    private ProxyProviderImpl proxyProvider;
     private SliceServer server;
     private TestService testServiceMock;
 
@@ -56,7 +54,7 @@ public class Partitioned_IntegrationTest {
         PojoSlice slice = new PojoSlice(pojo);
         server = new SliceServer(slice, 100).start();
 
-        proxyProvider = new BasicProxyProvider("default", hazelcastInstance);
+        proxyProvider = new ProxyProviderImpl("default", hazelcastInstance);
         proxyProvider.setLocalCallOptimizationEnabled(false);
     }
 

@@ -1,10 +1,9 @@
-package com.hazelblast.client.basic;
+package com.hazelblast.client.impl;
 
 import com.hazelblast.TestUtils;
 import com.hazelblast.client.ProxyProvider;
 import com.hazelblast.client.annotations.DistributedService;
 import com.hazelblast.client.annotations.LoadBalanced;
-import com.hazelblast.client.basic.BasicProxyProvider;
 import com.hazelblast.client.router.Router;
 import com.hazelblast.client.router.Target;
 import com.hazelblast.server.SliceServer;
@@ -56,7 +55,7 @@ public class LoadBalanced_WhenMembersFailsHighAvailabilityIntegrationTest {
 
         HazelcastInstance clientInstance = TestUtils.newLiteInstance();
 
-        ProxyProvider proxyProvider = new BasicProxyProvider(clientInstance);
+        ProxyProvider proxyProvider = new ProxyProviderImpl(clientInstance);
         SomeService someService = proxyProvider.getProxy(SomeService.class);
 
         for (int k = 0; k < 100; k++) {

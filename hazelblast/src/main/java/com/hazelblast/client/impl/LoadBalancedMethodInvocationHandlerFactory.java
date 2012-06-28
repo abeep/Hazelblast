@@ -1,4 +1,4 @@
-package com.hazelblast.client.basic;
+package com.hazelblast.client.impl;
 
 import com.hazelblast.client.annotations.LoadBalanced;
 import com.hazelblast.client.router.NoOpRouter;

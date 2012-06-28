@@ -1,4 +1,4 @@
-package com.hazelblast.client.basic;
+package com.hazelblast.client.impl;
 
 import com.hazelblast.client.StubExecutorService;
 import com.hazelblast.client.annotations.DistributedService;
@@ -34,7 +34,7 @@ public class Partitioned_Test {
 
     @Test(expected = IllegalArgumentException.class)
     public void badProxy_partitionedMethodWithoutArguments() {
-        BasicProxyProvider proxyProvider = new BasicProxyProvider();
+        ProxyProviderImpl proxyProvider = new ProxyProviderImpl();
         proxyProvider.getProxy(PartitionedMethodWithoutArguments.class);
     }
 
@@ -46,7 +46,7 @@ public class Partitioned_Test {
 
     @Test(expected = IllegalArgumentException.class)
     public void badProxy_partitionedMethodWithoutPartitionKeyArgument() {
-        BasicProxyProvider proxyProvider = new BasicProxyProvider();
+        ProxyProviderImpl proxyProvider = new ProxyProviderImpl();
         proxyProvider.getProxy(PartitionedMethodWithoutPartitionKeyArgument.class);
     }
 
@@ -63,7 +63,7 @@ public class Partitioned_Test {
 
     @Test(expected = IllegalArgumentException.class)
     public void badProxy_partitionedMethodWithoutExistingProperty() {
-        BasicProxyProvider proxyProvider = new BasicProxyProvider();
+        ProxyProviderImpl proxyProvider = new ProxyProviderImpl();
         proxyProvider.getProxy(PartitionedMethodWithoutExistingProperty.class);
     }
 
@@ -75,7 +75,7 @@ public class Partitioned_Test {
 
     @Test
     public void partitioned_whenPartitionAwareObjectReturnsNull() {
-        BasicProxyProvider proxyProvider = new BasicProxyProvider();
+        ProxyProviderImpl proxyProvider = new ProxyProviderImpl();
         PartitionedService service = proxyProvider.getProxy(PartitionedService.class);
 
         try {
@@ -89,7 +89,7 @@ public class Partitioned_Test {
 
     @Test
     public void whenPartitionKeyWithPropertyIsNull() {
-        BasicProxyProvider proxyProvider = new BasicProxyProvider();
+        ProxyProviderImpl proxyProvider = new ProxyProviderImpl();
         PartitionedService service = proxyProvider.getProxy(PartitionedService.class);
 
         try {
@@ -102,7 +102,7 @@ public class Partitioned_Test {
 
     @Test
     public void whenPartitionKeyArgumentWithPropertyReturnsNull() {
-        BasicProxyProvider proxyProvider = new BasicProxyProvider();
+        ProxyProviderImpl proxyProvider = new ProxyProviderImpl();
         PartitionedService service = proxyProvider.getProxy(PartitionedService.class);
 
         try {
@@ -116,7 +116,7 @@ public class Partitioned_Test {
 
     @Test
     public void whenNullPartitionedKeyArgument() {
-        BasicProxyProvider proxyProvider = new BasicProxyProvider();
+        ProxyProviderImpl proxyProvider = new ProxyProviderImpl();
         PartitionedService service = proxyProvider.getProxy(PartitionedService.class);
         try {
             service.valid(null);
@@ -129,7 +129,7 @@ public class Partitioned_Test {
     public void normalPartitionKey() {
         StubExecutorService executorService = new StubExecutorService();
         executorService.result = "";
-        BasicProxyProvider proxyProvider = new BasicProxyProvider("default", hazelcastInstance, executorService);
+        ProxyProviderImpl proxyProvider = new ProxyProviderImpl("default", hazelcastInstance, executorService);
         proxyProvider.setLocalCallOptimizationEnabled(false);
 
         PartitionedService service = proxyProvider.getProxy(PartitionedService.class);
@@ -166,7 +166,7 @@ public class Partitioned_Test {
     public void partitionKeyWithProperty() {
         StubExecutorService executorService = new StubExecutorService();
         executorService.result = "";
-        BasicProxyProvider proxyProvider = new BasicProxyProvider("default", hazelcastInstance, executorService);
+        ProxyProviderImpl proxyProvider = new ProxyProviderImpl("default", hazelcastInstance, executorService);
         proxyProvider.setLocalCallOptimizationEnabled(false);
 
         PartitionedService service = proxyProvider.getProxy(PartitionedService.class);
@@ -189,7 +189,7 @@ public class Partitioned_Test {
     public void partitionKeyWithPartitionAware() {
         StubExecutorService executorService = new StubExecutorService();
         executorService.result = "";
-        BasicProxyProvider proxyProvider = new BasicProxyProvider("default", hazelcastInstance, executorService);
+        ProxyProviderImpl proxyProvider = new ProxyProviderImpl("default", hazelcastInstance, executorService);
         proxyProvider.setLocalCallOptimizationEnabled(false);
 
         PartitionedService service = proxyProvider.getProxy(PartitionedService.class);
@@ -243,7 +243,7 @@ public class Partitioned_Test {
 
     @Test
     public void test_toString() {
-        BasicProxyProvider proxyProvider = new BasicProxyProvider();
+        ProxyProviderImpl proxyProvider = new ProxyProviderImpl();
         PartitionedService service = proxyProvider.getProxy(PartitionedService.class);
         String s = service.toString();
         System.out.println(s);
@@ -252,7 +252,7 @@ public class Partitioned_Test {
 
     @Test
     public void test_hashCode() {
-        BasicProxyProvider proxyProvider = new BasicProxyProvider();
+        ProxyProviderImpl proxyProvider = new ProxyProviderImpl();
         PartitionedService service = proxyProvider.getProxy(PartitionedService.class);
         int s = service.hashCode();
 
@@ -260,7 +260,7 @@ public class Partitioned_Test {
 
     @Test
     public void test_equals() {
-        BasicProxyProvider proxyProvider = new BasicProxyProvider();
+        ProxyProviderImpl proxyProvider = new ProxyProviderImpl();
         PartitionedService service = proxyProvider.getProxy(PartitionedService.class);
 
         assertTrue(service.equals(service));

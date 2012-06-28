@@ -1,4 +1,4 @@
-package com.hazelblast.client.basic;
+package com.hazelblast.client.impl;
 
 
 import com.hazelblast.client.ProxyProvider;
@@ -31,9 +31,9 @@ import static java.lang.String.format;
  * <p/>
  * This ProxyProvider implementation is very customizable, one can add/remove/replace MethodInvocationHandlerFactories
  * that process certain annotations. If you want to add support for a new annotation (or change the behavior of an
- * existing annotation) just write a custom MethodInvocationHandlerFactory and register it with this {@link BasicProxyProvider}.
+ * existing annotation) just write a custom MethodInvocationHandlerFactory and register it with this {@link ProxyProviderImpl}.
  */
-public final class BasicProxyProvider implements ProxyProvider {
+public final class ProxyProviderImpl implements ProxyProvider {
 
     protected final ILogger logger;
     protected final HazelcastInstance hazelcastInstance;
@@ -52,7 +52,7 @@ public final class BasicProxyProvider implements ProxyProvider {
     /**
      * Creates a new ProxyProvider that connects to the 'default' Slice.
      */
-    public BasicProxyProvider() {
+    public ProxyProviderImpl() {
         this(Slice.DEFAULT_NAME, Hazelcast.getDefaultInstance());
     }
 
@@ -62,7 +62,7 @@ public final class BasicProxyProvider implements ProxyProvider {
      * @param hazelcastInstance the HazelcastInstance used.
      * @throws NullPointerException if hazelcastInstance is null.
      */
-    public BasicProxyProvider(HazelcastInstance hazelcastInstance) {
+    public ProxyProviderImpl(HazelcastInstance hazelcastInstance) {
         this(Slice.DEFAULT_NAME, hazelcastInstance);
     }
 
@@ -73,7 +73,7 @@ public final class BasicProxyProvider implements ProxyProvider {
      * @param hazelcastInstance the HazelcastInstance
      * @throws NullPointerException if sliceName or hazelcastInstance is null.
      */
-    public BasicProxyProvider(String sliceName, HazelcastInstance hazelcastInstance) {
+    public ProxyProviderImpl(String sliceName, HazelcastInstance hazelcastInstance) {
         this(notNull("sliceName", sliceName),
                 notNull("hazelcastInstance", hazelcastInstance),
                 hazelcastInstance.getExecutorService());
@@ -87,12 +87,12 @@ public final class BasicProxyProvider implements ProxyProvider {
      * @param executorService   the executor service used. Make sure it belongs to the hazelcastInstance.
      * @throws NullPointerException if sliceName, hazelcastInstance or executorService is null.
      */
-    public BasicProxyProvider(String sliceName, HazelcastInstance hazelcastInstance, ExecutorService executorService) {
+    public ProxyProviderImpl(String sliceName, HazelcastInstance hazelcastInstance, ExecutorService executorService) {
         this.sliceName = notNull("sliceName", sliceName);
         this.hazelcastInstance = notNull("hazelcastInstance", hazelcastInstance);
         this.executorService = notNull("executorService", executorService);
         this.cluster = hazelcastInstance.getCluster();
-        this.logger = hazelcastInstance.getLoggingService().getLogger(BasicProxyProvider.class.getName());
+        this.logger = hazelcastInstance.getLoggingService().getLogger(ProxyProviderImpl.class.getName());
         registerMethodInvocationHandlerFactory(new LoadBalancedMethodInvocationHandlerFactory());
         registerMethodInvocationHandlerFactory(new PartitionedMethodInvocationHandlerFactory());
 

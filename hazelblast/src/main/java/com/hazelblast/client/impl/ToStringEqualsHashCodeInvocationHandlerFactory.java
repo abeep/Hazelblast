@@ -1,4 +1,4 @@
-package com.hazelblast.client.basic;
+package com.hazelblast.client.impl;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
