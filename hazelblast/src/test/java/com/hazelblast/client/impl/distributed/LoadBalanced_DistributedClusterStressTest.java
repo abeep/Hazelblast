@@ -1,7 +1,5 @@
 package com.hazelblast.client.impl.distributed;
 
-
-import com.hazelblast.testcategories.StressTest;
 import com.hazelblast.TestUtils;
 import com.hazelblast.client.impl.ProxyProviderImpl;
 import com.hazelcast.core.Hazelcast;

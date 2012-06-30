@@ -8,18 +8,14 @@ import com.hazelblast.server.SliceServer;
 import com.hazelblast.server.pojoslice.Exposed;
 import com.hazelblast.server.pojoslice.HazelcastInstanceProvider;
 import com.hazelblast.server.pojoslice.PojoSlice;
-import com.hazelblast.testcategories.PerformanceTest;
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
-
-@Category(PerformanceTest.class)
 public class Partitioned_PerformanceTest {
 
     private AtomicBoolean run;
