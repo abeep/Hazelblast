@@ -10,6 +10,15 @@ this can be done by listening to partition changes and deactivating these resour
 
 News
 -------------------------
+* 30 June 2012: Hazelblast 0.3 released
+    - Lots of internal cleanup/renaming.
+    - Bug fixed with the server.shutdown and locks not being released
+    - Possible to switch back to the Hazelcast LoadBalanced for LoadBalanced methods
+    - Optimization for In Memory calls (on my machine 30 times faster)
+    - PojoSlice/SpringSlice: HazelcastInstance can be defined within the Slice.
+    - Exposed annotation for Pojo to expose services.
+    - BasicProxyProvider is made plugable; behavior for new/existing distribution annotations can be altered.
+    - Lots of other smaller stability improvements.
 * 19 June 2012: Hazelblast 0.2 released
     - custom loadbalancer policies for the LoadBalanced methods
     - support for timeout on LoadBalanced/Partitioned methods
@@ -22,7 +31,7 @@ Example
 This interface needs be shared between the client (that calls this service) and the server (that implements
 this service). The fire method is partitioned and is routed on the employeeId.
 
-    @RemoteInterface
+    @DistributedService
     class FireService{
 
         @Partitioned
@@ -31,7 +40,7 @@ this service). The fire method is partitioned and is routed on the employeeId.
 
 And it can be called like this:
 
-    ProxyProvider proxyProvider = new SmarterProxyProvider();
+    ProxyProvider proxyProvider = new BasicProxyProvider();
     FireService fireService = proxyProvider.getProxy(FireService.class);
     fireService.fire("123");
 
@@ -56,7 +65,7 @@ There currently are 2 different types of calls
 on that machine, data is local.
 * LoadBalanced: the call gets forwarded to one of the machine; it doesn't matter which one.
 
-In the 0.3 release also the ForkJoin will be added:
+In the 0.4 release also the ForkJoin will be added:
 * ForkJoin: the call gets send to all machines, and the results are aggregated.
 
 For a full example check out the Hazelblast-examples module
@@ -86,7 +95,7 @@ And add the following dependency:
             <dependency>
                 <groupId>com.hazelblast</groupId>
                 <artifactId>hazelblast</artifactId>
-                <version>0.2</version>
+                <version>0.3</version>
             </dependency>
         </dependencies>
 
