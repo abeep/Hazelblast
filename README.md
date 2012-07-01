@@ -13,7 +13,7 @@ News
 * 30 June 2012: Hazelblast 0.3 released
     - Lots of internal cleanup/renaming.
     - Bug fixed with the server.shutdown and locks not being released
-    - Possible to switch back to the Hazelcast LoadBalanced for LoadBalanced methods
+    - Possible to switch back to the Hazelcast LoadBalancer for LoadBalanced methods
     - Optimization for In Memory calls (on my machine 30 times faster)
     - PojoSlice/SpringSlice: HazelcastInstance can be defined within the Slice.
     - Exposed annotation for Pojo to expose services.
