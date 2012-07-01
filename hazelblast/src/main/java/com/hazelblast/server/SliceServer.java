@@ -40,7 +40,7 @@ public final class SliceServer {
         CommandLine commandLine = buildCommandLine(args, options, parser);
 
         if (commandLine.hasOption("version")) {
-            System.out.println("SliceServer version is 0.3");
+            System.out.println("SliceServer version is 0.4-SNAPSHOT");
             System.exit(0);
         }
 
