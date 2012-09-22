@@ -29,7 +29,7 @@ public final class PojoUtils {
     }
 
     private static void getServiceFields(Class targetClass, Map<String, Field> fields) {
-        for (Field field : targetClass.getFields()) {
+        for (Field field : targetClass.getDeclaredFields()) {
             if (!fields.containsKey(field.getName())) {
                 Exposed service = field.getAnnotation(Exposed.class);
                 if (service != null) {
